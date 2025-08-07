@@ -1,67 +1,51 @@
-/* Sidebar */
 .sidebar {
   width: 240px;
   min-height: 100vh;
-  padding-top: 30px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
-  background-color: #000; 
-  color: #fff;
+  background-color: #1e1e2f;
+  color: white;
+  padding: 1rem 0;
+  position: fixed;
 }
 
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 2rem;
 }
 
 .sidebar .title {
-  font-family: 'Roboto', sans-serif;
-  font-size: 22px;
-  text-transform: capitalize;
-  font-weight: 600;
-  text-align: start;
-  margin-bottom: 10px;
-  color: #ffffff;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #f5f5f5;
 }
 
-.sidebar .sidebar-items {
+.sidebar-items {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.sidebar-items .sidebar-item {
-  margin: 5px 0;
+.sidebar-item {
+  margin: 0.5rem 0;
 }
 
-.sidebar-items .nav-link {
+.nav-link {
+  color: #b0bec5;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
-  text-transform: capitalize;
-  text-decoration: none;
-  font-size: 16px;
-  padding: 10px 20px;
-  border-radius: 5px;
-  border-left: 4px solid transparent;
-  transition: all 0.2s ease-in-out;
-  color: #cfd8dc;
+  gap: 0.75rem;
+  font-weight: 500;
 }
 
-.sidebar-items .nav-link .nav-icon {
-  margin-right: 12px;
-  font-size: 20px;
+.nav-link:hover {
+  background-color: #3949ab;
+  color: white;
 }
 
-.sidebar-items .nav-link:hover {
-  background-color: #1a1a1a;
-  color: #ffffff;
-}
-
-.sidebar-items .nav-link.active {
-  background-color: #ffffff;
-  color: #000;
-  font-weight: 600;
-  border-left: 4px solid #00bcd4;
+.nav-link.active {
+  background-color: #3f51b5;
+  color: white;
 }
