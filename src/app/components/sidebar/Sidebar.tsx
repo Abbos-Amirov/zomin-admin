@@ -44,14 +44,14 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
       icon: <Inventory2Icon className="sidebar-icon" />,
     },
     {
-      to: "/admin-profile",
-      label: "Profile",
-      icon: <AccountCircleIcon className="sidebar-icon" />,
-    },
-    {
       to: "/tables",
       label: "Tables",
       icon: <TableRestaurantIcon className="sidebar-icon" />,
+    },
+    {
+      to: "/user/all",
+      label: "Users",
+      icon: <AccountCircleIcon className="sidebar-icon" />,
     },
     {
       to: "/calls",
@@ -61,7 +61,7 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
   ];
 
   const drawerContent = (
-    <Box className="sidebar">
+    <Box className="sidebar" sx={{backgroundColor: "primary.main", color: "primary.contrastText"}}>
       <Box className="sidebar-title">Admin Panel</Box>
       <List className="sidebar-list">
         {navItems.map((item) => (
