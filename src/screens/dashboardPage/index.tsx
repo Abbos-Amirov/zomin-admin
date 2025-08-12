@@ -10,8 +10,8 @@ export default function DashboardPage(){
       <DashboardOverview/>
       <TableStatus/>
       <NotifAndCategory/>
-      {/* <QuickActions/> */}
       <TopItemsBar />
+      <QuickActions/>
     </>
   )
 }
