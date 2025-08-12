@@ -73,20 +73,20 @@ const kpis = [
   },
   // ===== Tables =====
   {
-    label: "Tables Occupied",
-    value: "12 / 20",
-    icon: <TableRestaurantIcon />,
-    iconBg: "#ede7f6",
-    iconColor: "#5e35b1",
-    valueColor: "#5e35b1",
-  },
-  {
-    label: "Available Tables",
-    value: "8",
+    label: "Free Tables",
+    value: "20",
     icon: <TableRestaurantIcon />,
     iconBg: "#e8f5e9",
     iconColor: "#2e7d32",
     valueColor: "#2e7d32",
+  },
+  {
+    label: "Tables Occupied",
+    value: "12",
+    icon: <TableRestaurantIcon />,
+    iconBg: "#ede7f6",
+    iconColor: "#5e35b1",
+    valueColor: "#5e35b1",
   },
   {
     label: "Cleaning Tables",
