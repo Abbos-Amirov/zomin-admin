@@ -40,7 +40,7 @@ const bgByState = (s: TableState) =>
 
 export default function TableStatus() {
   return (
-    <Card sx={{ borderRadius: 3, height: "100%" }}>
+    <Card sx={{ borderRadius: 3, maxHeight: "100%", marginBottom: "30px" }}>
       <CardContent>
         <Stack
           direction="row"
