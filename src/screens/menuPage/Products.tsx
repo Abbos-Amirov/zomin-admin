@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { Box, Button, Container, IconButton, Stack } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
-import Badge from "@mui/material/Badge";
 import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ProductDialog from "./CreateProduct";
 
 const products = [
   { productName: "Cutlet", imagePath: "/img/cutlet.webp" },
@@ -33,10 +31,26 @@ export default function Products() {
     console.log("Delete clicked");
   };
 
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"create" | "edit">("create");
+  const [edit, setEdit] = useState<any | undefined>(undefined); // TODO: TO IMPORT any => ENUM
+
+  // product demo
+  const sampleProduct: any = {
+    productName: "Burger",
+    productPrice: "8.99",
+    productLeftCount: "12",
+    productCollection: "DISH",
+    productSize: "NORMAL",
+    productVolume: undefined,
+    productDesc: "Juicy beef burger",
+    productImages: ["img/doner.webp", null, null, null, null],
+  };
+
   return (
     <div className="products-page">
       <div className="products">
-        <Container >
+        <Container>
           <Stack flexDirection={"column"} alignItems={"center"} mt="15px">
             <Stack
               flexDirection={"row"}
@@ -46,6 +60,19 @@ export default function Products() {
             >
               <Stack className="avatar-big-box">
                 <Box className="top-text">Menu items</Box>
+                <Box>
+                  <Button
+                    color="secondary"
+                    variant="contained"
+                    onClick={() => {
+                      setMode("create");
+                      setEdit(undefined);
+                      setOpen(true);
+                    }}
+                  >
+                    + Add New Product
+                  </Button>
+                </Box>
               </Stack>
             </Stack>
             <Stack className="dishes-filter-section">
@@ -144,7 +171,12 @@ export default function Products() {
                             <IconButton
                               size="small"
                               color="primary"
-                              onClick={handleEdit}
+                              onClick={() => {
+                                setMode("edit");
+                                setEdit(sampleProduct); //TODO: pass product data here
+                                setOpen(true);
+                              }}
+                              sx={{ ml: 2 }}
                             >
                               <EditIcon fontSize="medium" />
                             </IconButton>
@@ -173,7 +205,7 @@ export default function Products() {
                                     : "success.dark",
                               },
                               textTransform: "none",
-                              color: "#f8f8ff"
+                              color: "#f8f8ff",
                             }}
                             //TODO: Click handlar
                           >
@@ -210,6 +242,24 @@ export default function Products() {
           </Stack>
         </Container>
       </div>
+
+      {/* DIALOG */}
+      <ProductDialog
+        mode={mode}
+        open={open}
+        onClose={() => setOpen(false)}
+        initialValues={edit}
+        onSubmit={(fd) => {
+          if (mode === "create") {
+            //TODO: POST fd to backend
+            console.log("Creating:");
+          } else {
+            //TODO: POST fd to backend
+            console.log("Updating:");
+          }
+          setOpen(false);
+        }}
+      />
     </div>
   );
 }

@@ -18,7 +18,7 @@
   height: 46px;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
 }
 
@@ -481,3 +481,12 @@
   line-height: 43px;
   margin-top: 40px;
 }
+
+/** Ceate product */
+.dialog .sub-title{
+  margin-top: 0.75px;
+  color: black;
+  text-align: center;
+  font-size: 18px;
+}
+
