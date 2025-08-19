@@ -1,5 +1,9 @@
+import MainPage from "./UsersPage";
+
 export default function UsersPage(){
   return(
-    <div>UsersPage</div>
+    <>
+    <MainPage/>
+    </>
   )
 }

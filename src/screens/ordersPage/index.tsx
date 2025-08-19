@@ -51,7 +51,7 @@ export default function OrdersPage() {
 
   return (
     <Stack spacing={2}>
-      <Typography variant="h5" fontWeight={700}>Orders</Typography>
+      <Typography variant="h3" fontWeight={700} textAlign={"center"}>Orders</Typography>
 
       <OrdersFilters
         search={search} onSearchChange={setSearch}
