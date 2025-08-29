@@ -2,26 +2,26 @@ import React from "react";
 import { Stack, Box } from "@mui/material";
 import NotificationsPanel from "./NotificationsPanel";
 import CategoryPie from "./CategoryPie";
+import TopItemsBar from "./TopItemsBar";
 
-export default function NotifAndCategory() {
+export default function index() {
   return (
     <Stack
       direction={{ xs: "column", md: "row" }}
       spacing={2}
-      sx={{ width: "100%" }}
     >
       <Box
         sx={{
-          flex: { xs: "1 1 100%", md: "2 1 0" },
+          flex: { xs: "1 1", md: "2 1 0" },
           minWidth: 0,
         }}
       >
-        <NotificationsPanel />
+        <TopItemsBar/>
       </Box>
 
       <Box
         sx={{
-          flex: { xs: "1 1 100%", md: "1 1 0" },
+          flex: { xs: "1 1", md: "1 1 0" },
           minWidth: 0,
         }}
       >

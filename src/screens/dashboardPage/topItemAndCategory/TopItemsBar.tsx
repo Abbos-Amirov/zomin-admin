@@ -79,7 +79,7 @@ export default function TopItemsBar() {
   };
 
   return (
-    <Card sx={{ borderRadius: 3, height: 360, marginTop: "30px" }}>
+    <Card sx={{ borderRadius: 3, height: 360 }}>
       <CardContent sx={{ height: 1 }}>
         <Typography variant="h4" fontWeight={"700"} sx={{ mb: 1 }}>
           Top Selling Items

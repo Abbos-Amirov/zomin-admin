@@ -1,16 +1,14 @@
 import DashboardOverview from "./DashboardOverview";
-import NotifAndCategory from "./notifiAndCategory/NotifAndCategory";
+import TopItemAndCategory from "./topItemAndCategory";
 import QuickActions from "./QuickActions";
 import TableStatus from "./TableStatus";
-import TopItemsBar from "./TopItemsBar";
 
 export default function DashboardPage(){
   return(
     <>
       <DashboardOverview/>
       <TableStatus/>
-      <NotifAndCategory/>
-      <TopItemsBar />
+      <TopItemAndCategory/>
       <QuickActions/>
     </>
   )
