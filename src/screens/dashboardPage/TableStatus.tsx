@@ -10,10 +10,12 @@ import {
   Box,
   Avatar,
   Badge,
+  Button,
 } from "@mui/material";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import CleaningServicesRoundedIcon from "@mui/icons-material/CleaningServicesRounded";
+import { RippleBadge } from "../../app/MaterialTheme/styled";
 
 type TableState = "free" | "occupied" | "cleaning";
 
@@ -73,36 +75,36 @@ export default function TableStatus() {
             <Stack direction="row" spacing={1} alignItems="center">
               <Box
                 sx={{
-                  width: 10,
-                  height: 10,
+                  width: 12,
+                  height: 12,
                   bgcolor: "warning.light",
                   borderRadius: 1,
                 }}
               />
-              <Typography variant="caption">Occupied</Typography>
+              <Typography variant="h5">Occupied</Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               <Box
                 sx={{
-                  width: 10,
-                  height: 10,
+                  width: 12,
+                  height: 12,
                   bgcolor: "info.light",
                   borderRadius: 1,
                 }}
               />
-              <Typography variant="caption">Cleaning</Typography>
+              <Typography variant="h5">Cleaning</Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               <Box
                 sx={{
-                  width: 10,
-                  height: 10,
+                  width: 12,
+                  height: 12,
                   bgcolor: "background.default",
-                  border: (t) => `1px solid ${t.palette.divider}`,
+                  border: (t) => `3px solid ${t.palette.divider}`,
                   borderRadius: 1,
                 }}
               />
-              <Typography variant="caption">Free</Typography>
+              <Typography variant="h5">Free</Typography>
             </Stack>
           </Stack>
         </Stack>
@@ -114,34 +116,48 @@ export default function TableStatus() {
             <Grid item xs={4} sm={3} md={2.4 as any} lg={2} key={t.id}>
               <Box
                 sx={{
+                  height: "150px",
                   p: 1.5,
                   borderRadius: 2,
                   border: (theme) => `1px solid ${theme.palette.divider}`,
-                  bgcolor: bgByState(t.state),
+                  bgcolor: bgByState(t.state)
                 }}
               >
                 <Stack
+                  height={"100%"}
                   direction="row"
                   alignItems="center"
                   justifyContent="space-between"
                 >
                   <Stack>
-                    <Typography fontWeight={700}>{t.name}</Typography>
-                    <Typography variant="caption" color="text.primary">
+                    <Typography variant="h3" fontWeight={700}>
+                      {t.name}
+                    </Typography>
+                    <Typography variant="h4" color="text.primary">
                       {t.state}
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={1} alignItems="center">
                     {t.call && (
-                      <Badge color="error" variant="dot">
-                        <NotificationsRoundedIcon fontSize="small" />
-                      </Badge>
+                      <Button>
+                        <RippleBadge
+                          overlap="circular"
+                          anchorOrigin={{
+                            vertical: "top",
+                            horizontal: "right",
+                          }}
+                          variant="dot"
+                          color="error"
+                        >
+                          <NotificationsRoundedIcon fontSize="large" />
+                        </RippleBadge>
+                      </Button>
                     )}
-                    <Avatar sx={{ width: 28, height: 28 }}>
+                    <Avatar sx={{ width: 50, height: 50 }}>
                       {t.state === "cleaning" ? (
-                        <CleaningServicesRoundedIcon fontSize="small" />
+                        <CleaningServicesRoundedIcon fontSize="large" />
                       ) : (
-                        <TableRestaurantIcon fontSize="small" />
+                        <TableRestaurantIcon fontSize="large" />
                       )}
                     </Avatar>
                   </Stack>

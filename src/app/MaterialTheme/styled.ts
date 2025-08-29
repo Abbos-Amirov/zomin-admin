@@ -3,8 +3,8 @@ import Badge from "@mui/material/Badge";
 
 export const RippleBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
-    color: "#44b700",
-    background: "white",
+    color: "#ff1744",
+    background: "#ffffff",
     "&::after": {
       position: "absolute",
       top: "-2px",
