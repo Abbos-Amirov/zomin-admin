@@ -1,10 +1,14 @@
 // src/app/store.ts
 import { configureStore } from '@reduxjs/toolkit';
-import counterReducer from './counterSlice'; // adjust if path differs
+import reduxLogger from "redux-logger";
+import DashboardPageReducer from '../screens/dashboardPage/slice';
 
 export const store = configureStore({
+  middleware: (getDefaultMiddleware) =>
+    //@ts-ignore
+    getDefaultMiddleware().concat(reduxLogger),
   reducer: {
-    counter: counterReducer,
+    dashboardPage: DashboardPageReducer,
   },
 });
 

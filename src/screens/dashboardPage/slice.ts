@@ -4,8 +4,7 @@ import { DashboardPageState } from "../../lib/types/screen";
 const initialState: DashboardPageState = {
   orderStatis: null,
   tableStatus: [],
-  topSellingItems: [],
-  ordersByCategory: [],
+  productStatus: [],
 };
 
 const dashboardPageSlice = createSlice({
@@ -18,16 +17,13 @@ const dashboardPageSlice = createSlice({
     setTableStatus: (state, action) => {
       state.tableStatus = action.payload;
     },
-    setTopSellingItems: (state, action) => {
-      state.topSellingItems = action.payload;
-    },
-    setOrdersByCategory: (state, action) => {
-      state.ordersByCategory = action.payload;
+    setProductStatus: (state, action) => {
+      state.productStatus = action.payload;
     },
   },
 });
 
-export const { setOrderStatis, setTableStatus, setTopSellingItems,setOrdersByCategory } =
+export const { setOrderStatis, setTableStatus, setProductStatus } =
   dashboardPageSlice.actions;
 
 const DashboardPageReducer = dashboardPageSlice.reducer;

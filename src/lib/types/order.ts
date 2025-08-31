@@ -73,14 +73,9 @@ export interface OrderStatis {
   totalOrder: number;
   pendingOrder: number;
   complatedOrder: number;
-  totalItems: number;
-  availableItems: number;
-  unAvailableItems: number;
-  freeTables: number;
-  tableOccupied:number;
-  cleaningTables: number;
-  callWaiterRequests: number;
   todayIncomeAndAOV: TodayIncomeAndAOV[];
+  ordersByCategory: OrdersByCategory[];
+  topSellingItems: TopSellingItems[];
 }
 
 export interface TodayIncomeAndAOV {

@@ -13,12 +13,7 @@ export const retrieveTableStatus = createSelector(
   (dashboardPage) => dashboardPage.tableStatus
 );
 
-export const retrieveTopSellingItems = createSelector(
+export const retrieveProductStatus = createSelector(
   selectDashboardPage,
-  (dashboardPage) => dashboardPage.topSellingItems
-);
-
-export const retrieveOrdersByCategory = createSelector(
-  selectDashboardPage,
-  (dashboardPage) => dashboardPage.ordersByCategory
+  (dashboardPage) => dashboardPage.productStatus
 );

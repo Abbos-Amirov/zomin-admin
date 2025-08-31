@@ -1,4 +1,5 @@
 import { OrdersByCategory, OrderStatis, TopSellingItems } from "./order";
+import { Product } from "./product";
 import { Table } from "./table";
 
 /** REACT APP STORE */
@@ -10,6 +11,5 @@ export interface AppRootState {
 export interface DashboardPageState {
   orderStatis: OrderStatis | null;
   tableStatus: Table[];
-  topSellingItems: TopSellingItems[];
-  ordersByCategory: OrdersByCategory[];
+  productStatus: Product[];
 }
