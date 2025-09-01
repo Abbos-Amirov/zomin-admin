@@ -9,24 +9,28 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { createSelector } from "@reduxjs/toolkit";
+import { retrieveOrderStatis } from "../selector";
+import { useSelector } from "react-redux";
+
+/** REDUX SLICE & SELECTOR */
+const orderStatisRetriever = createSelector(
+  retrieveOrderStatis,
+  (orderStatis) => ({ orderStatis })
+);
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function TopItemsBar() {
-  // Hard-coded data (more than 6 — we’ll slice to 6)
-  const allLabels = [
-    "Burger",
-    "Pizza",
-    "Pasta",
-    "Salad",
-    "Sushi",
-    "Fries",
-    "Steak",
-  ];
-  const allValues = [120, 98, 86, 64, 52, 49, 41];
+  const { orderStatis } = useSelector(orderStatisRetriever);
 
-  const labels = allLabels.slice(0, 6);
-  const values = allValues.slice(0, 6);
+  const allLabels = orderStatis?.topSellingItems.map((val) => val.productName);
+  const allValues = orderStatis?.topSellingItems.map(
+    (val) => val.totalQuantity
+  );
+
+  const labels = allLabels?.slice(0, 6);
+  const values = allValues?.slice(0, 6);
 
   const bgColors = [
     "#42A5F5",

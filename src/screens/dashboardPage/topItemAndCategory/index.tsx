@@ -1,6 +1,5 @@
 import React from "react";
 import { Stack, Box } from "@mui/material";
-import NotificationsPanel from "./NotificationsPanel";
 import CategoryPie from "./CategoryPie";
 import TopItemsBar from "./TopItemsBar";
 
