@@ -7,11 +7,11 @@ import { setOrderStatis, setProductStatus, setTableStatus } from "./slice";
 import { Table } from "../../lib/types/table";
 import { Dispatch } from "@reduxjs/toolkit";
 import { useEffect } from "react";
-import TableStatus from "./TableStatus";
 import { ProductsStat } from "../../lib/types/product";
 import OrderService from "../../services/Order.service";
 import ProductService from "../../services/Product.service";
 import TableService from "../../services/Table.service";
+import TableInfo from "./TableStatus";
 
 /** REDUX SLICE & SELECTOR */
 const actionDispatch = (dispatch: Dispatch) => ({
@@ -58,7 +58,7 @@ export default function DashboardPage() {
   return (
     <>
       <DashboardOverview />
-      <TableStatus />
+      <TableInfo />
       <TopItemAndCategory />
       <QuickActions />
     </>

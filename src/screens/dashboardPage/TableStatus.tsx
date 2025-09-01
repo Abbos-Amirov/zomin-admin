@@ -16,31 +16,29 @@ import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import CleaningServicesRoundedIcon from "@mui/icons-material/CleaningServicesRounded";
 import { RippleBadge } from "../../app/MaterialTheme/styled";
+import { retrieveTableStatus } from "./selector";
+import { createSelector } from "@reduxjs/toolkit";
+import { useSelector } from "react-redux";
+import { TableStatus } from "../../lib/enums/table.enum";
+import { TableCall } from "../../lib/enums/tableCall.enum";
 
-type TableState = "free" | "occupied" | "cleaning";
+/** REDUX SLICE & SELECTOR */
+const tableStatusRetriever = createSelector(
+  retrieveTableStatus,
+  (tableStatus) => ({ tableStatus })
+);
 
-type TableInfo = {
-  id: number;
-  name: string;
-  state: TableState;
-  call?: boolean; // call waiter
-};
 
-const tables: TableInfo[] = Array.from({ length: 12 }).map((_, i) => ({
-  id: i + 1,
-  name: `T-${String(i + 1).padStart(2, "0")}`,
-  state: i % 5 === 0 ? "cleaning" : i % 3 === 0 ? "occupied" : "free",
-  call: i === 6 || i === 13,
-}));
-
-const bgByState = (s: TableState) =>
-  s === "occupied"
+const bgByState = (s: TableStatus) =>
+  s === "OCCUPIED"
     ? "warning.light"
-    : s === "cleaning"
+    : s === "CLEANING"
     ? "info.light"
     : "background.default";
 
-export default function TableStatus() {
+export default function TableInfo() {
+  const { tableStatus } = useSelector(tableStatusRetriever);
+  
   return (
     <Card sx={{ borderRadius: 3, maxHeight: "100%", marginBottom: "30px" }}>
       <CardContent>
@@ -112,15 +110,15 @@ export default function TableStatus() {
         <Divider sx={{ mb: 2 }} />
 
         <Grid container spacing={1.5}>
-          {tables.map((t) => (
-            <Grid item xs={4} sm={3} md={2.4 as any} lg={2} key={t.id}>
+          {tableStatus.map((t) => (
+            <Grid item xs={4} sm={3} md={2.4 as any} lg={2} key={t._id}>
               <Box
                 sx={{
                   height: "150px",
                   p: 1.5,
                   borderRadius: 2,
                   border: (theme) => `1px solid ${theme.palette.divider}`,
-                  bgcolor: bgByState(t.state)
+                  bgcolor: bgByState(t.tableStatus)
                 }}
               >
                 <Stack
@@ -131,14 +129,14 @@ export default function TableStatus() {
                 >
                   <Stack>
                     <Typography variant="h3" fontWeight={700}>
-                      {t.name}
+                      {t.tableNumber}
                     </Typography>
                     <Typography variant="h4" color="text.primary">
-                      {t.state}
+                      {t.tableStatus}
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    {t.call && (
+                    {t.tableCall === TableCall.ACTIVE && (
                       <Button>
                         <RippleBadge
                           overlap="circular"
@@ -154,7 +152,7 @@ export default function TableStatus() {
                       </Button>
                     )}
                     <Avatar sx={{ width: 50, height: 50 }}>
-                      {t.state === "cleaning" ? (
+                      {t.tableStatus === "CLEANING" ? (
                         <CleaningServicesRoundedIcon fontSize="large" />
                       ) : (
                         <TableRestaurantIcon fontSize="large" />
