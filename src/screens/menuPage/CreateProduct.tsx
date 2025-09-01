@@ -21,7 +21,7 @@ type Size = "SMALL" | "NORMAL" | "LARGE" | "SET";
 type Volume = 0.5 | 1 | 1.25 | 1.5;
 
 export type ProductInitialValues = {
-  _id?: string; // need for edit
+  _id?: string; 
   productName: string;
   productPrice: number;
   productLeftCount: number;
@@ -48,8 +48,8 @@ type FormValues = {
   productSize?: Size;
   productVolume?: Volume;
   productDesc: string;
-  existingUrls: string[]; // for edit
-  newFiles: File[]; // new uploads
+  existingUrls: string[]; 
+  newFiles: File[]; 
 };
 
 const EMPTY: FormValues = {

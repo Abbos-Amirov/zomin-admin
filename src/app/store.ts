@@ -1,7 +1,8 @@
 // src/app/store.ts
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore } from "@reduxjs/toolkit";
 import reduxLogger from "redux-logger";
-import DashboardPageReducer from '../screens/dashboardPage/slice';
+import DashboardPageReducer from "../screens/dashboardPage/slice";
+import MenuPageReducer from "../screens/menuPage/slice";
 
 export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
@@ -9,6 +10,7 @@ export const store = configureStore({
     getDefaultMiddleware().concat(reduxLogger),
   reducer: {
     dashboardPage: DashboardPageReducer,
+    menuPage: MenuPageReducer,
   },
 });
 
