@@ -49,3 +49,9 @@ export interface ProductUpdateInput{
     productImages?: string[];
     productViews?: number;
 }
+
+export interface ProductsStat{
+    total: number;
+    available: number;
+    unavailable: number;
+}

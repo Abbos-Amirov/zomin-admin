@@ -8,7 +8,7 @@ import { Table } from "../../lib/types/table";
 import { Dispatch } from "@reduxjs/toolkit";
 import { useEffect } from "react";
 import TableStatus from "./TableStatus";
-import { Product } from "../../lib/types/product";
+import { ProductsStat } from "../../lib/types/product";
 import OrderService from "../../services/Order.service";
 import ProductService from "../../services/Product.service";
 import TableService from "../../services/Table.service";
@@ -17,7 +17,7 @@ import TableService from "../../services/Table.service";
 const actionDispatch = (dispatch: Dispatch) => ({
   setOrderStatis: (data: OrderStatis) => dispatch(setOrderStatis(data)),
   setTableStatus: (data: Table[]) => dispatch(setTableStatus(data)),
-  setProductStatus: (data: Product[]) => dispatch(setProductStatus(data)),
+  setProductStatus: (data: ProductsStat[]) => dispatch(setProductStatus(data)),
 });
 
 export default function DashboardPage() {
@@ -36,11 +36,7 @@ export default function DashboardPage() {
 
     const product = new ProductService();
     product
-      .getAllProducts({
-        limit: 10000,
-        page: 1,
-        order: "createdAt",
-      })
+      .getProductsStat()
       .then((data) => {
         setProductStatus(data);
       })

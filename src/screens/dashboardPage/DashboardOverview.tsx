@@ -18,113 +18,33 @@ import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomiz
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
+import { createSelector } from "@reduxjs/toolkit";
+import {
+  retrieveOrderStatis,
+  retrieveProductStatus,
+  retrieveTableStatus,
+} from "./selector";
+import { useSelector } from "react-redux";
+import { TableStatus } from "../../lib/enums/table.enum";
+import { TableCall } from "../../lib/enums/tableCall.enum";
 
-const kpis = [
-  // ===== Orders =====
-  {
-    label: "Total Orders",
-    value: 42,
-    icon: <ReceiptLongIcon />,
-    iconBg: "#e3f2fd",
-    iconColor: "#1976d2",
-    valueColor: "#1976d2",
-  },
-  {
-    label: "Pending Orders",
-    value: 7,
-    icon: <QueryBuilderIcon />,
-    iconBg: "#fff8e1",
-    iconColor: "#f9a825",
-    valueColor: "#f9a825",
-  },
-  {
-    label: "Completed Orders",
-    value: 31,
-    icon: <CheckCircleIcon />,
-    iconBg: "#e8f5e9",
-    iconColor: "#2e7d32",
-    valueColor: "#2e7d32",
-  },
+/** REDUX SLICE & SELECTOR */
+const orderStatisRetriever = createSelector(
+  retrieveOrderStatis,
+  (orderStatis) => ({ orderStatis })
+);
+const productStatusRetriever = createSelector(
+  retrieveProductStatus,
+  (productStatus) => ({ productStatus })
+);
 
-  // ===== Items =====
-  {
-    label: "Total Items",
-    value: 120,
-    icon: <RestaurantMenuIcon />,
-    iconBg: "#eef2ff",
-    iconColor: "#1e40af",
-    valueColor: "#1e40af",
-  },
-  {
-    label: "Available Items",
-    value: 98,
-    icon: <CheckCircleIcon />,
-    iconBg: "#e8f5e9",
-    iconColor: "#2e7d32",
-    valueColor: "#2e7d32",
-  },
-  {
-    label: "Unavailable Items",
-    value: 22,
-    icon: <CancelRoundedIcon />,
-    iconBg: "#ffebee",
-    iconColor: "#c62828",
-    valueColor: "#c62828",
-  },
-  // ===== Tables =====
-  {
-    label: "Free Tables",
-    value: "20",
-    icon: <TableRestaurantIcon />,
-    iconBg: "#e8f5e9",
-    iconColor: "#2e7d32",
-    valueColor: "#2e7d32",
-  },
-  {
-    label: "Tables Occupied",
-    value: "12",
-    icon: <TableRestaurantIcon />,
-    iconBg: "#ede7f6",
-    iconColor: "#5e35b1",
-    valueColor: "#5e35b1",
-  },
-  {
-    label: "Cleaning Tables",
-    value: 3,
-    icon: <TableRestaurantIcon />,
-    iconBg: "#fff8e1",
-    iconColor: "#c62828",
-    valueColor: "#c62828",
-  },
-
-  // ===== Other Metrics =====
-  {
-    label: "Call Waiter Requests",
-    value: 3,
-    icon: <NotificationsRoundedIcon />,
-    iconBg: "#fff3e0",
-    iconColor: "#ef6c00",
-    valueColor: "#ef6c00",
-  },
-  {
-    label: "Today's Income",
-    value: "$1,280",
-    icon: <MonetizationOnIcon />,
-    iconBg: "#e8f5e9",
-    iconColor: "#2e7d32",
-    valueColor: "#2e7d32",
-  },
-  {
-    label: "Avg Order Value",
-    value: "$1,280",
-    icon: <MonetizationOnIcon />,
-    iconBg: "#e8f5e9",
-    iconColor: "#1e40af",
-    valueColor: "#1e40af",
-  },
-];
+const tableStatusRetriever = createSelector(
+  retrieveTableStatus,
+  (tableStatus) => ({ tableStatus })
+);
 
 function KpiItem({ label, value, icon, iconBg, iconColor, valueColor }: any) {
+  const isMoney = label === "Today's Income" || label === "Avg Order Value";
   return (
     <Paper
       elevation={1}
@@ -154,7 +74,7 @@ function KpiItem({ label, value, icon, iconBg, iconColor, valueColor }: any) {
           </Typography>
         </Stack>
         <Typography variant="h4" fontWeight={700} sx={{ color: valueColor }}>
-          {value}
+          {isMoney ? `$${Number(value).toFixed(1)}` : value}
         </Typography>
       </Stack>
     </Paper>
@@ -162,6 +82,120 @@ function KpiItem({ label, value, icon, iconBg, iconColor, valueColor }: any) {
 }
 
 export default function DashboardOverview() {
+  const { orderStatis } = useSelector(orderStatisRetriever);
+  const { productStatus } = useSelector(productStatusRetriever);
+  const { tableStatus } = useSelector(tableStatusRetriever);
+  const kpis = [
+    // ===== Orders =====
+    {
+      label: "Total Orders",
+      value: orderStatis?.totalOrder,
+      icon: <ReceiptLongIcon />,
+      iconBg: "#e3f2fd",
+      iconColor: "#1976d2",
+      valueColor: "#1976d2",
+    },
+    {
+      label: "Pending Orders",
+      value: orderStatis?.pendingOrder,
+      icon: <QueryBuilderIcon />,
+      iconBg: "#fff8e1",
+      iconColor: "#f9a825",
+      valueColor: "#f9a825",
+    },
+    {
+      label: "Completed Orders",
+      value: orderStatis?.complatedOrder,
+      icon: <CheckCircleIcon />,
+      iconBg: "#e8f5e9",
+      iconColor: "#2e7d32",
+      valueColor: "#2e7d32",
+    },
+
+    // ===== Items =====
+    {
+      label: "Total Items",
+      value: productStatus[0]?.total,
+      icon: <RestaurantMenuIcon />,
+      iconBg: "#eef2ff",
+      iconColor: "#1e40af",
+      valueColor: "#1e40af",
+    },
+    {
+      label: "Available Items",
+      value: productStatus[0]?.available,
+      icon: <CheckCircleIcon />,
+      iconBg: "#e8f5e9",
+      iconColor: "#2e7d32",
+      valueColor: "#2e7d32",
+    },
+    {
+      label: "Unavailable Items",
+      value: productStatus[0]?.unavailable,
+      icon: <CancelRoundedIcon />,
+      iconBg: "#ffebee",
+      iconColor: "#c62828",
+      valueColor: "#c62828",
+    },
+    // ===== Tables =====
+    {
+      label: "Free Tables",
+      value: tableStatus?.filter(
+        (val) => val.tableStatus === TableStatus.AVAILABLE
+      ).length,
+      icon: <TableRestaurantIcon />,
+      iconBg: "#e8f5e9",
+      iconColor: "#2e7d32",
+      valueColor: "#2e7d32",
+    },
+    {
+      label: "Tables Occupied",
+      value: tableStatus?.filter(
+        (val) => val.tableStatus === TableStatus.OCCUPIED
+      ).length,
+      icon: <TableRestaurantIcon />,
+      iconBg: "#ede7f6",
+      iconColor: "#5e35b1",
+      valueColor: "#5e35b1",
+    },
+    {
+      label: "Cleaning Tables",
+      value: tableStatus?.filter(
+        (val) => val.tableStatus === TableStatus.CLEANING
+      ).length,
+      icon: <TableRestaurantIcon />,
+      iconBg: "#fff8e1",
+      iconColor: "#c62828",
+      valueColor: "#c62828",
+    },
+
+    // ===== Other Metrics =====
+    {
+      label: "Call Waiter Requests",
+      value: tableStatus?.filter((val) => val.tableCall === TableCall.ACTIVE)
+        .length,
+      icon: <NotificationsRoundedIcon />,
+      iconBg: "#fff3e0",
+      iconColor: "#ef6c00",
+      valueColor: "#ef6c00",
+    },
+    {
+      label: "Today's Income",
+      value: orderStatis?.todayIncomeAndAOV[0]?.totalSum,
+      icon: <MonetizationOnIcon />,
+      iconBg: "#e8f5e9",
+      iconColor: "#2e7d32",
+      valueColor: "#2e7d32",
+    },
+    {
+      label: "Avg Order Value",
+      value: orderStatis?.todayIncomeAndAOV[0]?.aovGross,
+      icon: <MonetizationOnIcon />,
+      iconBg: "#e8f5e9",
+      iconColor: "#1e40af",
+      valueColor: "#1e40af",
+    },
+  ];
   return (
     <Box sx={{ p: { xs: 1, sm: 2 } }}>
       <Card sx={{ borderRadius: 3, mb: 3, boxShadow: 3 }}>
