@@ -12,11 +12,13 @@ export interface Product {
   productName: string;
   productPrice: number;
   productLeftCount: number;
-  productSize: ProductSize;
-  productVolume: number;
-  productDesc?: string;
+  productSize?: ProductSize;
+  productVolume?: number;
+  productDesc: string;
   productImages: string[];
   productViews: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ProductInquiry {
@@ -35,8 +37,8 @@ export interface ProductInput {
   productLeftCount: number;
   productSize?: ProductSize;
   productVolume?: number;
-  productDesc?: string;
-  productImages?: string[];
+  productDesc: string;
+  productImages: string[];
   productViews?: number;
 }
 
@@ -54,18 +56,16 @@ export interface ProductUpdateInput {
   productViews?: number;
 }
 
-export interface ProductInitialValues {
-  _id?: string;
-  productStatus?: ProductStatus;
-  productCollection: ProductCollection;
+export interface ProductFormValues {
   productName: string;
-  productPrice: number;
-  productLeftCount: number;
+  productPrice: string;
+  productLeftCount: string;
+  productCollection: ProductCollection;
   productSize?: ProductSize;
-  productVolume?: number;
+  productVolume?: ProductVolume;
   productDesc: string;
-  productImages: string[];
-  productViews?: number;
+  existingUrls: string[];
+  newFiles: File[];
 }
 
 export interface ProductsStat {
@@ -73,3 +73,4 @@ export interface ProductsStat {
   available: number;
   unavailable: number;
 }
+

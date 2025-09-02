@@ -1,6 +1,12 @@
 import axios from "axios";
-import { serverApi } from "../lib/config";
-import { Product, ProductInquiry, ProductsStat } from "../lib/types/product";
+import { Messages, serverApi } from "../lib/config";
+import {
+  Product,
+  ProductInput,
+  ProductInquiry,
+  ProductsStat,
+  ProductUpdateInput,
+} from "../lib/types/product";
 
 class ProductService {
   private readonly path: string;
@@ -34,6 +40,32 @@ class ProductService {
       return result.data;
     } catch (err) {
       console.log("Error, getAllProducts:", err);
+      throw err;
+    }
+  }
+
+  public async updateChosenProduct(
+    input: ProductUpdateInput
+  ): Promise<Product> {
+    try {
+      const url = this.path + `/admin/product/${input._id}`;
+      const result = await axios.post(url, input, { withCredentials: true });
+      console.log("updateChosenProduct: ", result.data);
+      return result.data;
+    } catch (err) {
+      console.log("Error, updateChosenProduct:", err);
+      throw err;
+    }
+  }
+
+  public async createNewProduct(input: ProductInput): Promise<Product> {
+    try {
+      const url = this.path + `/admin/create`;
+      const result = await axios.post(url, input, { withCredentials: true });
+      console.log("createNewProduct: ", result.data);
+      return result.data;
+    } catch (err) {
+      console.log("Error, createNewProduct:", err);
       throw err;
     }
   }

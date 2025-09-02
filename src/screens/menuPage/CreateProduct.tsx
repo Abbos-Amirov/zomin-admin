@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -14,119 +14,141 @@ import {
   MenuItem,
 } from "@mui/material";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import {
+  ProductCollection,
+  ProductDialogMode,
+  ProductSize,
+  ProductVolume,
+} from "../../lib/enums/product.enums";
+import { Product, ProductFormValues } from "../../lib/types/product";
+import { serverApi } from "../../lib/config";
 
-type Mode = "create" | "edit";
-type Collection = "DISH" | "DRINK" | "DESSERT" | "SALAD";
-type Size = "SMALL" | "NORMAL" | "LARGE" | "SET";
-type Volume = 0.5 | 1 | 1.25 | 1.5;
-
-export type ProductInitialValues = {
-  _id?: string; 
-  productName: string;
-  productPrice: number;
-  productLeftCount: number;
-  productCollection: Collection;
-  productSize?: Size;
-  productVolume?: Volume;
-  productDesc: string;
-  productImages: string[]; 
-};
-
-type Props = {
-  mode: Mode;
+interface ProductDialogProps {
+  mode: ProductDialogMode;
   open: boolean;
   onClose: () => void;
-  onSubmit: (fd: FormData, id?: string) => void; // id passed in edit
-  initialValues?: ProductInitialValues; // required for edit
-};
+  onSubmit: (fd: FormData, id?: string) => void; 
+  initialValues?: Product; 
+}
 
-type FormValues = {
-  productName: string;
-  productPrice: string; 
-  productLeftCount: string;
-  productCollection: Collection;
-  productSize?: Size;
-  productVolume?: Volume;
-  productDesc: string;
-  existingUrls: string[]; 
-  newFiles: File[]; 
-};
+const SLOT_COUNT = 5;
 
-const EMPTY: FormValues = {
+const EMPTY: ProductFormValues = {
   productName: "",
   productPrice: "",
   productLeftCount: "",
-  productCollection: "DISH",
-  productSize: "NORMAL",
+  productCollection: ProductCollection.DISH,
+  productSize: ProductSize.NORMAL,
   productVolume: undefined,
   productDesc: "",
   existingUrls: [],
   newFiles: [],
 };
 
-const SLOT_COUNT = 5;
-const sizeOptions: Size[] = ["SMALL", "NORMAL", "LARGE", "SET"];
-const volumeOptions: Volume[] = [0.5, 1, 1.25, 1.5];
+const VOLUME_OPTIONS: ProductVolume[] = [
+  ProductVolume.HALF,           
+  ProductVolume.ONE,            
+  ProductVolume.ONE_POINT_TWO,  
+  ProductVolume.ONE_POINT_FIVE, 
+  ProductVolume.TWO,            
+];
 
-export default function ProductDialog({
-  mode,
-  open,
-  onClose,
-  onSubmit,
-  initialValues,
-}: Props) {
-  const [form, setForm] = useState<FormValues>(EMPTY);
+// One source of truth for validation
+function getErrors(form: ProductFormValues) {
+  const e: Record<string, string> = {};
+  const isDrink = form.productCollection === ProductCollection.DRINK;
+
+  if (!form.productName.trim()) e.productName = "Required";
+
+  const priceNum = Number(form.productPrice);
+  if (form.productPrice === "" || Number.isNaN(priceNum) || priceNum < 0) {
+    e.productPrice = "Invalid";
+  }
+
+  const countNum = Number(form.productLeftCount);
+  if (
+    form.productLeftCount === "" ||
+    Number.isNaN(countNum) ||
+    !Number.isInteger(countNum) ||
+    countNum < 0
+  ) {
+    e.productLeftCount = "Integer only";
+  }
+
+  if (!form.productDesc.trim()) e.productDesc = "Required";
+
+  if (form.existingUrls.length + form.newFiles.length === 0) {
+    e.productImages = "At least one image";
+  }
+
+  if (isDrink ? !form.productVolume : !form.productSize) {
+    e.spec = "Required";
+  }
+
+  return e;
+}
+
+export default function ProductDialog(props: ProductDialogProps) {
+  const { mode, open, onClose, onSubmit, initialValues } = props;
+
+  const [form, setForm] = useState<ProductFormValues>(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
-  const isDrink = form.productCollection === "DRINK";
+  const isDrink = form.productCollection === ProductCollection.DRINK;
 
   // Prefill on open (edit) or reset (create)
   useEffect(() => {
     if (!open) return;
-    if (mode === "edit" && initialValues) {
+
+    if (mode === ProductDialogMode.EDIT && initialValues) {
       setForm({
         productName: initialValues.productName ?? "",
         productPrice: String(initialValues.productPrice ?? ""),
         productLeftCount: String(initialValues.productLeftCount ?? ""),
-        productCollection: initialValues.productCollection ?? "DISH",
+        productCollection:
+          initialValues.productCollection ?? ProductCollection.DISH,
         productSize: initialValues.productSize,
         productVolume: initialValues.productVolume,
         productDesc: initialValues.productDesc ?? "",
         existingUrls: initialValues.productImages ?? [],
         newFiles: [],
       });
-      setErrors({});
     } else {
       setForm(EMPTY);
-      setErrors({});
     }
+    setErrors({});
   }, [open, mode, initialValues]);
 
-  const previews: string[] = useMemo(() => {
-    const fileUrls = form.newFiles.map((f) => URL.createObjectURL(f));
-    return [...form.existingUrls, ...fileUrls].slice(0, SLOT_COUNT);
-  }, [form.existingUrls, form.newFiles]);
+  // Build blob URLs only from new files
+  const fileUrls = useMemo(
+    () => form.newFiles.map((f) => URL.createObjectURL(f)),
+    [form.newFiles]
+  );
 
-  const canSubmit = useMemo(() => {
-    const okBase =
-      form.productName.trim() &&
-      form.productPrice.trim() &&
-      !Number.isNaN(Number(form.productPrice)) &&
-      Number(form.productPrice) >= 0 &&
-      form.productLeftCount.trim() &&
-      Number.isInteger(Number(form.productLeftCount)) &&
-      Number(form.productLeftCount) >= 0 &&
-      form.productDesc.trim() &&
-      form.existingUrls.length + form.newFiles.length > 0;
+  // Revoke blob URLs when they change (and on unmount)
+  useEffect(() => {
+    return () => {
+      fileUrls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [fileUrls]);
 
-    const okSpec = isDrink ? !!form.productVolume : !!form.productSize;
-    return !!okBase && okSpec;
-  }, [form, isDrink]);
+  // Final previews: existing URLs + blob URLs (capped)
+  const previews: string[] = useMemo(
+    () => [...form.existingUrls, ...fileUrls].slice(0, SLOT_COUNT),
+    [form.existingUrls, fileUrls]
+  );
 
+  // Derive canSubmit from the same validation logic (no state writes here)
+  const canSubmit = useMemo(
+    () => Object.keys(getErrors(form)).length === 0,
+    [form]
+  );
+
+  // Generic setter
   const setField =
-    <K extends keyof FormValues>(k: K) =>
-    (v: FormValues[K]) =>
+    <K extends keyof ProductFormValues>(k: K) =>
+    (v: ProductFormValues[K]) =>
       setForm((p) => ({ ...p, [k]: v }));
 
   const triggerPick = (slotIndex: number) =>
@@ -158,35 +180,23 @@ export default function ProductDialog({
     }
   };
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.productName.trim()) e.productName = "Required";
-    if (!form.productPrice || Number.isNaN(Number(form.productPrice)))
-      e.productPrice = "Invalid";
-    if (
-      !form.productLeftCount ||
-      Number.isNaN(Number(form.productLeftCount)) ||
-      !Number.isInteger(Number(form.productLeftCount))
-    )
-      e.productLeftCount = "Integer only";
-    if (!form.productDesc.trim()) e.productDesc = "Required";
-    if (form.existingUrls.length + form.newFiles.length === 0)
-      e.productImages = "At least one image";
-    if (isDrink ? !form.productVolume : !form.productSize) e.spec = "Required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
   const submit = () => {
-    if (!validate()) return;
+    const e = getErrors(form);
+    setErrors(e);
+    if (Object.keys(e).length) return;
 
     const fd = new FormData();
     fd.append("productName", form.productName.trim());
     fd.append("productPrice", String(Number(form.productPrice)));
     fd.append("productLeftCount", String(Number(form.productLeftCount)));
     fd.append("productCollection", form.productCollection);
-    if (isDrink) fd.append("productVolume", String(form.productVolume));
-    else fd.append("productSize", String(form.productSize));
+
+    if (isDrink) {
+      fd.append("productVolume", String(form.productVolume));
+    } else {
+      fd.append("productSize", String(form.productSize));
+    }
+
     fd.append("productDesc", form.productDesc.trim());
 
     // EDIT: keep existing urls; CREATE: none (array empty)
@@ -194,19 +204,13 @@ export default function ProductDialog({
     // upload new files
     form.newFiles.forEach((f) => fd.append("productImages", f));
 
-    const id = mode === "edit" ? initialValues?._id : undefined;
+    const id = mode === ProductDialogMode.EDIT ? initialValues?._id : undefined;
     onSubmit(fd, id);
     onClose();
   };
 
   return (
-    <Dialog
-      className="dialog"
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-    >
+    <Dialog className="dialog" open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle
         sx={{
           textAlign: "center",
@@ -215,7 +219,7 @@ export default function ProductDialog({
           fontSize: "24px",
         }}
       >
-        {mode === "create" ? "New Product Detail" : "Edit Product"}
+        {mode === ProductDialogMode.CREATE ? "New Product Detail" : "Edit Product"}
       </DialogTitle>
 
       <DialogContent dividers sx={{ background: "#f8f8ff", py: 3 }}>
@@ -272,22 +276,27 @@ export default function ProductDialog({
                 <Select
                   value={form.productCollection}
                   onChange={(e) => {
-                    const val = e.target.value as Collection;
+                    const val = e.target.value as ProductCollection;
                     setForm((p) => ({
                       ...p,
                       productCollection: val,
                       productSize:
-                        val === "DRINK" ? undefined : p.productSize ?? "NORMAL",
+                        val === ProductCollection.DRINK
+                          ? undefined
+                          : p.productSize ?? ProductSize.NORMAL,
                       productVolume:
-                        val === "DRINK" ? p.productVolume ?? 1 : undefined,
+                        val === ProductCollection.DRINK
+                          ? p.productVolume ?? ProductVolume.ONE
+                          : undefined,
                     }));
                   }}
                   displayEmpty
                 >
-                  <MenuItem value="DISH">DISH</MenuItem>
-                  <MenuItem value="DRINK">DRINK</MenuItem>
-                  <MenuItem value="DESSERT">DESSERT</MenuItem>
-                  <MenuItem value="SALAD">SALAD</MenuItem>
+                  <MenuItem value={ProductCollection.DISH}>DISH</MenuItem>
+                  <MenuItem value={ProductCollection.DRINK}>DRINK</MenuItem>
+                  <MenuItem value={ProductCollection.DESSERT}>DESSERT</MenuItem>
+                  <MenuItem value={ProductCollection.SALAD}>SALAD</MenuItem>
+                  <MenuItem value={ProductCollection.OTHER}>OTHER</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -298,29 +307,29 @@ export default function ProductDialog({
               </Typography>
               <FormControl fullWidth sx={{ bgcolor: "white" }}>
                 <Select
-                  value={
-                    isDrink ? form.productVolume ?? "" : form.productSize ?? ""
-                  }
+                  value={isDrink ? form.productVolume ?? "" : form.productSize ?? ""}
                   onChange={(e) => {
-                    if (isDrink)
-                      setField("productVolume")(
-                        Number(e.target.value) as Volume
-                      );
-                    else setField("productSize")(e.target.value as Size);
+                    if (isDrink) {
+                      setField("productVolume")(Number(e.target.value) as ProductVolume);
+                    } else {
+                      setField("productSize")(e.target.value as ProductSize);
+                    }
                   }}
                   displayEmpty
                 >
                   {isDrink
-                    ? volumeOptions.map((v) => (
+                    ? VOLUME_OPTIONS.map((v) => (
                         <MenuItem key={v} value={v}>
-                          {v}
+                          {v} litre
                         </MenuItem>
                       ))
-                    : sizeOptions.map((s) => (
-                        <MenuItem key={s} value={s}>
-                          {s}
-                        </MenuItem>
-                      ))}
+                    : [ProductSize.SMALL, ProductSize.NORMAL, ProductSize.LARGE, ProductSize.SET].map(
+                        (s) => (
+                          <MenuItem key={s} value={s}>
+                            {s}
+                          </MenuItem>
+                        )
+                      )}
                 </Select>
               </FormControl>
               <Typography variant="caption" color="error">
@@ -377,7 +386,7 @@ export default function ProductDialog({
                     >
                       {src ? (
                         <img
-                          src={src}
+                          src={`${serverApi}/${src}`}
                           alt={`preview-${i}`}
                           style={{
                             width: "100%",
@@ -396,9 +405,11 @@ export default function ProductDialog({
                         type="file"
                         hidden
                         accept="image/*"
-                        onChange={(e) =>
-                          onFilePick(i, e.target.files?.[0] ?? null)
-                        }
+                        onChange={(e) => {
+                          onFilePick(i, e.target.files?.[0] ?? null);
+                          // allow selecting the same file again
+                          e.currentTarget.value = "";
+                        }}
                       />
                     </Box>
                   );
@@ -418,13 +429,8 @@ export default function ProductDialog({
         <Button color="error" variant="contained" onClick={onClose}>
           Cancel
         </Button>
-        <Button
-          color="primary"
-          variant="contained"
-          onClick={submit}
-          disabled={!canSubmit}
-        >
-          {mode === "create" ? "Create" : "Update"}
+        <Button color="primary" variant="contained" onClick={submit} disabled={!canSubmit}>
+          {mode === ProductDialogMode.CREATE ? "Create" : "Update"}
         </Button>
       </DialogActions>
     </Dialog>
