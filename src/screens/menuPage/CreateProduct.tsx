@@ -27,8 +27,8 @@ interface ProductDialogProps {
   mode: ProductDialogMode;
   open: boolean;
   onClose: () => void;
-  onSubmit: (fd: FormData, id?: string) => void; 
-  initialValues?: Product; 
+  onSubmit: (fd: FormData, id?: string) => void;
+  initialValues?: Product;
 }
 
 const SLOT_COUNT = 5;
@@ -46,11 +46,11 @@ const EMPTY: ProductFormValues = {
 };
 
 const VOLUME_OPTIONS: ProductVolume[] = [
-  ProductVolume.HALF,           
-  ProductVolume.ONE,            
-  ProductVolume.ONE_POINT_TWO,  
-  ProductVolume.ONE_POINT_FIVE, 
-  ProductVolume.TWO,            
+  ProductVolume.HALF,
+  ProductVolume.ONE,
+  ProductVolume.ONE_POINT_TWO,
+  ProductVolume.ONE_POINT_FIVE,
+  ProductVolume.TWO,
 ];
 
 // One source of truth for validation
@@ -139,6 +139,13 @@ export default function ProductDialog(props: ProductDialogProps) {
     [form.existingUrls, fileUrls]
   );
 
+  const resolvePreviewSrc = (s: string) => {
+    if (!s) return "";
+    if (s.startsWith("blob:") || s.startsWith("data:")) return s;
+    if (s.startsWith("http://") || s.startsWith("https://")) return s;
+    return `${serverApi}/${s}`;
+  };
+
   // Derive canSubmit from the same validation logic (no state writes here)
   const canSubmit = useMemo(
     () => Object.keys(getErrors(form)).length === 0,
@@ -210,7 +217,13 @@ export default function ProductDialog(props: ProductDialogProps) {
   };
 
   return (
-    <Dialog className="dialog" open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      className="dialog"
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+    >
       <DialogTitle
         sx={{
           textAlign: "center",
@@ -219,7 +232,9 @@ export default function ProductDialog(props: ProductDialogProps) {
           fontSize: "24px",
         }}
       >
-        {mode === ProductDialogMode.CREATE ? "New Product Detail" : "Edit Product"}
+        {mode === ProductDialogMode.CREATE
+          ? "New Product Detail"
+          : "Edit Product"}
       </DialogTitle>
 
       <DialogContent dividers sx={{ background: "#f8f8ff", py: 3 }}>
@@ -307,10 +322,14 @@ export default function ProductDialog(props: ProductDialogProps) {
               </Typography>
               <FormControl fullWidth sx={{ bgcolor: "white" }}>
                 <Select
-                  value={isDrink ? form.productVolume ?? "" : form.productSize ?? ""}
+                  value={
+                    isDrink ? form.productVolume ?? "" : form.productSize ?? ""
+                  }
                   onChange={(e) => {
                     if (isDrink) {
-                      setField("productVolume")(Number(e.target.value) as ProductVolume);
+                      setField("productVolume")(
+                        Number(e.target.value) as ProductVolume
+                      );
                     } else {
                       setField("productSize")(e.target.value as ProductSize);
                     }
@@ -323,13 +342,16 @@ export default function ProductDialog(props: ProductDialogProps) {
                           {v} litre
                         </MenuItem>
                       ))
-                    : [ProductSize.SMALL, ProductSize.NORMAL, ProductSize.LARGE, ProductSize.SET].map(
-                        (s) => (
-                          <MenuItem key={s} value={s}>
-                            {s}
-                          </MenuItem>
-                        )
-                      )}
+                    : [
+                        ProductSize.SMALL,
+                        ProductSize.NORMAL,
+                        ProductSize.LARGE,
+                        ProductSize.SET,
+                      ].map((s) => (
+                        <MenuItem key={s} value={s}>
+                          {s}
+                        </MenuItem>
+                      ))}
                 </Select>
               </FormControl>
               <Typography variant="caption" color="error">
@@ -386,7 +408,7 @@ export default function ProductDialog(props: ProductDialogProps) {
                     >
                       {src ? (
                         <img
-                          src={`${serverApi}/${src}`}
+                          src={resolvePreviewSrc(previews[i])}
                           alt={`preview-${i}`}
                           style={{
                             width: "100%",
@@ -429,7 +451,12 @@ export default function ProductDialog(props: ProductDialogProps) {
         <Button color="error" variant="contained" onClick={onClose}>
           Cancel
         </Button>
-        <Button color="primary" variant="contained" onClick={submit} disabled={!canSubmit}>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={submit}
+          disabled={!canSubmit}
+        >
           {mode === ProductDialogMode.CREATE ? "Create" : "Update"}
         </Button>
       </DialogActions>

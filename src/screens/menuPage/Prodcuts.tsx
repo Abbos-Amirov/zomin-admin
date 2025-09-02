@@ -7,7 +7,6 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ProductDialog from "./CreateProduct";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Product,
@@ -57,26 +56,6 @@ export default function ProductsPage(props: ProdcutsPageProps) {
     productUpdateHandler,
   } = props;
   const { products } = useSelector(productsRetriever);
-
-  const handleEdit = () => {
-    console.log("Edit clicked");
-  };
-
-  const handleDelete = () => {
-    console.log("Delete clicked");
-  };
-
-  // product demo
-  const sampleProduct: any = {
-    productName: "Burger",
-    productPrice: "8.99",
-    productLeftCount: "12",
-    productCollection: "DISH",
-    productSize: "NORMAL",
-    productVolume: undefined,
-    productDesc: "Juicy beef burger",
-    productImages: ["img/doner.webp", null, null, null, null],
-  };
 
   return (
     <div className="products-page">
@@ -269,6 +248,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                                 productDeleteHandler({
                                   _id: product._id,
                                   productStatus: ProductStatus.DELETE,
+                                  productName: product.productName
                                 })
                               }
                             >

@@ -58,16 +58,18 @@ class ProductService {
     }
   }
 
-  public async createNewProduct(input: ProductInput): Promise<Product> {
-    try {
-      const url = this.path + `/admin/create`;
-      const result = await axios.post(url, input, { withCredentials: true });
-      console.log("createNewProduct: ", result.data);
-      return result.data;
-    } catch (err) {
-      console.log("Error, createNewProduct:", err);
-      throw err;
-    }
+  public async createNewProduct(fd: FormData): Promise<Product> {
+    const { data } = await axios.post(`${serverApi}/admin/product/create`, fd, {
+      withCredentials: true,
+    });
+    return data;
+  }
+
+  public async updateProduct(id: string, fd: FormData): Promise<Product> {
+    const { data } = await axios.post(`${serverApi}/admin/product/${id}`, fd, {
+      withCredentials: true,
+    });
+    return data;
   }
 }
 

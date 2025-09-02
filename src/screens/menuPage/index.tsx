@@ -17,17 +17,26 @@ import {
 import ProductService from "../../services/Product.service";
 import "../../css/products.css";
 import ProductDialog from "./CreateProduct";
+import {
+  confirmDelete,
+  sweetCenterSuccessAlert,
+  sweetErrorHandling,
+} from "../../lib/sweetAlert";
+import Swal from "sweetalert2";
 
 const product = new ProductService();
 
 /** REDUX SLICE & SELECTOR */
 const actionDispatch = (dispatch: Dispatch) => ({
   setProducts: (data: Product[]) => dispatch(setProducts(data)),
+  removeProduct: (data: Product) => dispatch(removeProduct(data)),
+  addProduct: (data: Product) => dispatch(addProduct(data)),
+  updateProduct: (data: Product) => dispatch(updateProduct(data)),
 });
 
 export default function MenuPage() {
-  const dispatch = useDispatch();
-  const { setProducts } = actionDispatch(useDispatch());
+  const { setProducts, removeProduct, addProduct, updateProduct } =
+    actionDispatch(useDispatch());
   /** UseState */
   const [open, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useState<ProductDialogMode>(ProductDialogMode.CREATE);
@@ -82,22 +91,37 @@ export default function MenuPage() {
   const productUpdateHandler = (input: ProductUpdateInput) => {
     product
       .updateChosenProduct(input)
-      .then((data) => dispatch(updateProduct(data))) //TODO: start from here
+      .then((data) => updateProduct(data))
       .catch((err) => console.log(err));
   };
 
-  const productDeleteHandler = (input: ProductUpdateInput) => {
-    product
-      .updateChosenProduct(input)
-      .then((data) => dispatch(removeProduct(data)))
-      .catch((err) => console.log(err));
+  const productDeleteHandler = async (input: ProductUpdateInput) => {
+    if (!(await confirmDelete(input.productName))) return;
+    try {
+      const data = await product.updateChosenProduct(input);
+      removeProduct(data);
+      sweetCenterSuccessAlert("Deleted", 700);
+    } catch (err) {
+      sweetErrorHandling(err);
+      console.log(err);
+    }
   };
 
-  const productAddHandler = (input: ProductInput) => {
-    product
-      .createNewProduct(input)
-      .then((data) => addProduct(data))
-      .catch((err) => console.log(err));
+  const handleProductSubmit = async (fd: FormData, id?: string) => {
+    try {
+      if (id) {
+        const updated = await product.updateProduct(id, fd);
+        updateProduct(updated);
+        sweetCenterSuccessAlert("Updated", 700)
+      } else {
+        const created = await product.createNewProduct(fd);
+        addProduct(created);
+        sweetCenterSuccessAlert("Created", 700)
+      }
+    } catch (e) {
+      console.error(e);
+      sweetErrorHandling(e);
+    }
   };
   return (
     <>
@@ -120,16 +144,7 @@ export default function MenuPage() {
         open={open}
         onClose={() => setOpen(false)}
         initialValues={edit}
-        onSubmit={(fd, id?) => {
-          if (mode === ProductDialogMode.CREATE) {
-            //TODO: POST fd to backend
-            console.log("Creating:");
-          } else {
-            //TODO: POST fd to backend
-            console.log("Updating:");
-          }
-          setOpen(false);
-        }}
+        onSubmit={handleProductSubmit}
       />
     </>
   );
