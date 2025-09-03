@@ -1,4 +1,4 @@
-import { OrdersByCategory, OrderStatis, TopSellingItems } from "./order";
+import { Order, OrderStatis } from "./order";
 import { Product, ProductsStat } from "./product";
 import { Table } from "./table";
 
@@ -6,6 +6,7 @@ import { Table } from "./table";
 export interface AppRootState {
   dashboardPage: DashboardPageState;
   menuPage: MenuPageState;
+  ordersPage: OrdersPageState;
 }
 
 /** DashboardPage */
@@ -16,6 +17,11 @@ export interface DashboardPageState {
 }
 
 /** MenuPage */
-export interface MenuPageState{
+export interface MenuPageState {
   products: Product[];
+}
+
+/** OrdersPage */
+export interface OrdersPageState {
+  orders: Order[];
 }

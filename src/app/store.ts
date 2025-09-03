@@ -3,6 +3,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import reduxLogger from "redux-logger";
 import DashboardPageReducer from "../screens/dashboardPage/slice";
 import MenuPageReducer from "../screens/menuPage/slice";
+import OrdersPageReducer from "../screens/ordersPage/slice";
 
 export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
@@ -11,6 +12,7 @@ export const store = configureStore({
   reducer: {
     dashboardPage: DashboardPageReducer,
     menuPage: MenuPageReducer,
+    ordersPage: OrdersPageReducer,
   },
 });
 
