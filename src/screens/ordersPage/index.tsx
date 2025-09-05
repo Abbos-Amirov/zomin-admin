@@ -1,78 +1,70 @@
-import React from 'react';
-import { Stack, Typography } from '@mui/material';
-import { Order, OrderStatus, PaymentMethod, PaymentStatus, OrderType } from './types';
-import { ORDERS_SEED } from './sampleData';
-import OrdersFilters from './OrdersFilters';
-import OrdersTable from './OrdersTable';
-import OrderEditDialog from './OrderEditDialog';
+import React, { useEffect, useState } from "react";
+import { Stack, Typography } from "@mui/material";
+import OrdersFilters from "./OrdersFilters";
+import OrdersTable from "./OrdersTable";
+import OrderEditDialog from "./OrderEditDialog";
+import { Order, OrderInquiry, OrderUpdateInput } from "../../lib/types/order";
+import { setOrders } from "./slice";
+import { Dispatch } from "@reduxjs/toolkit";
+import { useDispatch } from "react-redux";
+import OrderService from "../../services/Order.service";
+import { sweetErrorHandling } from "../../lib/sweetAlert";
+import "../../css/orders.css"
+
+/** REDUX SLICE & SELECTOR */
+const actionDispatch = (dispatch: Dispatch) => ({
+  setOrders: (data: Order[]) => dispatch(setOrders(data)),
+});
 
 export default function OrdersPage() {
-  const [rows, setRows] = React.useState<Order[]>(ORDERS_SEED);
+  const { setOrders } = actionDispatch(useDispatch());
 
-  // filters
-  const [search, setSearch] = React.useState('');
-  const [type, setType] = React.useState<OrderType | 'ALL'>('ALL');
-  const [status, setStatus] = React.useState<OrderStatus | 'ALL'>('ALL');
-  const [payStatus, setPayStatus] = React.useState<PaymentStatus | 'ALL'>('ALL');
-  const [payMethod, setPayMethod] = React.useState<PaymentMethod | 'ALL'>('ALL');
+  const [open, setOpen] = useState<boolean>(false);
+  const [edit, setEdit] = useState<OrderUpdateInput>({ orderId: "" });
+  const [orderSearch, setOrderSearch] = useState<OrderInquiry>({
+    page: 1,
+    limit: 10,
+    search: "",
+  });
 
-  const [page, setPage] = React.useState(2);
-  const limit = 10;
+  useEffect(() => {
+    const order = new OrderService();
+    order
+      .getAllOrders(orderSearch)
+      .then((data) => setOrders(data))
+      .catch((err) => {
+        console.log(err);
+        sweetErrorHandling(err).then();
+      });
+  }, [orderSearch]);
 
-  const [editing, setEditing] = React.useState<Order | null>(null);
-
-  React.useEffect(() => { setPage(1); }, [search, type, status, payStatus, payMethod]);
-
-  // filter + sort (local)
-  const viewRows = React.useMemo(() => {
-    let r = [...rows];
-    const s = search.trim().toLowerCase();
-    if (s) {
-      r = r.filter(o =>
-        o._id.toLowerCase().includes(s) ||
-        (o.tableId ?? '').toLowerCase().includes(s) ||
-        (o.memberId ?? '').toLowerCase().includes(s) ||
-        (o.orderNote ?? '').toLowerCase().includes(s)
-      );
-    }
-    if (type !== 'ALL') r = r.filter(o => o.orderType === type);
-    if (status !== 'ALL') r = r.filter(o => o.orderStatus === status);
-    if (payStatus !== 'ALL') r = r.filter(o => o.paymentStatus === payStatus);
-    if (payMethod !== 'ALL') r = r.filter(o => o.paymentMethod === payMethod);
-    r.sort((a,b) => +new Date(b.createdAt) - +new Date(a.createdAt));
-    return r;
-  }, [rows, search, type, status, payStatus, payMethod]);
-
-  const handleSave = (patch: { orderStatus: OrderStatus; paymentStatus: PaymentStatus; paymentMethod: PaymentMethod }) => {
-    if (!editing) return;
-    setRows(prev => prev.map(o => o._id === editing._id ? { ...o, ...patch, updatedAt: new Date().toISOString() } : o));
-    setEditing(null);
-  };
-
+  /** HANDLERS */
   return (
     <Stack spacing={2}>
-      <Typography variant="h3" fontWeight={700} textAlign={"center"}>Orders</Typography>
+      <Typography variant="h3" fontWeight={700} textAlign={"center"}>
+        Orders
+      </Typography>
 
       <OrdersFilters
-        search={search} onSearchChange={setSearch}
-        type={type} onTypeChange={setType}
-        status={status} onStatusChange={setStatus}
-        payStatus={payStatus} onPayStatusChange={setPayStatus}
-        payMethod={payMethod} onPayMethodChange={setPayMethod}
+        orderSearch={orderSearch}
+        setOrderSearch={setOrderSearch}
       />
 
       <OrdersTable
-        rows={viewRows}
-        page={page}
-        limit={limit}
-        onPageChange={setPage}
-        onEdit={setEditing}
+        orderSearch={orderSearch}
+        setOrderSearch={setOrderSearch}
+        setOpen={setOpen}
+        edit={edit}
+        setEdit={setEdit}
       />
 
       <OrderEditDialog
-        order={editing}
-        onClose={() => setEditing(null)}
-        onSave={handleSave}
+        open={open}
+        setOpen={setOpen}
+        edit={edit}
+        setEdit={setEdit}
+        orderSearch={orderSearch}
+        setOrderSearch={setOrderSearch}
       />
     </Stack>
   );

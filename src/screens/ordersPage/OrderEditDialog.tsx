@@ -10,55 +10,76 @@ import {
   MenuItem,
   Select,
   Stack,
-  Typography,
 } from "@mui/material";
-import { Order, OrderStatus, PaymentMethod, PaymentStatus } from "./types";
+import {
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+} from "../../lib/enums/order.enum";
+import { OrderInquiry, OrderUpdateInput } from "../../lib/types/order";
+import {
+  sweetCenterSuccessAlert,
+  sweetErrorHandling,
+} from "../../lib/sweetAlert";
+import OrderService from "../../services/Order.service";
+import { Messages } from "../../lib/config";
 
-type Props = {
-  order: Order | null;
-  onClose: () => void;
-  onSave: (patch: {
-    orderStatus: OrderStatus;
-    paymentStatus: PaymentStatus;
-    paymentMethod: PaymentMethod;
-  }) => void;
-};
+interface OrderEditDialogProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  edit: OrderUpdateInput;
+  setEdit: (edit: OrderUpdateInput) => void;
+  orderSearch: OrderInquiry;
+  setOrderSearch: (input: OrderInquiry) => void;
+}
 
-export default function OrderEditDialog({ order, onClose, onSave }: Props) {
-  const [status, setStatus] = React.useState<OrderStatus>("PENDING");
-  const [payStatus, setPayStatus] = React.useState<PaymentStatus>("UNPAID");
-  const [payMethod, setPayMethod] = React.useState<PaymentMethod>("CARD");
+export default function OrderEditDialog(props: OrderEditDialogProps) {
+  const { open, setOpen, edit, setEdit, orderSearch, setOrderSearch } = props;
 
-  React.useEffect(() => {
-    if (order) {
-      setStatus(order.orderStatus);
-      setPayStatus(order.paymentStatus);
-      setPayMethod(order.paymentMethod);
+  /** HANDLERS **/
+  const onUpdateHandler = async (input: OrderUpdateInput) => {
+    try {
+      if (
+        edit.orderId === "" ||
+        edit.orderStatus === null ||
+        edit.paymentStatus === null ||
+        edit.paymentMethod === null
+      )
+        throw Error(Messages.error3);
+      const order = new OrderService();
+      await order.updateChosenOrder(input);
+      setOrderSearch({ ...orderSearch });
+      setOpen(false);
+      sweetCenterSuccessAlert("updated!", 700);
+    } catch (err) {
+      console.log(err);
+      sweetErrorHandling(err).then();
     }
-  }, [order]);
-
-  if (!order) return null;
-
+  };
   return (
-    <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle fontWeight={"700"}>Edit Order {order._id.slice(-8)}</DialogTitle>
+    <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <DialogTitle fontWeight={"700"}>
+        Edit Order {edit?.orderId.slice(-8)}
+      </DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
-          <Typography variant="body2">
-            Note: {order.orderNote || "-"}
-          </Typography>
-
           <FormControl size="small">
-            <InputLabel>Status</InputLabel>
+            <InputLabel>Order Status</InputLabel>
             <Select
-              label="Status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as OrderStatus)}
+              label="Order Status"
+              value={edit.orderStatus}
+              onChange={(e) => {
+                if (edit)
+                  setEdit({
+                    ...edit,
+                    orderStatus: e.target.value as OrderStatus,
+                  });
+              }}
             >
-              <MenuItem value="PENDING">PENDING</MenuItem>
-              <MenuItem value="PROGRESS">PROGRESS</MenuItem>
-              <MenuItem value="COMPLETED">COMPLETED</MenuItem>
-              <MenuItem value="CANCELLED">CANCELLED</MenuItem>
+              <MenuItem value={OrderStatus.PENDING}>PENDING</MenuItem>
+              <MenuItem value={OrderStatus.PROGRESS}>PROGRESS</MenuItem>
+              <MenuItem value={OrderStatus.COMPLETED}>COMPLETED</MenuItem>
+              <MenuItem value={OrderStatus.CANCELLED}>CANCELLED</MenuItem>
             </Select>
           </FormControl>
 
@@ -66,8 +87,14 @@ export default function OrderEditDialog({ order, onClose, onSave }: Props) {
             <InputLabel>Payment Status</InputLabel>
             <Select
               label="Payment Status"
-              value={payStatus}
-              onChange={(e) => setPayStatus(e.target.value as PaymentStatus)}
+              value={edit.paymentStatus}
+              onChange={(e) => {
+                if (edit)
+                  setEdit({
+                    ...edit,
+                    paymentStatus: e.target.value as PaymentStatus,
+                  });
+              }}
             >
               <MenuItem value="UNPAID">UNPAID</MenuItem>
               <MenuItem value="PAID">PAID</MenuItem>
@@ -79,8 +106,14 @@ export default function OrderEditDialog({ order, onClose, onSave }: Props) {
             <InputLabel>Payment Method</InputLabel>
             <Select
               label="Payment Method"
-              value={payMethod}
-              onChange={(e) => setPayMethod(e.target.value as PaymentMethod)}
+              value={edit.paymentMethod}
+              onChange={(e) => {
+                if (edit)
+                  setEdit({
+                    ...edit,
+                    paymentMethod: e.target.value as PaymentMethod,
+                  });
+              }}
             >
               <MenuItem value="CASH">CASH</MenuItem>
               <MenuItem value="CARD">CARD</MenuItem>
@@ -90,17 +123,17 @@ export default function OrderEditDialog({ order, onClose, onSave }: Props) {
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" color="error" onClick={onClose}>Cancel</Button>
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => setOpen(false)}
+        >
+          Cancel
+        </Button>
         <Button
           variant="contained"
           color="success"
-          onClick={() =>
-            onSave({
-              orderStatus: status,
-              paymentStatus: payStatus,
-              paymentMethod: payMethod,
-            })
-          }
+          onClick={() => onUpdateHandler(edit)}
         >
           Save
         </Button>

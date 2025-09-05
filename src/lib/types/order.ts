@@ -52,7 +52,8 @@ export interface OrderInquiry {
   limit: number;
   type?: OrderType;
   status?: OrderStatus;
-  payStatus?: PaymentMethod;
+  payStatus?: PaymentStatus;
+  payMeth?: PaymentMethod;
   search?: string;
   orderStatus?: OrderStatus;
 }
@@ -91,9 +92,8 @@ export interface OrdersByCategory {
   orders: number;
 }
 
-export interface TopSellingItems{
+export interface TopSellingItems {
   productId: string;
   productName: string;
-  totalQuantity:number;
+  totalQuantity: number;
 }
-

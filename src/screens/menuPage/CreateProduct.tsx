@@ -207,7 +207,7 @@ export default function ProductDialog(props: ProductDialogProps) {
     fd.append("productDesc", form.productDesc.trim());
 
     // EDIT: keep existing urls; CREATE: none (array empty)
-    form.existingUrls.forEach((u) => fd.append("existingImages[]", u));
+    form.existingUrls.forEach((u) => fd.append("existingImages", u));
     // upload new files
     form.newFiles.forEach((f) => fd.append("productImages", f));
 

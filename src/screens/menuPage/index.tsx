@@ -1,7 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from "react";
 import {
   Product,
-  ProductInput,
   ProductInquiry,
   ProductUpdateInput,
 } from "../../lib/types/product";
@@ -12,7 +11,6 @@ import ProductsPage from "./Prodcuts";
 import {
   ProductCollection,
   ProductDialogMode,
-  ProductStatus,
 } from "../../lib/enums/product.enums";
 import ProductService from "../../services/Product.service";
 import "../../css/products.css";
@@ -22,7 +20,6 @@ import {
   sweetCenterSuccessAlert,
   sweetErrorHandling,
 } from "../../lib/sweetAlert";
-import Swal from "sweetalert2";
 
 const product = new ProductService();
 
@@ -88,11 +85,15 @@ export default function MenuPage() {
     setProductSearch({ ...productSearch });
   };
 
-  const productUpdateHandler = (input: ProductUpdateInput) => {
-    product
-      .updateChosenProduct(input)
-      .then((data) => updateProduct(data))
-      .catch((err) => console.log(err));
+  const productUpdateHandler = async (input: ProductUpdateInput) => {
+    try {
+      const data = await product.updateChosenProduct(input);
+      updateProduct(data);
+      sweetCenterSuccessAlert("Updated!", 700)
+    } catch (err) {
+      console.error(err);
+      sweetErrorHandling(err).then();
+    }
   };
 
   const productDeleteHandler = async (input: ProductUpdateInput) => {
@@ -112,15 +113,15 @@ export default function MenuPage() {
       if (id) {
         const updated = await product.updateProduct(id, fd);
         updateProduct(updated);
-        sweetCenterSuccessAlert("Updated", 700)
+        sweetCenterSuccessAlert("Updated", 700);
       } else {
         const created = await product.createNewProduct(fd);
         addProduct(created);
-        sweetCenterSuccessAlert("Created", 700)
+        sweetCenterSuccessAlert("Created", 700);
       }
     } catch (e) {
       console.error(e);
-      sweetErrorHandling(e);
+      sweetErrorHandling(e).then();
     }
   };
   return (

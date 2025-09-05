@@ -281,6 +281,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                                   productStat === ProductStatus.PROCESS
                                     ? ProductStatus.PAUSE
                                     : ProductStatus.PROCESS,
+                                    existingImages: product.productImages
                               })
                             }
                           >

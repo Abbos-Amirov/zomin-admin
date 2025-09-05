@@ -53,6 +53,7 @@ export interface ProductUpdateInput {
   productVolume?: number;
   productDesc?: string;
   productImages?: string[];
+  existingImages?: string[];
   productViews?: number;
 }
 

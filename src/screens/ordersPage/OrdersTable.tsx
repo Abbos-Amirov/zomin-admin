@@ -1,4 +1,7 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
+import PaginationItem from "@mui/material/PaginationItem";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
   Button,
   Chip,
@@ -13,42 +16,60 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { Order, OrderStatus, OrderType, PaymentStatus } from "./types";
+import { useSelector } from "react-redux";
+import { createSelector } from "@reduxjs/toolkit";
+import { retrieveOrders } from "./selector";
+import {
+  OrderStatus,
+  OrderType,
+  PaymentStatus,
+} from "../../lib/enums/order.enum";
+import { dateFmt } from "../../lib/config";
+import { Order, OrderInquiry, OrderUpdateInput } from "../../lib/types/order";
 
-const money = (n: number) => new Intl.NumberFormat().format(n);
-const dateFmt = (iso: string) => new Date(iso).toLocaleString();
+const ordersRetriever = createSelector(retrieveOrders, (orders) => ({
+  orders,
+}));
 
 const typeColor = (t: OrderType) =>
-  t === "TABLE" ? "secondary" : t === "DELIVERY" ? "info" : "warning";
-const statusColor = (s: OrderStatus) =>
-  s === "PENDING"
-    ? "warning"
-    : s === "PROGRESS"
+  t === OrderType.TABLE
+    ? "secondary"
+    : t === OrderType.DELIVERY
     ? "info"
-    : s === "COMPLETED"
+    : "warning";
+const statusColor = (s: OrderStatus) =>
+  s === OrderStatus.PENDING
+    ? "warning"
+    : s === OrderStatus.PROGRESS
+    ? "info"
+    : s === OrderStatus.COMPLETED
     ? "success"
     : "error";
 const payStatusColor = (p: PaymentStatus) =>
-  p === "UNPAID" ? "warning" : p === "PAID" ? "success" : "error";
+  p === PaymentStatus.UNPAID
+    ? "warning"
+    : p === PaymentStatus.PAID
+    ? "success"
+    : "error";
 
-type Props = {
-  rows: Order[];
-  page: number;
-  limit: number;
-  onPageChange: (p: number) => void;
-  onEdit: (o: Order) => void;
-};
+interface OrderTableProps {
+  orderSearch: OrderInquiry;
+  setOrderSearch: (input: OrderInquiry) => void;
+  setOpen: (open: boolean) => void;
+  edit: OrderUpdateInput;
+  setEdit: (edti: OrderUpdateInput) => void;
+}
 
-export default function OrdersTable({
-  rows,
-  page,
-  limit,
-  onPageChange,
-  onEdit,
-}: Props) {
-  const totalPages = Math.max(3, Math.ceil(rows.length / limit));
-  const start = (page - 1) * limit;
-  const paged = rows.slice(start, start + limit);
+export default function OrdersTable(props: OrderTableProps) {
+  const { orderSearch, setOrderSearch, setOpen, edit, setEdit } = props;
+
+  const { orders } = useSelector(ordersRetriever);
+
+  /** HANDLERS **/
+  const paginationHandler = (e: ChangeEvent<any>, value: number) => {
+    orderSearch.page = value;
+    setOrderSearch({ ...orderSearch });
+  };
 
   return (
     <TableContainer component={Paper}>
@@ -70,7 +91,7 @@ export default function OrdersTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {paged.map((v) => {
+          {orders.map((v) => {
             const grand = v.orderTotal - (v.deliveryFee || 0);
             return (
               <TableRow key={v._id} hover>
@@ -86,10 +107,10 @@ export default function OrdersTable({
                 </TableCell>
                 <TableCell>{v.tableId ?? "-"}</TableCell>
                 <TableCell>{v.memberId ?? "-"}</TableCell>
-                <TableCell align="right">₩{money(grand)}</TableCell>
-                <TableCell align="right">₩{money(v.deliveryFee)}</TableCell>
+                <TableCell align="right">₩{grand}</TableCell>
+                <TableCell align="right">₩{v.deliveryFee}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600 }}>
-                  ₩{money(v.orderTotal)}
+                  ₩{v.orderTotal}
                 </TableCell>
                 <TableCell>{v.paymentMethod}</TableCell>
                 <TableCell>
@@ -112,7 +133,15 @@ export default function OrdersTable({
                     size="small"
                     variant="contained"
                     color="primary"
-                    onClick={() => onEdit(v)}
+                    onClick={() => {
+                      setOpen(true);
+                      setEdit({
+                        orderId: v._id,
+                        orderStatus: v.orderStatus,
+                        paymentStatus: v.paymentStatus,
+                        paymentMethod: v.paymentMethod,
+                      });
+                    }}
                   >
                     Edit
                   </Button>
@@ -120,7 +149,7 @@ export default function OrdersTable({
               </TableRow>
             );
           })}
-          {paged.length === 0 && (
+          {orders.length === 0 && (
             <TableRow>
               <TableCell colSpan={12}>No orders</TableCell>
             </TableRow>
@@ -128,14 +157,26 @@ export default function OrdersTable({
         </TableBody>
       </Table>
       <Divider />
-      <Stack direction="row" justifyContent="center" p={2} margin={"20px"}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_e, p) => onPageChange(p)}
-          size="medium"
-          color="secondary"
-        />
+      <Stack className="pagination-section">
+        <Stack spacing={2}>
+          <Pagination
+            count={
+              orders.length !== 0 ? orderSearch.page + 1 : orderSearch.page
+            }
+            page={orderSearch.page}
+            renderItem={(item) => (
+              <PaginationItem
+                slots={{
+                  previous: ArrowBackIcon,
+                  next: ArrowForwardIcon,
+                }}
+                {...item}
+                color={"secondary"}
+              />
+            )}
+            onChange={paginationHandler}
+          />
+        </Stack>
       </Stack>
     </TableContainer>
   );
