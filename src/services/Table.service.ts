@@ -12,8 +12,7 @@ class TableService {
   public async getAllTables(input: TableInquiry): Promise<Table[]> {
     try {
       const url =
-        this.path +
-        `/admin/table/all?limit=${input.limit}&page=${input.page}`;
+        this.path + `/admin/table/all?limit=${input.limit}&page=${input.page}`;
       const result = await axios.get(url);
       console.log("getAllTables: ", result.data);
       return result.data;

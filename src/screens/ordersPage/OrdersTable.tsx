@@ -25,7 +25,7 @@ import {
   PaymentStatus,
 } from "../../lib/enums/order.enum";
 import { dateFmt } from "../../lib/config";
-import { Order, OrderInquiry, OrderUpdateInput } from "../../lib/types/order";
+import { OrderInquiry, OrderUpdateInput } from "../../lib/types/order";
 
 const ordersRetriever = createSelector(retrieveOrders, (orders) => ({
   orders,

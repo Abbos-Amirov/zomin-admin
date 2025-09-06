@@ -38,9 +38,8 @@ export default function OrdersPage() {
       });
   }, [orderSearch]);
 
-  /** HANDLERS */
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} className="order-page">
       <Typography variant="h3" fontWeight={700} textAlign={"center"}>
         Orders
       </Typography>

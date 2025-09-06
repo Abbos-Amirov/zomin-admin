@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
 import {
   Avatar,
   Box,
@@ -6,6 +6,7 @@ import {
   Chip,
   Divider,
   Pagination,
+  PaginationItem,
   Paper,
   Stack,
   Table,
@@ -15,31 +16,44 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import type { RUser, UserStatus } from "./types";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { createSelector } from "@reduxjs/toolkit";
+import { retrieveUsers } from "./selector";
+import { MemberStatus } from "../../lib/enums/member.enum";
+import { MemberUpdateInput, UserInquiry } from "../../lib/types/member";
+import { useSelector } from "react-redux";
+import { dateFmt, serverApi } from "../../lib/config";
 
-const statusColor = (s: UserStatus) =>
-  s === "active" ? "success" : s === "block" ? "warning" : "error";
+const usersRetriever = createSelector(retrieveUsers, (users) => ({
+  users,
+}));
 
-const fmt = (d: string) => new Date(d).toLocaleString();
+const statusColor = (s: MemberStatus) =>
+  s === MemberStatus.ACTIVE
+    ? "success"
+    : s === MemberStatus.BLOCK
+    ? "warning"
+    : "error";
 
-type Props = {
-  rows: RUser[];
-  page: number;
-  limit: number;
-  onPageChange: (p: number) => void;
-  onEdit: (u: RUser) => void;
-};
+interface UsersTableProps {
+  userSearch: UserInquiry;
+  setUserSearch: (input: UserInquiry) => void;
+  setOpen: (open: boolean) => void;
+  edit: MemberUpdateInput;
+  setEdit: (edti: MemberUpdateInput) => void;
+}
 
-export default function UsersTable({
-  rows,
-  page,
-  limit,
-  onPageChange,
-  onEdit,
-}: Props) {
-  const totalPages = Math.max(1, Math.ceil(rows.length / limit));
-  const start = (page - 1) * limit;
-  const paged = rows.slice(start, start + limit);
+export default function UsersTable(props: UsersTableProps) {
+  const { userSearch, setUserSearch, setOpen, edit, setEdit } = props;
+
+  const { users } = useSelector(usersRetriever);
+
+  /** HANDLERS **/
+  const paginationHandler = (e: ChangeEvent<any>, value: number) => {
+    userSearch.page = value;
+    setUserSearch({ ...userSearch });
+  };
 
   return (
     <TableContainer component={Paper}>
@@ -56,7 +70,7 @@ export default function UsersTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {paged.map((u, index) => (
+          {users.map((u, index) => (
             <TableRow key={u._id} hover>
               <TableCell>#{index + 1}</TableCell>
 
@@ -69,35 +83,45 @@ export default function UsersTable({
                   }}
                 >
                   <Avatar
-                    src={u.avatarUrl}
-                    alt={u.name}
+                    src={`${serverApi}/${u.memberImage}`}
+                    alt={u.memberNick}
                     sx={{ width: 36, height: 36 }}
                   />
-                  <Box marginLeft={"8px"}>{u.name}</Box>
+                  <Box marginLeft={"8px"}>{u.memberNick}</Box>
                 </Stack>
               </TableCell>
-              <TableCell sx={{ fontFamily: "monospace" }}>{u.phone}</TableCell>
+              <TableCell sx={{ fontFamily: "monospace" }}>
+                {u.memberPhone}
+              </TableCell>
               <TableCell>
                 <Chip
                   size="small"
-                  label={u.status}
-                  color={statusColor(u.status) as any}
+                  label={u.memberStatus}
+                  color={statusColor(u.memberStatus) as any}
                 />
               </TableCell>
-              <TableCell>{fmt(u.createdAt)}</TableCell>
-              <TableCell>{fmt(u.updatedAt)}</TableCell>
+              <TableCell>{dateFmt(u.createdAt)}</TableCell>
+              <TableCell>{dateFmt(u.updatedAt)}</TableCell>
               <TableCell align="right">
                 <Button
                   size="small"
                   variant="contained"
-                  onClick={() => onEdit(u)}
+                  onClick={() => {
+                    setOpen(true);
+                    setEdit({
+                      memberNick: u.memberNick,
+                      _id: u._id,
+                      memberPhone: u.memberPhone,
+                      memberStatus: u.memberStatus,
+                    });
+                  }}
                 >
                   Edit
                 </Button>
               </TableCell>
             </TableRow>
           ))}
-          {paged.length === 0 && (
+          {users.length === 0 && (
             <TableRow>
               <TableCell colSpan={7}>No users</TableCell>
             </TableRow>
@@ -105,14 +129,24 @@ export default function UsersTable({
         </TableBody>
       </Table>
       <Divider />
-      <Stack direction="row" justifyContent="center" p={2}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_e, p) => onPageChange(p)}
-          size="medium"
-          color="secondary"
-        />
+      <Stack className="pagination-section">
+        <Stack spacing={2}>
+          <Pagination
+            count={users.length !== 0 ? userSearch.page + 1 : userSearch.page}
+            page={userSearch.page}
+            renderItem={(item) => (
+              <PaginationItem
+                slots={{
+                  previous: ArrowBackIcon,
+                  next: ArrowForwardIcon,
+                }}
+                {...item}
+                color={"secondary"}
+              />
+            )}
+            onChange={paginationHandler}
+          />
+        </Stack>
       </Stack>
     </TableContainer>
   );

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent } from "react";
 import { Box, Button, Container, IconButton, Stack } from "@mui/material";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import Pagination from "@mui/material/Pagination";
@@ -74,7 +74,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                     type="search"
                     name="singleResearch"
                     placeholder="Type here"
-                    className="input"
+                    className="search-input"
                     onChange={(e) => {
                       setSearchText(e.target.value);
                     }}
@@ -85,7 +85,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                   <Button
                     variant="contained"
                     color="primary"
-                    className="input-btn"
+                    className="search-input-btn"
                     endIcon={<SearchIcon />}
                     onClick={searchProductHandler}
                   >
@@ -151,8 +151,8 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                   ProductCollection.DISH,
                   ProductCollection.DESSERT,
                   ProductCollection.DRINK,
-                  ProductCollection.OTHER,
                   ProductCollection.SALAD,
+                  ProductCollection.OTHER,
                 ].map((item, i) => (
                   <Button
                     key={i}
@@ -248,7 +248,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                                 productDeleteHandler({
                                   _id: product._id,
                                   productStatus: ProductStatus.DELETE,
-                                  productName: product.productName
+                                  productName: product.productName,
                                 })
                               }
                             >
@@ -281,7 +281,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                                   productStat === ProductStatus.PROCESS
                                     ? ProductStatus.PAUSE
                                     : ProductStatus.PROCESS,
-                                    existingImages: product.productImages
+                                existingImages: product.productImages,
                               })
                             }
                           >

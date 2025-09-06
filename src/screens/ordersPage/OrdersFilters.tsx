@@ -66,9 +66,8 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
   };
 
   return (
-    <Paper sx={{ p: 2 }} className="order-page">
+    <Paper sx={{ p: 2 }}>
       <Stack
-        className="filter"
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
         alignItems={{ xs: "stretch", sm: "center" }}
@@ -79,7 +78,7 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             type="search"
             name="singleResearch"
             placeholder="Type here"
-            className="input"
+            className="search-input"
             onChange={(e) => {
               setSearchText(e.target.value);
             }}
@@ -90,7 +89,7 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
           <Button
             variant="contained"
             color="primary"
-            className="input-btn"
+            className="search-input-btn"
             endIcon={<SearchIcon />}
             onClick={searchProductHandler}
           >

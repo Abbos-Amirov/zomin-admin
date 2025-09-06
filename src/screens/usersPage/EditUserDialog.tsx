@@ -12,83 +12,97 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import type { RUser, UserStatus } from "./types";
+import { MemberUpdateInput, UserInquiry } from "../../lib/types/member";
+import { Messages } from "../../lib/config";
+import MemberService from "../../services/Member.service";
+import {
+  sweetCenterSuccessAlert,
+  sweetErrorHandling,
+} from "../../lib/sweetAlert";
+import { MemberStatus } from "../../lib/enums/member.enum";
 
-type Props = {
+interface EditUserDialogProps {
   open: boolean;
-  user: RUser | null;
-  onClose: () => void;
-  onSave: (data: {
-    _id: string;
-    name: string;
-    phone: string;
-    status: UserStatus;
-  }) => void;
-};
+  setOpen: (open: boolean) => void;
+  edit: MemberUpdateInput;
+  setEdit: (edit: MemberUpdateInput) => void;
+  userSearch: UserInquiry;
+  setUserSearch: (input: UserInquiry) => void;
+}
 
-export default function EditUserDialog({ open, user, onClose, onSave }: Props) {
-  const [name, setName] = React.useState("");
-  const [phone, setPhone] = React.useState("");
-  const [status, setStatus] = React.useState<UserStatus>("active");
+export default function EditUserDialog(props: EditUserDialogProps) {
+  const { open, setOpen, edit, setEdit, userSearch, setUserSearch } = props;
 
-  React.useEffect(() => {
-    if (open && user) {
-      setName(user.name);
-      setPhone(user.phone);
-      setStatus(user.status);
+  /** HANDLERS **/
+  const onUpdateHandler = async (input: MemberUpdateInput) => {
+    try {
+      if (edit.memberNick === "" || edit.memberPhone === "")
+        throw Error(Messages.error3);
+      const member = new MemberService();
+      await member.updateChosenUser(input);
+      setUserSearch({ ...userSearch });
+      setOpen(false);
+      sweetCenterSuccessAlert("Updated!", 700);
+    } catch (err) {
+      console.log(err);
+      setOpen(false);
+      sweetErrorHandling(err).then();
     }
-  }, [open, user]);
-
-  if (!user) return null;
-
-  const canSave = name.trim().length > 0 && phone.trim().length > 0;
-
+  };
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
       <DialogTitle>Edit user</DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
           <TextField
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            label="NickName"
+            value={edit.memberNick}
+            onChange={(e) =>
+              setEdit({
+                ...edit,
+                memberNick: e.target.value as string,
+              })
+            }
             autoFocus
           />
           <TextField
             label="Phone number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            value={edit.memberPhone}
+            onChange={(e) =>
+              setEdit({
+                ...edit,
+                memberPhone: e.target.value as string,
+              })
+            }
           />
           <FormControl size="small">
             <InputLabel>Status</InputLabel>
             <Select
-              label="Status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as UserStatus)}
+              label="MemberStatus"
+              value={edit.memberStatus}
+              onChange={(e) =>
+                setEdit({
+                  ...edit,
+                  memberStatus: e.target.value as MemberStatus,
+                })
+              }
             >
-              <MenuItem value="active">active</MenuItem>
-              <MenuItem value="block">block</MenuItem>
-              <MenuItem value="delete">delete</MenuItem>
+              <MenuItem value="ACTIVE">ACTIVE</MenuItem>
+              <MenuItem value="BLOCK">BLOCK</MenuItem>
+              <MenuItem value="DELETE">DELETE</MenuItem>
             </Select>
           </FormControl>
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" color="error" onClick={onClose}>
-          Cancel
-        </Button>
         <Button
           variant="contained"
-          onClick={() =>
-            onSave({
-              _id: user._id,
-              name: name.trim(),
-              phone: phone.trim(),
-              status,
-            })
-          }
-          disabled={!canSave}
+          color="error"
+          onClick={() => setOpen(false)}
         >
+          Cancel
+        </Button>
+        <Button variant="contained" onClick={() => onUpdateHandler(edit)}>
           Save
         </Button>
       </DialogActions>
