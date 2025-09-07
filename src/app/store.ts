@@ -5,6 +5,7 @@ import DashboardPageReducer from "../screens/dashboardPage/slice";
 import MenuPageReducer from "../screens/menuPage/slice";
 import OrdersPageReducer from "../screens/ordersPage/slice";
 import UsersPageReducer from "../screens/usersPage/slice";
+import TablesPageReducer from "../screens/tablesPage/slice";
 
 export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
@@ -15,6 +16,7 @@ export const store = configureStore({
     menuPage: MenuPageReducer,
     ordersPage: OrdersPageReducer,
     usersPage: UsersPageReducer,
+    tablesPage: TablesPageReducer,
   },
 });
 

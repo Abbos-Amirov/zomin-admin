@@ -1,5 +1,5 @@
 // src/features/tables/TablesTable.tsx
-import React from "react";
+import React, { ChangeEvent } from "react";
 import {
   Button,
   Chip,
@@ -7,6 +7,7 @@ import {
   FormControl,
   MenuItem,
   Pagination,
+  PaginationItem,
   Paper,
   Select,
   Stack,
@@ -18,15 +19,33 @@ import {
   TableRow,
   Tooltip,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import DownloadIcon from "@mui/icons-material/Download";
-import EditTableDialog from "./EditTableDialog";
 import { QRCodeSVG } from "qrcode.react";
-import type { RTable, TableStatus } from "./types";
+import { TableInquiry, TableUpdateInput } from "../../lib/types/table";
+import { createSelector } from "@reduxjs/toolkit";
+import { retrieveTables } from "./selector";
+import { useSelector } from "react-redux";
+import { TableStatus } from "../../lib/enums/table.enum";
+import { dateFmt } from "../../lib/config";
+import {
+  confirmDelete,
+  sweetCenterSuccessAlert,
+  sweetErrorHandling,
+} from "../../lib/sweetAlert";
+import TableService from "../../services/Table.service";
+
+const tablesRetriever = createSelector(retrieveTables, (tables) => ({
+  tables,
+}));
 
 const statusColor = (s: TableStatus) =>
-  s === "AVAILABLE" ? "success" : s === "OCCUPIED" ? "error" : "warning";
-
-const fmt = (d: string) => new Date(d).toLocaleString();
+  s === TableStatus.AVAILABLE
+    ? "success"
+    : s === TableStatus.OCCUPIED
+    ? "error"
+    : "warning";
 
 // --- helpers: SVG → PNG ---
 function downloadSvgAsPng(svgEl: SVGSVGElement, filename: string, px = 1024) {
@@ -58,59 +77,51 @@ function downloadSvgAsPng(svgEl: SVGSVGElement, filename: string, px = 1024) {
   img.src = svgUrl;
 }
 
-type Props = {
-  rows: RTable[];
-  page: number;
-  limit: number;
-  onPageChange: (p: number) => void;
-  onQuickSet: (id: string, status: TableStatus) => void; // Action <Select>
-  onSaveEdit: (data: {
-    _id: string;
-    tableNumber: string;
-    tableStatus: TableStatus;
-  }) => void;
-  onDelete: (t: RTable) => void;
-  onEdit?: (t: RTable) => void; // optional (legacy)
-  isAdmin?: boolean; // disable actions when false
-};
+interface TablesTableProps {
+  tableSearch: TableInquiry;
+  setTableSearch: (input: TableInquiry) => void;
+  setOpen: (open: boolean) => void;
+  setCreate: (create: boolean) => void;
+  edit: TableUpdateInput;
+  setEdit: (edti: TableUpdateInput) => void;
+}
 
-export default function TablesTable({
-  rows,
-  page,
-  limit,
-  onPageChange,
-  onQuickSet,
-  onSaveEdit,
-  onDelete,
-  onEdit, // optional legacy
-  isAdmin = true,
-}: Props) {
-  const totalPages = Math.max(1, Math.ceil(rows.length / limit));
-  const start = (page - 1) * limit;
-  const paged = rows.slice(start, start + limit);
+export default function TablesTable(props: TablesTableProps) {
+  const { tableSearch, setTableSearch, setOpen, setCreate, edit, setEdit } =
+    props;
 
-  // local state for the edit dialog
-  const [editOpen, setEditOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<RTable | null>(null);
+  const { tables } = useSelector(tablesRetriever);
 
-  const openEdit = (t: RTable) => {
-    setEditing(t);
-    setEditOpen(true);
-    onEdit?.(t);
-  };
-  const closeEdit = () => {
-    setEditOpen(false);
-    setEditing(null);
-  };
-  const handleSave = (data: {
-    _id: string;
-    tableNumber: string;
-    tableStatus: TableStatus;
-  }) => {
-    onSaveEdit(data);
-    closeEdit();
+  /** HANDLERS **/
+  const paginationHandler = (e: ChangeEvent<any>, value: number) => {
+    tableSearch.page = value;
+    setTableSearch({ ...tableSearch });
   };
 
+  const updateTableHandler = async (input: TableUpdateInput) => {
+    try {
+      const table = new TableService();
+      await table.updateChosenTable(input);
+      setTableSearch({ ...tableSearch });
+      sweetCenterSuccessAlert("Updated", 700);
+    } catch (err) {
+      console.log(err);
+      sweetErrorHandling(err).then();
+    }
+  };
+
+  const deleteTableHandler = async (id: string, tableNumber: string) => {
+    try {
+      await confirmDelete(tableNumber);
+      const table = new TableService();
+      await table.deleteChosenTable(id);
+      setTableSearch({ ...tableSearch });
+      sweetCenterSuccessAlert("Deleted", 700);
+    } catch (err) {
+      console.log(err);
+      sweetErrorHandling(err).then();
+    }
+  };
   return (
     <TableContainer component={Paper}>
       <Table size="small">
@@ -127,8 +138,9 @@ export default function TablesTable({
         </TableHead>
 
         <TableBody>
-          {paged.map((t) => {
-            const url = `http://localhost:3000/scan?t=${encodeURIComponent(
+          {tables.map((t) => {
+            const url = `http://localhost:3000/table/qr/${encodeURIComponent(
+              // Scane URL of table
               t.qrToken
             )}`;
             const qrId = `qr-${t._id}`;
@@ -145,9 +157,7 @@ export default function TablesTable({
                   />
                 </TableCell>
 
-                <TableCell sx={{ fontFamily: "monospace" }}>
-                  {t.currentOrderId ? t.currentOrderId.slice(-6) : "-"}
-                </TableCell>
+                <TableCell sx={{ fontFamily: "monospace" }}>{"-"}</TableCell>
 
                 {/* QR preview + Download buttons */}
                 <TableCell>
@@ -179,8 +189,8 @@ export default function TablesTable({
                   </Tooltip>
                 </TableCell>
 
-                <TableCell>{fmt(t.createdAt)}</TableCell>
-                <TableCell>{fmt(t.updateAt)}</TableCell>
+                <TableCell>{dateFmt(t.createdAt)}</TableCell>
+                <TableCell>{dateFmt(t.updatedAt)}</TableCell>
 
                 {/* Action: select + edit/delete */}
                 <TableCell align="right">
@@ -194,9 +204,11 @@ export default function TablesTable({
                       <Select<TableStatus>
                         value={t.tableStatus}
                         onChange={(e) =>
-                          onQuickSet(t._id, e.target.value as TableStatus)
+                          updateTableHandler({
+                            _id: t._id,
+                            tableStatus: e.target.value as TableStatus,
+                          })
                         }
-                        disabled={!isAdmin}
                       >
                         <MenuItem value="AVAILABLE">AVAILABLE</MenuItem>
                         <MenuItem value="OCCUPIED">OCCUPIED</MenuItem>
@@ -208,8 +220,15 @@ export default function TablesTable({
                       size="small"
                       color="secondary"
                       variant="contained"
-                      onClick={() => openEdit(t)}
-                      disabled={!isAdmin}
+                      onClick={() => {
+                        setCreate(false);
+                        setOpen(true);
+                        setEdit({
+                          _id: t._id,
+                          tableNumber: t.tableNumber,
+                          tableStatus: t.tableStatus,
+                        });
+                      }}
                     >
                       Edit
                     </Button>
@@ -217,8 +236,7 @@ export default function TablesTable({
                       size="small"
                       variant="contained"
                       color="primary"
-                      onClick={() => onDelete(t)}
-                      disabled={!isAdmin}
+                      onClick={() => deleteTableHandler(t._id, t.tableNumber)}
                     >
                       Delete
                     </Button>
@@ -228,7 +246,7 @@ export default function TablesTable({
             );
           })}
 
-          {paged.length === 0 && (
+          {tables.length === 0 && (
             <TableRow>
               <TableCell colSpan={7}>No tables</TableCell>
             </TableRow>
@@ -237,24 +255,27 @@ export default function TablesTable({
       </Table>
 
       <Divider />
-      <Stack direction="row" justifyContent="center" p={5}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_e, p) => onPageChange(p)}
-          size="medium"
-          color="secondary"
-        />
+      <Stack className="pagination-section">
+        <Stack spacing={2}>
+          <Pagination
+            count={
+              tables.length !== 0 ? tableSearch.page + 1 : tableSearch.page
+            }
+            page={tableSearch.page}
+            renderItem={(item) => (
+              <PaginationItem
+                slots={{
+                  previous: ArrowBackIcon,
+                  next: ArrowForwardIcon,
+                }}
+                {...item}
+                color={"secondary"}
+              />
+            )}
+            onChange={paginationHandler}
+          />
+        </Stack>
       </Stack>
-
-      {/* integrated edit dialog */}
-      <EditTableDialog
-        open={editOpen}
-        table={editing}
-        onClose={closeEdit}
-        onSave={handleSave}
-        existingNumbers={rows.map((r) => r.tableNumber)}
-      />
     </TableContainer>
   );
 }

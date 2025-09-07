@@ -22,7 +22,7 @@ export interface TableUpdateInput {
   _id: string;
   tableNumber?: string;
   qrToken?: string;
-  tableStatus: TableStatus;
+  tableStatus?: TableStatus;
   tableCall?: TableCall;
   activeIdentifier?: string | null;
 }

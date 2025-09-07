@@ -53,6 +53,7 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
       sweetCenterSuccessAlert("updated!", 700);
     } catch (err) {
       console.log(err);
+      setOpen(false);
       sweetErrorHandling(err).then();
     }
   };

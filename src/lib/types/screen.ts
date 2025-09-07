@@ -9,6 +9,7 @@ export interface AppRootState {
   menuPage: MenuPageState;
   ordersPage: OrdersPageState;
   usersPage: UsersPageState;
+  tablesPage: TablesPageState;
 }
 
 /** DashboardPage */
@@ -31,4 +32,9 @@ export interface OrdersPageState {
 /** UsersPage **/
 export interface UsersPageState {
   users: Member[];
+}
+
+/** TablePage **/
+export interface TablesPageState {
+  tables: Table[];
 }
