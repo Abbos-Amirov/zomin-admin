@@ -1,64 +1,45 @@
 import React from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Stack,
-  Divider,
-  Button,
-} from "@mui/material";
+import { Stack, Button } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
-import CleaningServicesRoundedIcon from "@mui/icons-material/CleaningServicesRounded";
-import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
+import { useNavigate } from "react-router-dom";
 
-type Props = {
-  onNewOrder?: () => void;
-  onAssignTable?: () => void;
-  onMarkCleaned?: () => void;
-  onMarkAllNoticesRead?: () => void;
-};
+type Props = {};
 
-export default function QuickActions({
-  onNewOrder,
-  onAssignTable,
-  onMarkCleaned,
-  onMarkAllNoticesRead,
-}: Props) {
+export default function QuickActions() {
+  const navigate = useNavigate();
+  /** HANDLERS **/
+  const newOrderHandler = () => {
+    const confirmation = window.confirm("Do you want to create new order?");
+    if (confirmation) {
+      window.location.href = "http://localhost:3000/products";
+    }
+  };
+
+  const addTableHandler = () => navigate("/tables");
   return (
     <Stack
       flexDirection={"row"}
-      marginTop={"30px"}
-      justifyContent={"space-around"}
+      margin={"40px"}
+      justifyContent={"end"}
       padding={"10px"}
+      gap={"30px"}
     >
       <Button
         startIcon={<AddRoundedIcon />}
         variant="contained"
-        onClick={onNewOrder}
+        onClick={newOrderHandler}
+        size="large"
       >
         New Order
       </Button>
       <Button
         startIcon={<TableRestaurantIcon />}
         variant="contained"
-        onClick={onAssignTable}
+        onClick={addTableHandler}
+        size="large"
       >
-        Assign Table
-      </Button>
-      <Button
-        startIcon={<CleaningServicesRoundedIcon />}
-        variant="contained"
-        onClick={onMarkCleaned}
-      >
-        Mark Table Cleaned
-      </Button>
-      <Button
-        startIcon={<NotificationsNoneRoundedIcon />}
-        variant="contained"
-        onClick={onMarkAllNoticesRead}
-      >
-        Mark Notices Read
+        Add table
       </Button>
     </Stack>
   );

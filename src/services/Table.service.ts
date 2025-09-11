@@ -20,7 +20,7 @@ class TableService {
         this.path + `/admin/table/all?limit=${input.limit}&page=${input.page}`;
       if (input.search) url += `&search=${input.search}`;
       if (input.status) url += `&status=${input.status}`;
-      const result = await axios.get(url);
+      const result = await axios.get(url, { withCredentials: true });
       console.log("getAllTables: ", result.data);
       return result.data;
     } catch (err) {

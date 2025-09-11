@@ -9,7 +9,6 @@ import {
   Grid,
   Box,
   Avatar,
-  Badge,
   Button,
 } from "@mui/material";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
@@ -21,13 +20,15 @@ import { createSelector } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import { TableStatus } from "../../lib/enums/table.enum";
 import { TableCall } from "../../lib/enums/tableCall.enum";
+import { TableInquiry, TableUpdateInput } from "../../lib/types/table";
+import { sweetErrorHandling } from "../../lib/sweetAlert";
+import TableService from "../../services/Table.service";
 
 /** REDUX SLICE & SELECTOR */
 const tableStatusRetriever = createSelector(
   retrieveTableStatus,
   (tableStatus) => ({ tableStatus })
 );
-
 
 const bgByState = (s: TableStatus) =>
   s === "OCCUPIED"
@@ -36,9 +37,31 @@ const bgByState = (s: TableStatus) =>
     ? "info.light"
     : "background.default";
 
-export default function TableInfo() {
+interface TableInfoProps {
+  inquiry: TableInquiry;
+  setInquiry: (input: TableInquiry) => void;
+}
+
+export default function TableInfo(props: TableInfoProps) {
   const { tableStatus } = useSelector(tableStatusRetriever);
-  
+
+  const { setInquiry, inquiry } = props;
+
+  /** HANDLERS **/
+  const callButtonHandler = async (input: TableUpdateInput) => {
+    try {
+      const table = new TableService();
+      const confirmation = window.confirm("Do you want to Mark as Read?");
+      if (confirmation) {
+        await table.updateChosenTable(input);
+        setInquiry({ ...inquiry });
+      }
+    } catch (err) {
+      console.log(err);
+      sweetErrorHandling(err).then();
+    }
+  };
+
   return (
     <Card sx={{ borderRadius: 3, maxHeight: "100%", marginBottom: "30px" }}>
       <CardContent>
@@ -118,7 +141,7 @@ export default function TableInfo() {
                   p: 1.5,
                   borderRadius: 2,
                   border: (theme) => `1px solid ${theme.palette.divider}`,
-                  bgcolor: bgByState(t.tableStatus)
+                  bgcolor: bgByState(t.tableStatus),
                 }}
               >
                 <Stack
@@ -137,7 +160,14 @@ export default function TableInfo() {
                   </Stack>
                   <Stack direction="row" spacing={1} alignItems="center">
                     {t.tableCall === TableCall.ACTIVE && (
-                      <Button>
+                      <Button
+                        onClick={() =>
+                          callButtonHandler({
+                            _id: t._id,
+                            tableCall: TableCall.PAUSE,
+                          })
+                        }
+                      >
                         <RippleBadge
                           overlap="circular"
                           anchorOrigin={{

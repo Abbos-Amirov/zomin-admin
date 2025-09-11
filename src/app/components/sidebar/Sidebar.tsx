@@ -53,11 +53,6 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
       label: "Users",
       icon: <AccountCircleIcon className="sidebar-icon" />,
     },
-    {
-      to: "/calls",
-      label: "Table Calls",
-      icon: <NotificationsIcon className="sidebar-icon" />,
-    },
   ];
 
   const drawerContent = (

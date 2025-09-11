@@ -17,7 +17,7 @@ class ProductService {
   public async getProductsStat(): Promise<ProductsStat[]> {
     try {
       const url = this.path + "/admin/product/all/stat";
-      const result = await axios.get(url);
+      const result = await axios.get(url, { withCredentials: true });
       console.log("getAllProducts: ", result.data);
       return result.data;
     } catch (err) {
@@ -34,7 +34,7 @@ class ProductService {
       if (input.productCollection)
         url += `&productCollection=${input.productCollection}`;
       if (input.search) url += `&search=${input.search}`;
-      const result = await axios.get(url);
+      const result = await axios.get(url, { withCredentials: true });
       console.log("getAllProducts: ", result.data);
       return result.data;
     } catch (err) {

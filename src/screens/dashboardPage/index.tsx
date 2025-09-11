@@ -4,14 +4,15 @@ import QuickActions from "./QuickActions";
 import { useDispatch } from "react-redux";
 import { OrderStatis } from "../../lib/types/order";
 import { setOrderStatis, setProductStatus, setTableStatus } from "./slice";
-import { Table } from "../../lib/types/table";
+import { Table, TableInquiry } from "../../lib/types/table";
 import { Dispatch } from "@reduxjs/toolkit";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ProductsStat } from "../../lib/types/product";
 import OrderService from "../../services/Order.service";
 import ProductService from "../../services/Product.service";
 import TableService from "../../services/Table.service";
 import TableInfo from "./TableStatus";
+import { sweetErrorHandling } from "../../lib/sweetAlert";
 
 /** REDUX SLICE & SELECTOR */
 const actionDispatch = (dispatch: Dispatch) => ({
@@ -24,6 +25,10 @@ export default function DashboardPage() {
   const { setOrderStatis, setTableStatus, setProductStatus } = actionDispatch(
     useDispatch()
   );
+  const [inquiry, setInquiry] = useState<TableInquiry>({
+    limit: 1000,
+    page: 1,
+  });
 
   useEffect(() => {
     const order = new OrderService();
@@ -32,7 +37,10 @@ export default function DashboardPage() {
       .then((data) => {
         setOrderStatis(data);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        sweetErrorHandling(err).then();
+      });
 
     const product = new ProductService();
     product
@@ -40,25 +48,26 @@ export default function DashboardPage() {
       .then((data) => {
         setProductStatus(data);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        sweetErrorHandling(err).then();
+      });
 
     const table = new TableService();
     table
-      .getAllTables({
-        limit: 10000,
-        page: 1,
-      })
+      .getAllTables(inquiry)
       .then((data) => {
         setTableStatus(data);
       })
       .catch((err) => {
         console.log(err);
+        sweetErrorHandling(err).then();
       });
-  }, []);
+  }, [inquiry]);
   return (
     <>
       <DashboardOverview />
-      <TableInfo />
+      <TableInfo inquiry={inquiry} setInquiry={setInquiry} />
       <TopItemAndCategory />
       <QuickActions />
     </>
