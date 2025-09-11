@@ -38,6 +38,10 @@ const categoryColors: any = {
     bg: "#ba68c8",
     border: "#6a1b9a",
   },
+  OTHER: {
+    bg: "#e0e0e0", 
+    border: "#9e9e9e",
+  },
 };
 
 export default function CategoryPie() {

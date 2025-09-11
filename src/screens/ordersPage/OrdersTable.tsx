@@ -40,7 +40,7 @@ const typeColor = (t: OrderType) =>
 const statusColor = (s: OrderStatus) =>
   s === OrderStatus.PENDING
     ? "warning"
-    : s === OrderStatus.PROGRESS
+    : s === OrderStatus.PROCESS
     ? "info"
     : s === OrderStatus.COMPLETED
     ? "success"

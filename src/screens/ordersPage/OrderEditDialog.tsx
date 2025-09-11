@@ -78,7 +78,8 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
               }}
             >
               <MenuItem value={OrderStatus.PENDING}>PENDING</MenuItem>
-              <MenuItem value={OrderStatus.PROGRESS}>PROGRESS</MenuItem>
+              <MenuItem value={OrderStatus.PROCESS}>PROCESS</MenuItem>
+              <MenuItem value={OrderStatus.SERVED}>SERVED</MenuItem>
               <MenuItem value={OrderStatus.COMPLETED}>COMPLETED</MenuItem>
               <MenuItem value={OrderStatus.CANCELLED}>CANCELLED</MenuItem>
             </Select>

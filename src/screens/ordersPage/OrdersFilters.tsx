@@ -119,7 +119,8 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             >
               <MenuItem value="">All</MenuItem>
               <MenuItem value="PENDING">PENDING</MenuItem>
-              <MenuItem value="PROGRESS">PROGRESS</MenuItem>
+              <MenuItem value="PROCESS">PROCESS</MenuItem>
+              <MenuItem value="SERVED">SERVED</MenuItem>
               <MenuItem value="COMPLETED">COMPLETED</MenuItem>
               <MenuItem value="CANCELLED">CANCELLED</MenuItem>
             </Select>
