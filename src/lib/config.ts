@@ -1,6 +1,12 @@
+import { io } from "socket.io-client";
+
 export const serverApi: string = `${process.env.REACT_APP_API_URL}`;
 export const frontendUrl: string = `${process.env.REACT_APP_FRONTEND_URL}`;
 
+export const socket = io(serverApi, {
+  transports: ["websocket"],
+  withCredentials: true,
+});
 export const Messages = {
   error1: "Somthing went wrong!",
   error2: "Please login first!",

@@ -68,7 +68,7 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
             <InputLabel>Order Status</InputLabel>
             <Select
               label="Order Status"
-              value={edit.orderStatus}
+              value={edit.orderStatus || ""}
               onChange={(e) => {
                 if (edit)
                   setEdit({
@@ -89,7 +89,7 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
             <InputLabel>Payment Status</InputLabel>
             <Select
               label="Payment Status"
-              value={edit.paymentStatus}
+              value={edit.paymentStatus || ""}
               onChange={(e) => {
                 if (edit)
                   setEdit({
@@ -108,7 +108,7 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
             <InputLabel>Payment Method</InputLabel>
             <Select
               label="Payment Method"
-              value={edit.paymentMethod}
+              value={edit.paymentMethod || ""}
               onChange={(e) => {
                 if (edit)
                   setEdit({

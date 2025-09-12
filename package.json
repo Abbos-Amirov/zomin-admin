@@ -1,5 +1,5 @@
 {
-  "name": "burak-react",
+  "name": "navruz-react",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -30,6 +30,7 @@
     "typescript": "^4.6.4",
     "web-vitals": "^2.1.4",
     "universal-cookie": "4.0.4",
+    "socket.io-client": "^4.7.5",
     "yarn": "^1.22.22"
   },
   "devDependencies": {

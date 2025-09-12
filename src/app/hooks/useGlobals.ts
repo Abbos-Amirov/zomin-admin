@@ -4,6 +4,10 @@ import { Member } from "../../lib/types/member";
 interface GlobalInterface {
   authMember: Member | null;
   setAuthMember: (member: Member | null) => void;
+  tableCall: any[];
+  setTableCall: (call: any[]) => void;
+  newOrder: any[];
+  setNewOrder: (call: any[]) => void;
 }
 
 export const GlobalContext = createContext<GlobalInterface | undefined>(

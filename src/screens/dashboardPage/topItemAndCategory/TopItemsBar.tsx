@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent, Typography, Divider, colors } from "@mui/material";
+import { Card, CardContent, Typography, Divider } from "@mui/material";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,

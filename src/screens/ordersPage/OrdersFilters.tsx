@@ -101,7 +101,7 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             <InputLabel>Type</InputLabel>
             <Select
               label="Type"
-              value={orderSearch.type}
+              value={orderSearch.type || ""}
               onChange={(e) => searchOrderTypeHandler(e.target.value as any)}
             >
               <MenuItem value="">All</MenuItem>
@@ -114,7 +114,7 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             <InputLabel>Status</InputLabel>
             <Select
               label="Status"
-              value={orderSearch.status}
+              value={orderSearch.status || ""}
               onChange={(e) => searchOrderStatusHandler(e.target.value as any)}
             >
               <MenuItem value="">All</MenuItem>
@@ -129,7 +129,7 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             <InputLabel>Payment Status</InputLabel>
             <Select
               label="Payment Status"
-              value={orderSearch.payStatus}
+              value={orderSearch.payStatus || ""}
               onChange={(e) => searchPayStatusHandler(e.target.value as any)}
             >
               <MenuItem value="">All</MenuItem>
@@ -142,7 +142,7 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             <InputLabel>Method</InputLabel>
             <Select
               label="Method"
-              value={orderSearch.payMeth}
+              value={orderSearch.payMeth || ""}
               onChange={(e) => searchPayMethodHandler(e.target.value as any)}
             >
               <MenuItem value="">All</MenuItem>
