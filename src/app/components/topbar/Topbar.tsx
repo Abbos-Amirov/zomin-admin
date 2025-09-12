@@ -1,16 +1,10 @@
-import {
-  Box,
-  Stack,
-  Paper,
-  Avatar,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
+import { Box, Stack, Paper, Avatar, useTheme } from "@mui/material";
 
 import { serverApi } from "../../../lib/config";
 import SettingsMenu from "./Settings";
 import NotificationsMenu from "./Notifications";
 import TopbarLeft from "./TopbarLeft";
+import { useGlobals } from "../../hooks/useGlobals";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -19,20 +13,7 @@ interface TopbarProps {
 export default function Topbar(props: TopbarProps) {
   const { onMenuClick } = props;
   const theme = useTheme();
-
-  // mock authMember
-  const authMember = { memberImage: "profile.png" };
-
-  // mock notifications
-  const notifications = [
-    {
-      id: "1",
-      message: "Table 5 placed a new order",
-      status: "PENDING",
-      read: false,
-    },
-    { id: "2", message: "Order #123 is ready", status: "PROCESS", read: false },
-  ];
+  const { authMember } = useGlobals();
 
   return (
     <Box sx={{ position: "sticky", top: 0, zIndex: theme.zIndex.appBar }}>
@@ -52,7 +33,7 @@ export default function Topbar(props: TopbarProps) {
 
         {/* RIGHT SECTION stays same */}
         <Stack direction="row" alignItems="center" spacing={0.5}>
-          <NotificationsMenu notifications={notifications} />
+          <NotificationsMenu />
           <SettingsMenu darkMode={false} language="EN" />
           <Avatar
             alt="Profile"

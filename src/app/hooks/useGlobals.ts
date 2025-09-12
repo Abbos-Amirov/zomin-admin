@@ -1,13 +1,12 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, Dispatch, SetStateAction } from "react";
 import { Member } from "../../lib/types/member";
+import { Notification } from "../../lib/types/notif";
 
 interface GlobalInterface {
   authMember: Member | null;
-  setAuthMember: (member: Member | null) => void;
-  tableCall: any[];
-  setTableCall: (call: any[]) => void;
-  newOrder: any[];
-  setNewOrder: (call: any[]) => void;
+  setAuthMember: Dispatch<SetStateAction<Member | null>>;
+  notifications: Notification[];
+  setNotifications: Dispatch<SetStateAction<Notification[]>>;
 }
 
 export const GlobalContext = createContext<GlobalInterface | undefined>(
@@ -16,6 +15,6 @@ export const GlobalContext = createContext<GlobalInterface | undefined>(
 
 export const useGlobals = () => {
   const context = useContext(GlobalContext);
-  if (context === undefined) throw new Error("useGlobals withit Provider");
+  if (!context) throw new Error("useGlobals must be used within Provider");
   return context;
 };
