@@ -6,18 +6,46 @@ import { socket } from "../../lib/config";
 import { Notification } from "../../lib/types/notif";
 
 const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const cookies = new Cookies();
-  if (!cookies.get("accessToken")) {
-    localStorage.removeItem("memberData");
-  }
+  const [authMember, setAuthMember] = useState<Member | null>(() => {
+    const storedMember = localStorage.getItem("memberData");
+    return storedMember ? JSON.parse(storedMember) : null;
+  });
 
-  const [authMember, setAuthMember] = useState<Member | null>(
-    localStorage.getItem("memberData")
-      ? JSON.parse(localStorage.getItem("memberData") as string)
-      : null
-  );
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    const storedNotifications = localStorage.getItem("notifications");
+    return storedNotifications ? JSON.parse(storedNotifications) : [];
+  });
 
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  useEffect(() => {
+    const cookies = new Cookies();
+    const accessToken = cookies.get("accessToken");
+
+    if (!accessToken) {
+      localStorage.removeItem("memberData");
+      setAuthMember(null);
+    } else {
+      const storedMember = localStorage.getItem("memberData");
+      if (storedMember && !authMember) {
+        setAuthMember(JSON.parse(storedMember));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authMember) {
+      localStorage.setItem("memberData", JSON.stringify(authMember));
+    } else {
+      localStorage.removeItem("memberData");
+    }
+  }, [authMember]);
+
+  useEffect(() => {
+    if (notifications.length > 0) {
+      localStorage.setItem("notifications", JSON.stringify(notifications));
+    } else {
+      localStorage.removeItem("notifications");
+    }
+  }, [notifications]);
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -30,10 +58,10 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
     socket.on("newNotification", (notif: Notification) => {
       console.log("📩 newNotif:", notif);
-      setNotifications((prev) => [
-        { ...notif, read: false }, // har doim unread
-        ...prev,
-      ]);
+      setNotifications((prev) => {
+        const updated = [{ ...notif, read: false }, ...prev];
+        return updated;
+      });
     });
 
     return () => {

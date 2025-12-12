@@ -1,6 +1,6 @@
 import axios from "axios";
 import { serverApi } from "../lib/config";
-import { Member, MemberUpdateInput, UserInquiry } from "../lib/types/member";
+import { Member, MemberUpdateInput, UserInquiry, LoginInput } from "../lib/types/member";
 
 class MemberService {
   private readonly path: string;
@@ -31,6 +31,20 @@ class MemberService {
       return result.data;
     } catch (err) {
       console.log("Error, updateChosenUser:", err);
+      throw err;
+    }
+  }
+
+  public async login(input: LoginInput): Promise<Member> {
+    try {
+      const url = this.path + "/member/login";
+      const result = await axios.post(url, input, { withCredentials: true });
+      console.log("login:", result);
+      const member = result.data.member;
+      localStorage.setItem("memberData", JSON.stringify(member));
+      return member;
+    } catch (err) {
+      console.log("Error, login:", err);
       throw err;
     }
   }

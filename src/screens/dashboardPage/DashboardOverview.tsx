@@ -27,6 +27,7 @@ import {
 import { useSelector } from "react-redux";
 import { TableStatus } from "../../lib/enums/table.enum";
 import { TableCall } from "../../lib/enums/tableCall.enum";
+import "../../css/dashboardPage.css";
 
 /** REDUX SLICE & SELECTOR */
 const orderStatisRetriever = createSelector(
@@ -45,36 +46,44 @@ const tableStatusRetriever = createSelector(
 
 function KpiItem({ label, value, icon, iconBg, iconColor, valueColor }: any) {
   const isMoney = label === "Today's Income" || label === "Avg Order Value";
+  
+  // Handle undefined/null values and format properly
+  const displayValue = (() => {
+    if (value === undefined || value === null) {
+      return isMoney ? "$0.0" : 0;
+    }
+    if (isMoney) {
+      const numValue = Number(value);
+      if (isNaN(numValue)) {
+        return "$0.0";
+      }
+      return `$${numValue.toFixed(2)}`;
+    }
+    return value;
+  })();
+
   return (
-    <Paper
-      elevation={1}
-      sx={{
-        p: 1.5,
-        borderRadius: 3,
-        bgcolor: "background.paper",
-        boxShadow: 1,
-        border: (t) => `1px solid ${t.palette.divider}`,
-        height: "100%",
-      }}
-    >
+    <Paper elevation={1} className="kpi-item">
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="space-between"
         spacing={2}
+        className="kpi-item-content"
       >
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={1.5} alignItems="center" className="kpi-item-left">
           <Avatar
-            sx={{ bgcolor: iconBg, color: iconColor, width: 40, height: 40 }}
+            className="kpi-item-avatar"
+            sx={{ bgcolor: iconBg, color: iconColor }}
           >
             {icon}
           </Avatar>
-          <Typography variant="h4" color="text.primary">
+          <Typography variant="h4" className="kpi-item-label">
             {label}
           </Typography>
         </Stack>
-        <Typography variant="h4" fontWeight={700} sx={{ color: valueColor }}>
-          {isMoney ? `$${Number(value).toFixed(1)}` : value}
+        <Typography variant="h4" className="kpi-item-value" style={{ color: valueColor }}>
+          {displayValue}
         </Typography>
       </Stack>
     </Paper>
@@ -181,7 +190,7 @@ export default function DashboardOverview() {
     },
     {
       label: "Today's Income",
-      value: orderStatis?.todayIncomeAndAOV[0]?.totalSum,
+      value: orderStatis?.todayIncomeAndAOV?.[0]?.totalSum ?? 0,
       icon: <MonetizationOnIcon />,
       iconBg: "#e8f5e9",
       iconColor: "#2e7d32",
@@ -189,7 +198,7 @@ export default function DashboardOverview() {
     },
     {
       label: "Avg Order Value",
-      value: orderStatis?.todayIncomeAndAOV[0]?.aovGross,
+      value: orderStatis?.todayIncomeAndAOV?.[0]?.aovGross ?? 0,
       icon: <MonetizationOnIcon />,
       iconBg: "#e8f5e9",
       iconColor: "#1e40af",
@@ -197,27 +206,22 @@ export default function DashboardOverview() {
     },
   ];
   return (
-    <Box sx={{ p: { xs: 1, sm: 2 } }}>
-      <Card sx={{ borderRadius: 3, mb: 3, boxShadow: 3 }}>
-        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+    <Box className="dashboard-overview-container">
+      <Card className="dashboard-card">
+        <CardContent className="dashboard-card-content">
           <Stack
             direction="row"
             alignItems="center"
             spacing={1.5}
-            sx={{ mb: 2 }}
+            className="dashboard-header"
           >
             <Avatar
               variant="rounded"
-              sx={{
-                bgcolor: "#ede7f6",
-                color: "#5e35b1",
-                width: 40,
-                height: 40,
-              }}
+              className="dashboard-header-avatar"
             >
               <DashboardCustomizeRoundedIcon />
             </Avatar>
-            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+            <Typography variant="h3" className="dashboard-header-title">
               Dashboard Overview
             </Typography>
           </Stack>

@@ -1,5 +1,5 @@
 export default {
-  fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif', 
+  fontFamily: '"Poppins", sans-serif', 
   h1: {
     fontWeight: 500,
     fontSize: 35,
