@@ -23,6 +23,7 @@ import { TableCall } from "../../lib/enums/tableCall.enum";
 import { TableInquiry, TableUpdateInput } from "../../lib/types/table";
 import { sweetErrorHandling } from "../../lib/sweetAlert";
 import TableService from "../../services/Table.service";
+import "../../css/tableStatus.css";
 
 /** REDUX SLICE & SELECTOR */
 const tableStatusRetriever = createSelector(
@@ -30,12 +31,18 @@ const tableStatusRetriever = createSelector(
   (tableStatus) => ({ tableStatus })
 );
 
-const bgByState = (s: TableStatus) =>
-  s === "OCCUPIED"
-    ? "warning.light"
-    : s === "CLEANING"
-    ? "info.light"
-    : "background.default";
+const getTableStatusClass = (s: TableStatus): string => {
+  switch (s) {
+    case TableStatus.OCCUPIED:
+      return "occupied";
+    case TableStatus.CLEANING:
+      return "cleaning";
+    case TableStatus.AVAILABLE:
+      return "available";
+    default:
+      return "available";
+  }
+};
 
 interface TableInfoProps {
   inquiry: TableInquiry;
@@ -63,102 +70,68 @@ export default function TableInfo(props: TableInfoProps) {
   };
 
   return (
-    <Card sx={{ borderRadius: 3, maxHeight: "100%", marginBottom: "30px" }}>
-      <CardContent>
+    <Card className="table-status-card">
+      <CardContent sx={{ width: '100%', padding: '16px' }}>
         <Stack
           direction="row"
           alignItems="center"
           justifyContent="space-between"
-          mb={1}
+          className="table-status-header"
         >
           <Stack
             direction="row"
             alignItems="center"
             spacing={1.5}
-            sx={{ mb: 2 }}
+            className="table-status-title-section"
           >
-            <Avatar
-              variant="rounded"
-              sx={{
-                bgcolor: "#ede7f6",
-                color: "#5e35b1",
-                width: 36,
-                height: 36,
-              }}
-            >
+            <Avatar variant="rounded" className="table-status-avatar">
               <TableRestaurantIcon />
             </Avatar>
-            <Typography variant="h3" sx={{ fontWeight: 700 }}>
+            <Typography variant="h3" className="table-status-title">
               Table Status
             </Typography>
           </Stack>
-          <Stack direction="row" spacing={2} color="text.primary">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  bgcolor: "warning.light",
-                  borderRadius: 1,
-                }}
-              />
+          <Stack direction="row" spacing={2} className="table-status-legend">
+            <Stack direction="row" spacing={1} alignItems="center" className="table-status-legend-item">
+              <Box className="table-status-legend-dot occupied" />
               <Typography variant="h5">Occupied</Typography>
             </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  bgcolor: "info.light",
-                  borderRadius: 1,
-                }}
-              />
+            <Stack direction="row" spacing={1} alignItems="center" className="table-status-legend-item">
+              <Box className="table-status-legend-dot cleaning" />
               <Typography variant="h5">Cleaning</Typography>
             </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  bgcolor: "background.default",
-                  border: (t) => `3px solid ${t.palette.divider}`,
-                  borderRadius: 1,
-                }}
-              />
+            <Stack direction="row" spacing={1} alignItems="center" className="table-status-legend-item">
+              <Box className="table-status-legend-dot free" />
               <Typography variant="h5">Free</Typography>
             </Stack>
           </Stack>
         </Stack>
 
-        <Divider sx={{ mb: 2 }} />
+        <Divider className="table-status-divider" />
 
-        <Grid container spacing={1.5}>
+        <Grid container spacing={1.5} className="table-status-grid" sx={{ width: '100%', margin: 0 }}>
           {tableStatus.map((t) => (
-            <Grid item xs={4} sm={3} md={2.4 as any} lg={2} key={t._id}>
+            <Grid item xs={12} sm={6} md={4} lg={3} xl={2.4} key={t._id} sx={{ display: 'flex', minWidth: 0 }}>
               <Box
-                sx={{
-                  height: "150px",
-                  p: 1.5,
-                  borderRadius: 2,
-                  border: (theme) => `1px solid ${theme.palette.divider}`,
-                  bgcolor: bgByState(t.tableStatus),
-                }}
+                className={`table-card ${getTableStatusClass(t.tableStatus)}`}
+                sx={{ width: '100%', minWidth: 0 }}
               >
                 <Stack
                   height={"100%"}
                   direction="row"
                   alignItems="center"
                   justifyContent="space-between"
+                  className="table-card-content"
                 >
-                  <Stack>
-                    <Typography variant="h3" fontWeight={700}>
+                  <Stack className="table-card-left">
+                    <Typography variant="h3" className="table-number">
                       {t.tableNumber}
                     </Typography>
-                    <Typography variant="h4" color="text.primary">
+                    <Typography variant="body2" className="table-status-label">
                       {t.tableStatus}
                     </Typography>
                   </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={1} alignItems="center" className="table-card-right">
                     {t.tableCall === TableCall.ACTIVE && (
                       <Button
                         onClick={() =>
@@ -167,6 +140,7 @@ export default function TableInfo(props: TableInfoProps) {
                             tableCall: TableCall.PAUSE,
                           })
                         }
+                        className="table-notification-button"
                       >
                         <RippleBadge
                           overlap="circular"
@@ -181,8 +155,8 @@ export default function TableInfo(props: TableInfoProps) {
                         </RippleBadge>
                       </Button>
                     )}
-                    <Avatar sx={{ width: 50, height: 50 }}>
-                      {t.tableStatus === "CLEANING" ? (
+                    <Avatar className="table-icon-avatar">
+                      {t.tableStatus === TableStatus.CLEANING ? (
                         <CleaningServicesRoundedIcon fontSize="large" />
                       ) : (
                         <TableRestaurantIcon fontSize="large" />
