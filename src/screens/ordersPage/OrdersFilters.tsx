@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Box,
   Button,
@@ -24,6 +25,7 @@ interface OrdersFiltersProps {
 }
 
 export default function OrdersFilters(props: OrdersFiltersProps) {
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState<string>("");
 
   const { orderSearch, setOrderSearch } = props;
@@ -77,7 +79,7 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
           <input
             type="search"
             name="singleResearch"
-            placeholder="Type here"
+            placeholder={t("users.typeHere")}
             className="search-input"
             onChange={(e) => {
               setSearchText(e.target.value);
@@ -93,31 +95,31 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             endIcon={<SearchIcon />}
             onClick={searchProductHandler}
           >
-            Search
+            {t("menu.search")}
           </Button>
         </Box>
         <Box display={"flex"} gap={"5px"}>
           <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Type</InputLabel>
+            <InputLabel>{t("orders.type")}</InputLabel>
             <Select
-              label="Type"
+              label={t("orders.type")}
               value={orderSearch.type || ""}
               onChange={(e) => searchOrderTypeHandler(e.target.value as any)}
             >
-              <MenuItem value="">All</MenuItem>
+              <MenuItem value="">{t("orders.all")}</MenuItem>
               <MenuItem value="TABLE">TABLE</MenuItem>
               <MenuItem value="DELIVERY">DELIVERY</MenuItem>
               <MenuItem value="TAKEOUT">TAKEOUT</MenuItem>
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Status</InputLabel>
+            <InputLabel>{t("orders.status")}</InputLabel>
             <Select
-              label="Status"
+              label={t("orders.status")}
               value={orderSearch.status || ""}
               onChange={(e) => searchOrderStatusHandler(e.target.value as any)}
             >
-              <MenuItem value="">All</MenuItem>
+              <MenuItem value="">{t("orders.all")}</MenuItem>
               <MenuItem value="PENDING">PENDING</MenuItem>
               <MenuItem value="PROCESS">PROCESS</MenuItem>
               <MenuItem value="SERVED">SERVED</MenuItem>
@@ -126,26 +128,26 @@ export default function OrdersFilters(props: OrdersFiltersProps) {
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Payment Status</InputLabel>
+            <InputLabel>{t("orders.paymentStatus")}</InputLabel>
             <Select
-              label="Payment Status"
+              label={t("orders.paymentStatus")}
               value={orderSearch.payStatus || ""}
               onChange={(e) => searchPayStatusHandler(e.target.value as any)}
             >
-              <MenuItem value="">All</MenuItem>
+              <MenuItem value="">{t("orders.all")}</MenuItem>
               <MenuItem value="UNPAID">UNPAID</MenuItem>
               <MenuItem value="PAID">PAID</MenuItem>
               <MenuItem value="REFUNDED">REFUNDED</MenuItem>
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Method</InputLabel>
+            <InputLabel>{t("orders.method")}</InputLabel>
             <Select
-              label="Method"
+              label={t("orders.method")}
               value={orderSearch.payMeth || ""}
               onChange={(e) => searchPayMethodHandler(e.target.value as any)}
             >
-              <MenuItem value="">All</MenuItem>
+              <MenuItem value="">{t("orders.all")}</MenuItem>
               <MenuItem value="CASH">CASH</MenuItem>
               <MenuItem value="CARD">CARD</MenuItem>
               <MenuItem value="TRANSFER">TRANSFER</MenuItem>

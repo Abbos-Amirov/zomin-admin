@@ -16,6 +16,11 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return storedNotifications ? JSON.parse(storedNotifications) : [];
   });
 
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const stored = localStorage.getItem("darkMode");
+    return stored ? JSON.parse(stored) === true : false;
+  });
+
   useEffect(() => {
     const cookies = new Cookies();
     const accessToken = cookies.get("accessToken");
@@ -48,6 +53,10 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   }, [notifications]);
 
   useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+  }, [darkMode]);
+
+  useEffect(() => {
     socket.on("connect", () => {
       console.log("✅ Connected:", socket.id);
     });
@@ -78,6 +87,8 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setAuthMember,
         notifications,
         setNotifications,
+        darkMode,
+        setDarkMode,
       }}
     >
       {children}

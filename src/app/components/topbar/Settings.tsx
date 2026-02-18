@@ -20,14 +20,9 @@ import {
 import { useGlobals } from "../../hooks/useGlobals";
 import { frontendUrl, Messages } from "../../../lib/config";
 
-export default function SettingsMenu({
-  darkMode,
-}: {
-  darkMode: boolean;
-  language?: string;
-}) {
+export default function SettingsMenu() {
   const { t } = useTranslation();
-  const { setAuthMember } = useGlobals();
+  const { setAuthMember, darkMode, setDarkMode } = useGlobals();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   /** HANDLERS **/
@@ -59,12 +54,20 @@ export default function SettingsMenu({
         onClose={() => setAnchorEl(null)}
         PaperProps={{ style: { width: 200 } }}
       >
-        <MenuItem>
+        <MenuItem
+          onClick={(e) => e.stopPropagation()}
+          sx={{ cursor: "default" }}
+        >
           <ListItemIcon>
             <DarkModeIcon fontSize="small" />
           </ListItemIcon>
           {t("topbar.themeMode")}
-          <Switch checked={darkMode} size="small" />
+          <Switch
+            checked={darkMode}
+            size="small"
+            onChange={(e) => setDarkMode(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+          />
         </MenuItem>
 
         <Divider />

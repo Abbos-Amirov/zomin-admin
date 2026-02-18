@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Dialog,
@@ -34,6 +35,7 @@ interface OrderEditDialogProps {
 }
 
 export default function OrderEditDialog(props: OrderEditDialogProps) {
+  const { t } = useTranslation();
   const { open, setOpen, edit, setEdit, orderSearch, setOrderSearch } = props;
 
   /** HANDLERS **/
@@ -60,12 +62,12 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
   return (
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
       <DialogTitle fontWeight={"700"}>
-        Edit Order {edit?.orderId.slice(-8)}
+        {t("orders.editOrder")} {edit?.orderId.slice(-8)}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
           <FormControl size="small">
-            <InputLabel>Order Status</InputLabel>
+            <InputLabel>{t("orders.status")}</InputLabel>
             <Select
               label="Order Status"
               value={edit.orderStatus || ""}
@@ -86,7 +88,7 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
           </FormControl>
 
           <FormControl size="small">
-            <InputLabel>Payment Status</InputLabel>
+            <InputLabel>{t("orders.paymentStatus")}</InputLabel>
             <Select
               label="Payment Status"
               value={edit.paymentStatus || ""}
@@ -105,7 +107,7 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
           </FormControl>
 
           <FormControl size="small">
-            <InputLabel>Payment Method</InputLabel>
+            <InputLabel>{t("orders.payMethod")}</InputLabel>
             <Select
               label="Payment Method"
               value={edit.paymentMethod || ""}
@@ -130,14 +132,14 @@ export default function OrderEditDialog(props: OrderEditDialogProps) {
           color="error"
           onClick={() => setOpen(false)}
         >
-          Cancel
+          {t("users.cancel")}
         </Button>
         <Button
           variant="contained"
           color="success"
           onClick={() => onUpdateHandler(edit)}
         >
-          Save
+          {t("users.save")}
         </Button>
       </DialogActions>
     </Dialog>

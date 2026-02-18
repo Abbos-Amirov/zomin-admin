@@ -1,4 +1,5 @@
 import React, { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Box, Button, Container, IconButton, Stack } from "@mui/material";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import Pagination from "@mui/material/Pagination";
@@ -42,6 +43,7 @@ interface ProdcutsPageProps {
 }
 
 export default function ProductsPage(props: ProdcutsPageProps) {
+  const { t } = useTranslation();
   const {
     productSearch,
     setSearchText,
@@ -73,7 +75,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                   <input
                     type="search"
                     name="singleResearch"
-                    placeholder="Type here"
+                    placeholder={t("users.typeHere")}
                     className="search-input"
                     onChange={(e) => {
                       setSearchText(e.target.value);
@@ -89,9 +91,9 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                     endIcon={<SearchIcon />}
                     onClick={searchProductHandler}
                   >
-                    Search
+                    {t("menu.search")}
                   </Button>
-                  <Box className="top-text">Menu items</Box>
+                  <Box className="top-text">{t("menu.menuItems")}</Box>
                 </Box>
 
                 <Box>
@@ -103,7 +105,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                       setOpen(true);
                     }}
                   >
-                    + Add New Product
+                    + {t("menu.addNewProduct")}
                   </Button>
                 </Box>
               </Stack>
@@ -117,7 +119,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                 className={"order"}
                 onClick={() => searchOrderHandler("createdAt")}
               >
-                New
+                {t("menu.new")}
               </Button>
               <Button
                 variant={"contained"}
@@ -129,7 +131,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                 className={"order"}
                 onClick={() => searchOrderHandler("productPrice")}
               >
-                Price
+                {t("menu.price")}
               </Button>
               <Button
                 variant={"contained"}
@@ -142,7 +144,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                 sx={{ marginRight: "56px" }}
                 onClick={() => searchOrderHandler("productViews")}
               >
-                Views
+                {t("menu.views")}
               </Button>
             </Stack>
             <Stack className="list-category-section">
@@ -286,15 +288,15 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                             }
                           >
                             {productStat === ProductStatus.PROCESS
-                              ? "SET PAUSE"
-                              : "SET PROCESS"}
+                              ? t("menu.setPause")
+                              : t("menu.setProcess")}
                           </Button>
                         </Box>
                       </Stack>
                     );
                   })
                 ) : (
-                  <Box className="no-data">Products are not available!</Box>
+                  <Box className="no-data">{t("menu.productsNotAvailable")}</Box>
                 )}
               </Stack>
             </Stack>

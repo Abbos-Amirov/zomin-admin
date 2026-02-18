@@ -8,6 +8,41 @@
   background: #ffffff;
 }
 
+[data-theme="dark"] .table-status-card {
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .table-status-title,
+[data-theme="dark"] .table-status-legend {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+[data-theme="dark"] .table-card {
+  background: #2d2d2d;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .table-card.occupied {
+  background: linear-gradient(135deg, #3d2e1f 0%, #4a3728 100%);
+}
+
+[data-theme="dark"] .table-card.cleaning {
+  background: linear-gradient(135deg, #1e2a3a 0%, #253544 100%);
+}
+
+[data-theme="dark"] .table-card.available {
+  background: linear-gradient(135deg, #2d2d2d 0%, #1e1e1e 100%);
+}
+
+[data-theme="dark"] .table-number {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .table-status-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 .table-status-header {
   display: flex;
   flex-direction: row;

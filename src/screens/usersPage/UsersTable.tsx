@@ -1,4 +1,5 @@
 import React, { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Avatar,
   Box,
@@ -45,6 +46,7 @@ interface UsersTableProps {
 }
 
 export default function UsersTable(props: UsersTableProps) {
+  const { t } = useTranslation();
   const { userSearch, setUserSearch, setOpen, edit, setEdit } = props;
 
   const { users } = useSelector(usersRetriever);
@@ -60,13 +62,13 @@ export default function UsersTable(props: UsersTableProps) {
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell>Number</TableCell>
-            <TableCell>NickName</TableCell>
-            <TableCell>PhoneNumber</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell>Updated</TableCell>
-            <TableCell align="right">Action</TableCell>
+            <TableCell>{t("users.number")}</TableCell>
+            <TableCell>{t("users.nickname")}</TableCell>
+            <TableCell>{t("users.phoneNumber")}</TableCell>
+            <TableCell>{t("orders.status")}</TableCell>
+            <TableCell>{t("users.created")}</TableCell>
+            <TableCell>{t("users.updated")}</TableCell>
+            <TableCell align="right">{t("users.action")}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -116,14 +118,14 @@ export default function UsersTable(props: UsersTableProps) {
                     });
                   }}
                 >
-                  Edit
+                  {t("users.edit")}
                 </Button>
               </TableCell>
             </TableRow>
           ))}
           {users.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7}>No users</TableCell>
+              <TableCell colSpan={7}>{t("users.noUsers")}</TableCell>
             </TableRow>
           )}
         </TableBody>

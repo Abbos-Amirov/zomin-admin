@@ -54,6 +54,12 @@
   height: 100%;
 }
 
+[data-theme="dark"] .kpi-item {
+  background-color: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 .kpi-item-content {
   display: flex;
   flex-direction: row;
@@ -78,7 +84,24 @@
   color: rgba(0, 0, 0, 0.87);
 }
 
+[data-theme="dark"] .kpi-item-label {
+  color: rgba(255, 255, 255, 0.87);
+}
+
 .kpi-item-value {
   font-weight: 700;
+}
+
+[data-theme="dark"] .kpi-item-value {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .dashboard-card {
+  background-color: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .dashboard-header-title {
+  color: rgba(255, 255, 255, 0.87);
 }
 

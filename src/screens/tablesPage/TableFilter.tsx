@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Paper,
   Stack,
@@ -26,6 +27,7 @@ interface TableFilterProps {
 }
 
 export default function TableFilter(props: TableFilterProps) {
+  const { t } = useTranslation();
   const {
     tableSearch,
     setTableSearch,
@@ -61,7 +63,7 @@ export default function TableFilter(props: TableFilterProps) {
     <Stack spacing={2}>
       <Stack direction="row" alignItems="center" justifyContent="center">
         <Typography variant="h3" fontWeight={700} margin={"10px"}>
-          Tables
+          {t("tables.title")}
         </Typography>
       </Stack>
       <Paper sx={{ p: 2 }}>
@@ -76,7 +78,7 @@ export default function TableFilter(props: TableFilterProps) {
               <input
                 type="search"
                 name="singleResearch"
-                placeholder="Type here"
+                placeholder={t("users.typeHere")}
                 className="search-input"
                 onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={(e) => {
@@ -90,11 +92,11 @@ export default function TableFilter(props: TableFilterProps) {
                 endIcon={<SearchIcon />}
                 onClick={searchTableHandler}
               >
-                Search
+                {t("menu.search")}
               </Button>
             </Box>
             <FormControl size="small" sx={{ minWidth: 180 }}>
-              <InputLabel>Status</InputLabel>
+              <InputLabel>{t("orders.status")}</InputLabel>
               <Select
                 label="Status"
                 value={edit.tableStatus}
@@ -123,7 +125,7 @@ export default function TableFilter(props: TableFilterProps) {
                 });
               }}
             >
-              Add table
+              {t("tables.addTable")}
             </Button>
           </Box>
         </Stack>

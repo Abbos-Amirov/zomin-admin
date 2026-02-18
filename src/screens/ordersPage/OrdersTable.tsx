@@ -1,4 +1,5 @@
 import React, { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import PaginationItem from "@mui/material/PaginationItem";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -61,6 +62,7 @@ interface OrderTableProps {
 }
 
 export default function OrdersTable(props: OrderTableProps) {
+  const { t } = useTranslation();
   const { orderSearch, setOrderSearch, setOpen, edit, setEdit } = props;
 
   const { orders } = useSelector(ordersRetriever);
@@ -77,17 +79,17 @@ export default function OrdersTable(props: OrderTableProps) {
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Table</TableCell>
-            <TableCell>Member</TableCell>
-            <TableCell align="right">Subtotal</TableCell>
-            <TableCell align="right">Delivery Fee</TableCell>
-            <TableCell align="right">Total</TableCell>
-            <TableCell>Pay Method</TableCell>
-            <TableCell>Pay Status</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableCell>{t("orders.type")}</TableCell>
+            <TableCell>{t("orders.table")}</TableCell>
+            <TableCell>{t("orders.member")}</TableCell>
+            <TableCell align="right">{t("orders.subtotal")}</TableCell>
+            <TableCell align="right">{t("orders.deliveryFee")}</TableCell>
+            <TableCell align="right">{t("orders.total")}</TableCell>
+            <TableCell>{t("orders.payMethod")}</TableCell>
+            <TableCell>{t("orders.payStatus")}</TableCell>
+            <TableCell>{t("orders.status")}</TableCell>
+            <TableCell>{t("orders.created")}</TableCell>
+            <TableCell align="right">{t("orders.actions")}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -143,7 +145,7 @@ export default function OrdersTable(props: OrderTableProps) {
                       });
                     }}
                   >
-                    Edit
+                    {t("orders.edit")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -151,7 +153,7 @@ export default function OrdersTable(props: OrderTableProps) {
           })}
           {orders.length === 0 && (
             <TableRow>
-              <TableCell colSpan={12}>No orders</TableCell>
+              <TableCell colSpan={12}>{t("orders.noOrders")}</TableCell>
             </TableRow>
           )}
         </TableBody>

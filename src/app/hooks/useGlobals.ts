@@ -7,6 +7,8 @@ interface GlobalInterface {
   setAuthMember: Dispatch<SetStateAction<Member | null>>;
   notifications: Notification[];
   setNotifications: Dispatch<SetStateAction<Notification[]>>;
+  darkMode: boolean;
+  setDarkMode: Dispatch<SetStateAction<boolean>>;
 }
 
 export const GlobalContext = createContext<GlobalInterface | undefined>(

@@ -36,7 +36,7 @@ export default function Topbar(props: TopbarProps) {
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <LanguageSelector />
           <NotificationsMenu />
-          <SettingsMenu darkMode={false} />
+          <SettingsMenu />
           <Avatar
             alt="Profile"
             src={`${serverApi}/${authMember?.memberImage}`}

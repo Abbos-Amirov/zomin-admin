@@ -10,6 +10,11 @@
   color: #fff;
 }
 
+[data-theme="dark"] .sidebar {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
 .sidebar .sidebar-title {
   font-size: 1.6rem;
   font-weight: 600;

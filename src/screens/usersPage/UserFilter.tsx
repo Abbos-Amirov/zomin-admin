@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Paper,
   Stack,
@@ -20,6 +21,7 @@ interface UserFilterProps {
 }
 
 export default function UserFilter(props: UserFilterProps) {
+  const { t } = useTranslation();
   const { userSearch, setUserSearch } = props;
 
   const [searchText, setSearchText] = useState<string>("");
@@ -46,7 +48,7 @@ export default function UserFilter(props: UserFilterProps) {
   return (
     <Stack spacing={2}>
       <Typography variant="h3" fontWeight={700} textAlign={"center"}>
-        Users
+        {t("users.title")}
       </Typography>
 
       {/* Top controls: search + status filter */}
@@ -60,7 +62,7 @@ export default function UserFilter(props: UserFilterProps) {
             <input
               type="search"
               name="singleResearch"
-              placeholder="Type here"
+              placeholder={t("users.typeHere")}
               className="search-input"
               onChange={(e) => {
                 setSearchText(e.target.value);
@@ -76,11 +78,11 @@ export default function UserFilter(props: UserFilterProps) {
               endIcon={<SearchIcon />}
               onClick={searchUserHandler}
             >
-              Search
+              {t("menu.search")}
             </Button>
           </Box>
           <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Status</InputLabel>
+            <InputLabel>{t("orders.status")}</InputLabel>
             <Select
               label="Status"
               value={userSearch.status}

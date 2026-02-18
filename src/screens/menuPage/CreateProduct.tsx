@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogTitle,
@@ -89,6 +90,7 @@ function getErrors(form: ProductFormValues) {
 }
 
 export default function ProductDialog(props: ProductDialogProps) {
+  const { t } = useTranslation();
   const { mode, open, onClose, onSubmit, initialValues } = props;
 
   const [form, setForm] = useState<ProductFormValues>(EMPTY);
@@ -233,8 +235,8 @@ export default function ProductDialog(props: ProductDialogProps) {
         }}
       >
         {mode === ProductDialogMode.CREATE
-          ? "New Product Detail"
-          : "Edit Product"}
+          ? t("menu.newProduct")
+          : t("menu.editProduct")}
       </DialogTitle>
 
       <DialogContent dividers sx={{ background: "#f8f8ff", py: 3 }}>
@@ -242,10 +244,10 @@ export default function ProductDialog(props: ProductDialogProps) {
           <Grid container spacing={3}>
             {/* Name */}
             <Grid item xs={12}>
-              <Typography className="sub-title">Product Name</Typography>
+              <Typography className="sub-title">{t("menu.productName")}</Typography>
               <TextField
                 fullWidth
-                placeholder="Name"
+                placeholder={t("menu.name")}
                 value={form.productName}
                 onChange={(e) => setField("productName")(e.target.value)}
                 error={!!errors.productName}
@@ -256,10 +258,10 @@ export default function ProductDialog(props: ProductDialogProps) {
 
             {/* Price / Left Count */}
             <Grid item xs={12} md={6}>
-              <Typography className="sub-title">Product Price</Typography>
+              <Typography className="sub-title">{t("menu.productPrice")}</Typography>
               <TextField
                 fullWidth
-                placeholder="Price"
+                placeholder={t("menu.price")}
                 type="number"
                 value={form.productPrice}
                 onChange={(e) => setField("productPrice")(e.target.value)}
@@ -270,10 +272,10 @@ export default function ProductDialog(props: ProductDialogProps) {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography className="sub-title">Product Left Counts</Typography>
+              <Typography className="sub-title">{t("menu.productLeftCount")}</Typography>
               <TextField
                 fullWidth
-                placeholder="Counts"
+                placeholder={t("menu.counts")}
                 type="number"
                 value={form.productLeftCount}
                 onChange={(e) => setField("productLeftCount")(e.target.value)}
@@ -286,7 +288,7 @@ export default function ProductDialog(props: ProductDialogProps) {
 
             {/* Collection / Size or Volume */}
             <Grid item xs={12} md={6}>
-              <Typography className="sub-title">Product Type</Typography>
+              <Typography className="sub-title">{t("menu.productType")}</Typography>
               <FormControl fullWidth sx={{ bgcolor: "white" }}>
                 <Select
                   value={form.productCollection}
@@ -318,7 +320,7 @@ export default function ProductDialog(props: ProductDialogProps) {
 
             <Grid item xs={12} md={6}>
               <Typography className="sub-title">
-                {isDrink ? "Dish Volume" : "Dish Size"}
+                {isDrink ? "Volume" : "Size"}
               </Typography>
               <FormControl fullWidth sx={{ bgcolor: "white" }}>
                 <Select
@@ -361,7 +363,7 @@ export default function ProductDialog(props: ProductDialogProps) {
 
             {/* Description */}
             <Grid item xs={12}>
-              <Typography className="sub-title">Product Description</Typography>
+              <Typography className="sub-title">{t("menu.productDescription")}</Typography>
               <TextField
                 fullWidth
                 multiline
@@ -376,7 +378,7 @@ export default function ProductDialog(props: ProductDialogProps) {
 
             {/* Images (5 slots) */}
             <Grid item xs={12}>
-              <Typography className="sub-title">Product Images</Typography>
+              <Typography className="sub-title">{t("menu.productImages")}</Typography>
               <Box
                 sx={{
                   display: "flex",
@@ -404,7 +406,7 @@ export default function ProductDialog(props: ProductDialogProps) {
                         bgcolor: "rgba(255,255,255,0.35)",
                         boxShadow: 1,
                       }}
-                      title={src ? "Click to remove" : "Click to add image"}
+                      title={src ? t("menu.clickToRemove") : t("menu.clickToAdd")}
                     >
                       {src ? (
                         <img
@@ -449,7 +451,7 @@ export default function ProductDialog(props: ProductDialogProps) {
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button color="error" variant="contained" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button
           color="primary"
@@ -457,7 +459,7 @@ export default function ProductDialog(props: ProductDialogProps) {
           onClick={submit}
           disabled={!canSubmit}
         >
-          {mode === ProductDialogMode.CREATE ? "Create" : "Update"}
+          {mode === ProductDialogMode.CREATE ? t("menu.create") : t("menu.update")}
         </Button>
       </DialogActions>
     </Dialog>

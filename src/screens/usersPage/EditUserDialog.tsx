@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Dialog,
@@ -31,6 +32,7 @@ interface EditUserDialogProps {
 }
 
 export default function EditUserDialog(props: EditUserDialogProps) {
+  const { t } = useTranslation();
   const { open, setOpen, edit, setEdit, userSearch, setUserSearch } = props;
 
   /** HANDLERS **/
@@ -51,11 +53,11 @@ export default function EditUserDialog(props: EditUserDialogProps) {
   };
   return (
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
-      <DialogTitle>Edit user</DialogTitle>
+      <DialogTitle>{t("users.editUser")}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
           <TextField
-            label="NickName"
+            label={t("users.nickname")}
             value={edit.memberNick}
             onChange={(e) =>
               setEdit({
@@ -66,7 +68,7 @@ export default function EditUserDialog(props: EditUserDialogProps) {
             autoFocus
           />
           <TextField
-            label="Phone number"
+            label={t("users.phoneNumber")}
             value={edit.memberPhone}
             onChange={(e) =>
               setEdit({
@@ -78,7 +80,7 @@ export default function EditUserDialog(props: EditUserDialogProps) {
           <FormControl size="small">
             <InputLabel>Status</InputLabel>
             <Select
-              label="MemberStatus"
+              label={t("users.memberStatus")}
               value={edit.memberStatus}
               onChange={(e) =>
                 setEdit({
@@ -100,10 +102,10 @@ export default function EditUserDialog(props: EditUserDialogProps) {
           color="error"
           onClick={() => setOpen(false)}
         >
-          Cancel
+          {t("users.cancel")}
         </Button>
         <Button variant="contained" onClick={() => onUpdateHandler(edit)}>
-          Save
+          {t("users.save")}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,5 +1,6 @@
 // src/features/tables/TablesTable.tsx
 import React, { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Chip,
@@ -87,6 +88,7 @@ interface TablesTableProps {
 }
 
 export default function TablesTable(props: TablesTableProps) {
+  const { t: trans } = useTranslation();
   const { tableSearch, setTableSearch, setOpen, setCreate, edit, setEdit } =
     props;
 
@@ -127,13 +129,13 @@ export default function TablesTable(props: TablesTableProps) {
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell>Table</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Current Order</TableCell>
-            <TableCell>QR</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell>Updated</TableCell>
-            <TableCell align="center">Actions</TableCell>
+            <TableCell>{trans("orders.table")}</TableCell>
+            <TableCell>{trans("orders.status")}</TableCell>
+            <TableCell>{trans("tables.currentOrder")}</TableCell>
+            <TableCell>{trans("tables.qr")}</TableCell>
+            <TableCell>{trans("tables.created")}</TableCell>
+            <TableCell>{trans("tables.updated")}</TableCell>
+            <TableCell align="center">{trans("tables.actions")}</TableCell>
           </TableRow>
         </TableHead>
 
@@ -230,7 +232,7 @@ export default function TablesTable(props: TablesTableProps) {
                         });
                       }}
                     >
-                      Edit
+                      {trans("tables.edit")}
                     </Button>
                     <Button
                       size="small"
@@ -238,7 +240,7 @@ export default function TablesTable(props: TablesTableProps) {
                       color="primary"
                       onClick={() => deleteTableHandler(t._id, t.tableNumber)}
                     >
-                      Delete
+                      {trans("tables.delete")}
                     </Button>
                   </Stack>
                 </TableCell>
@@ -248,7 +250,7 @@ export default function TablesTable(props: TablesTableProps) {
 
           {tables.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7}>No tables</TableCell>
+              <TableCell colSpan={7}>{trans("tables.noTables")}</TableCell>
             </TableRow>
           )}
         </TableBody>

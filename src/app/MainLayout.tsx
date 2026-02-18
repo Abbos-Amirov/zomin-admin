@@ -1,7 +1,7 @@
 import { PropsWithChildren, useState } from "react";
 import Sidebar from "./components/sidebar/Sidebar";
 import Topbar from "./components/topbar/Topbar";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, useTheme } from "@mui/material";
 import "../css/mainLayout.css";
 
 const drawerWidth = 240;
@@ -9,11 +9,19 @@ const TOPBAR_HEIGHT = 64; // keep in sync with Topbar
 
 const MainLayout = ({ children }: PropsWithChildren) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useTheme();
 
   const handleDrawerToggle = () => setMobileOpen((prev) => !prev);
 
   return (
-    <Stack direction="row" className="main-layout-container">
+    <Stack
+      direction="row"
+      className="main-layout-container"
+      sx={{
+        bgcolor: "background.default",
+        color: "text.primary",
+      }}
+    >
       <Sidebar
         mobileOpen={mobileOpen}
         onClose={handleDrawerToggle}

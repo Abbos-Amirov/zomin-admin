@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Dialog,
@@ -36,6 +37,7 @@ interface TableDialogProps {
 }
 
 export default function TableDialog(props: TableDialogProps) {
+  const { t } = useTranslation();
   const { open, create, setOpen, edit, setEdit, tableSearch, setTableSearch } =
     props;
 
@@ -75,12 +77,12 @@ export default function TableDialog(props: TableDialogProps) {
   return (
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
       <DialogTitle fontWeight={"700"}>
-        {create ? "Add new table" : `Edit table #${edit.tableNumber}`}
+        {create ? t("tables.addNewTable") : `${t("tables.editTable")} #${edit.tableNumber}`}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
           <TextField
-            label="Table number"
+            label={t("tables.tableNumber")}
             value={edit.tableNumber}
             onChange={(e) => {
               setEdit({
@@ -91,7 +93,7 @@ export default function TableDialog(props: TableDialogProps) {
             autoFocus
           />
           <FormControl size="small">
-            <InputLabel>Status</InputLabel>
+            <InputLabel>{t("orders.status")}</InputLabel>
             <Select
               label="Status"
               value={edit.tableStatus}
@@ -115,7 +117,7 @@ export default function TableDialog(props: TableDialogProps) {
           color="error"
           onClick={(e) => setOpen(false)}
         >
-          Cancel
+          {t("tables.cancel")}
         </Button>
         <Button
           variant="contained"
@@ -134,7 +136,7 @@ export default function TableDialog(props: TableDialogProps) {
             }
           }}
         >
-          {create ? "Create" : "Update"}
+          {create ? t("tables.create") : t("tables.update")}
         </Button>
       </DialogActions>
     </Dialog>
