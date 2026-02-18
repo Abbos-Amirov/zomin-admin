@@ -1,0 +1,97 @@
+{
+  "common": {
+    "search": "Search…",
+    "action": "Action",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "status": "Status",
+    "updated": "Updated",
+    "created": "Created",
+    "deleted": "Deleted"
+  },
+  "sidebar": {
+    "adminPanel": "Admin Panel",
+    "dashboard": "Dashboard",
+    "menu": "Menu",
+    "orders": "Orders",
+    "tables": "Tables",
+    "users": "Users"
+  },
+  "topbar": {
+    "search": "Search…",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "noNotifications": "No notifications",
+    "markAllRead": "Mark all as read",
+    "themeMode": "Theme Mode",
+    "language": "Language",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "overview": "Dashboard Overview",
+    "totalOrders": "Total Orders",
+    "pendingOrders": "Pending Orders",
+    "completedOrders": "Completed Orders",
+    "totalItems": "Total Items",
+    "availableItems": "Available Items",
+    "unavailableItems": "Unavailable Items",
+    "freeTables": "Free Tables",
+    "tablesOccupied": "Tables Occupied",
+    "cleaningTables": "Cleaning Tables",
+    "callWaiterRequests": "Call Waiter Requests",
+    "todayIncome": "Today's Income",
+    "avgOrderValue": "Avg Order Value",
+    "tableStatus": "Table Status",
+    "occupied": "Occupied",
+    "cleaning": "Cleaning",
+    "free": "Free",
+    "topSellingItems": "Top Selling Items",
+    "ordersByCategory": "Orders by Category",
+    "newOrder": "New Order",
+    "addTable": "Add table",
+    "createNewOrderConfirm": "Do you want to create new order?",
+    "markAsReadConfirm": "Do you want to Mark as Read?"
+  },
+  "menu": {
+    "title": "Menu",
+    "newProduct": "New Product Detail",
+    "editProduct": "Edit Product",
+    "productName": "Product Name",
+    "productPrice": "Product Price",
+    "productLeftCount": "Product Left Counts",
+    "name": "Name",
+    "price": "Price"
+  },
+  "orders": {
+    "title": "Orders"
+  },
+  "tables": {
+    "title": "Tables",
+    "addNewTable": "Add new table",
+    "editTable": "Edit table",
+    "tableNumber": "Table number",
+    "available": "AVAILABLE",
+    "occupied": "OCCUPIED",
+    "cleaning": "CLEANING"
+  },
+  "users": {
+    "title": "Users",
+    "nickname": "NickName",
+    "phoneNumber": "Phone number",
+    "memberStatus": "MemberStatus",
+    "typeHere": "Type here",
+    "active": "ACTIVE",
+    "block": "BLOCK",
+    "delete": "DELETE"
+  },
+  "errors": {
+    "somethingWrong": "Something went wrong!",
+    "loginFirst": "Please login first!",
+    "fillAllInputs": "Please fulfill all inputs!",
+    "messageEmpty": "Message is empty!",
+    "imageFormat": "Only images with jpeg, jpg, png format allowed!"
+  }
+}

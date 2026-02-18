@@ -1,4 +1,5 @@
 import { Stack, IconButton, InputBase, useTheme, useMediaQuery } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
@@ -7,6 +8,7 @@ interface TopbarLeftProps {
 }
 
 export default function TopbarLeft({ onMenuClick }: TopbarLeftProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:900px)");
 
@@ -36,7 +38,7 @@ export default function TopbarLeft({ onMenuClick }: TopbarLeftProps) {
         <SearchRoundedIcon fontSize="small" />
         {!isMobile && (
           <InputBase
-            placeholder="Search…"
+            placeholder={t("topbar.search")}
             fullWidth
             sx={{ fontSize: 14 }}
           />

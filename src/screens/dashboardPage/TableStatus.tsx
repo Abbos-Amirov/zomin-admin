@@ -1,5 +1,6 @@
 // TableStatus.tsx
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -50,6 +51,7 @@ interface TableInfoProps {
 }
 
 export default function TableInfo(props: TableInfoProps) {
+  const { t } = useTranslation();
   const { tableStatus } = useSelector(tableStatusRetriever);
 
   const { setInquiry, inquiry } = props;
@@ -58,7 +60,7 @@ export default function TableInfo(props: TableInfoProps) {
   const callButtonHandler = async (input: TableUpdateInput) => {
     try {
       const table = new TableService();
-      const confirmation = window.confirm("Do you want to Mark as Read?");
+      const confirmation = window.confirm(t("dashboard.markAsReadConfirm"));
       if (confirmation) {
         await table.updateChosenTable(input);
         setInquiry({ ...inquiry });
@@ -88,21 +90,21 @@ export default function TableInfo(props: TableInfoProps) {
               <TableRestaurantIcon />
             </Avatar>
             <Typography variant="h3" className="table-status-title">
-              Table Status
+              {t("dashboard.tableStatus")}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={2} className="table-status-legend">
             <Stack direction="row" spacing={1} alignItems="center" className="table-status-legend-item">
               <Box className="table-status-legend-dot occupied" />
-              <Typography variant="h5">Occupied</Typography>
+              <Typography variant="h5">{t("dashboard.occupied")}</Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center" className="table-status-legend-item">
               <Box className="table-status-legend-dot cleaning" />
-              <Typography variant="h5">Cleaning</Typography>
+              <Typography variant="h5">{t("dashboard.cleaning")}</Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center" className="table-status-legend-item">
               <Box className="table-status-legend-dot free" />
-              <Typography variant="h5">Free</Typography>
+              <Typography variant="h5">{t("dashboard.free")}</Typography>
             </Stack>
           </Stack>
         </Stack>

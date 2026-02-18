@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Box,
   Card,
@@ -44,8 +45,10 @@ const tableStatusRetriever = createSelector(
   (tableStatus) => ({ tableStatus })
 );
 
-function KpiItem({ label, value, icon, iconBg, iconColor, valueColor }: any) {
-  const isMoney = label === "Today's Income" || label === "Avg Order Value";
+function KpiItem({ labelKey, value, icon, iconBg, iconColor, valueColor }: any) {
+  const { t } = useTranslation();
+  const label = t(labelKey);
+  const isMoney = labelKey === "dashboard.todayIncome" || labelKey === "dashboard.avgOrderValue";
   
   // Handle undefined/null values and format properly
   const displayValue = (() => {
@@ -91,13 +94,14 @@ function KpiItem({ label, value, icon, iconBg, iconColor, valueColor }: any) {
 }
 
 export default function DashboardOverview() {
+  const { t } = useTranslation();
   const { orderStatis } = useSelector(orderStatisRetriever);
   const { productStatus } = useSelector(productStatusRetriever);
   const { tableStatus } = useSelector(tableStatusRetriever);
   const kpis = [
     // ===== Orders =====
     {
-      label: "Total Orders",
+      labelKey: "dashboard.totalOrders",
       value: orderStatis?.totalOrder,
       icon: <ReceiptLongIcon />,
       iconBg: "#e3f2fd",
@@ -105,7 +109,7 @@ export default function DashboardOverview() {
       valueColor: "#1976d2",
     },
     {
-      label: "Pending Orders",
+      labelKey: "dashboard.pendingOrders",
       value: orderStatis?.pendingOrder,
       icon: <QueryBuilderIcon />,
       iconBg: "#fff8e1",
@@ -113,7 +117,7 @@ export default function DashboardOverview() {
       valueColor: "#f9a825",
     },
     {
-      label: "Completed Orders",
+      labelKey: "dashboard.completedOrders",
       value: orderStatis?.complatedOrder,
       icon: <CheckCircleIcon />,
       iconBg: "#e8f5e9",
@@ -123,7 +127,7 @@ export default function DashboardOverview() {
 
     // ===== Items =====
     {
-      label: "Total Items",
+      labelKey: "dashboard.totalItems",
       value: productStatus[0]?.total,
       icon: <RestaurantMenuIcon />,
       iconBg: "#eef2ff",
@@ -131,7 +135,7 @@ export default function DashboardOverview() {
       valueColor: "#1e40af",
     },
     {
-      label: "Available Items",
+      labelKey: "dashboard.availableItems",
       value: productStatus[0]?.available,
       icon: <CheckCircleIcon />,
       iconBg: "#e8f5e9",
@@ -139,7 +143,7 @@ export default function DashboardOverview() {
       valueColor: "#2e7d32",
     },
     {
-      label: "Unavailable Items",
+      labelKey: "dashboard.unavailableItems",
       value: productStatus[0]?.unavailable,
       icon: <CancelRoundedIcon />,
       iconBg: "#ffebee",
@@ -148,7 +152,7 @@ export default function DashboardOverview() {
     },
     // ===== Tables =====
     {
-      label: "Free Tables",
+      labelKey: "dashboard.freeTables",
       value: tableStatus?.filter(
         (val) => val.tableStatus === TableStatus.AVAILABLE
       ).length,
@@ -158,7 +162,7 @@ export default function DashboardOverview() {
       valueColor: "#2e7d32",
     },
     {
-      label: "Tables Occupied",
+      labelKey: "dashboard.tablesOccupied",
       value: tableStatus?.filter(
         (val) => val.tableStatus === TableStatus.OCCUPIED
       ).length,
@@ -168,7 +172,7 @@ export default function DashboardOverview() {
       valueColor: "#5e35b1",
     },
     {
-      label: "Cleaning Tables",
+      labelKey: "dashboard.cleaningTables",
       value: tableStatus?.filter(
         (val) => val.tableStatus === TableStatus.CLEANING
       ).length,
@@ -180,7 +184,7 @@ export default function DashboardOverview() {
 
     // ===== Other Metrics =====
     {
-      label: "Call Waiter Requests",
+      labelKey: "dashboard.callWaiterRequests",
       value: tableStatus?.filter((val) => val.tableCall === TableCall.ACTIVE)
         .length,
       icon: <NotificationsRoundedIcon />,
@@ -189,7 +193,7 @@ export default function DashboardOverview() {
       valueColor: "#ef6c00",
     },
     {
-      label: "Today's Income",
+      labelKey: "dashboard.todayIncome",
       value: orderStatis?.todayIncomeAndAOV?.[0]?.totalSum ?? 0,
       icon: <MonetizationOnIcon />,
       iconBg: "#e8f5e9",
@@ -197,7 +201,7 @@ export default function DashboardOverview() {
       valueColor: "#2e7d32",
     },
     {
-      label: "Avg Order Value",
+      labelKey: "dashboard.avgOrderValue",
       value: orderStatis?.todayIncomeAndAOV?.[0]?.aovGross ?? 0,
       icon: <MonetizationOnIcon />,
       iconBg: "#e8f5e9",
@@ -222,13 +226,13 @@ export default function DashboardOverview() {
               <DashboardCustomizeRoundedIcon />
             </Avatar>
             <Typography variant="h3" className="dashboard-header-title">
-              Dashboard Overview
+              {t("dashboard.overview")}
             </Typography>
           </Stack>
 
           <Grid container spacing={2}>
             {kpis.map((k) => (
-              <Grid item xs={12} sm={6} md={4} key={k.label}>
+              <Grid item xs={12} sm={6} md={4} key={k.labelKey}>
                 <KpiItem {...k} />
               </Grid>
             ))}

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Stack, Button } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
@@ -7,10 +8,11 @@ import { useNavigate } from "react-router-dom";
 type Props = {};
 
 export default function QuickActions() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   /** HANDLERS **/
   const newOrderHandler = () => {
-    const confirmation = window.confirm("Do you want to create new order?");
+    const confirmation = window.confirm(t("dashboard.createNewOrderConfirm"));
     if (confirmation) {
       window.location.href = "http://localhost:3000/products";
     }
@@ -31,7 +33,7 @@ export default function QuickActions() {
         onClick={newOrderHandler}
         size="large"
       >
-        New Order
+        {t("dashboard.newOrder")}
       </Button>
       <Button
         startIcon={<TableRestaurantIcon />}
@@ -39,7 +41,7 @@ export default function QuickActions() {
         onClick={addTableHandler}
         size="large"
       >
-        Add table
+        {t("dashboard.addTable")}
       </Button>
     </Stack>
   );

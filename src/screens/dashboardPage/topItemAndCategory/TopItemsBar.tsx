@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, Typography, Divider } from "@mui/material";
 import { Bar } from "react-chartjs-2";
 import {
@@ -22,6 +23,7 @@ const orderStatisRetriever = createSelector(
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function TopItemsBar() {
+  const { t } = useTranslation();
   const { orderStatis } = useSelector(orderStatisRetriever);
 
   const allLabels = orderStatis?.topSellingItems.map((val) => val.productName);
@@ -86,7 +88,7 @@ export default function TopItemsBar() {
     <Card sx={{ borderRadius: 3, height: 360 }}>
       <CardContent sx={{ height: 1 }}>
         <Typography variant="h4" fontWeight={"700"} sx={{ mb: 1 }}>
-          Top Selling Items
+          {t("dashboard.topSellingItems")}
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <div style={{ height: 260 }}>

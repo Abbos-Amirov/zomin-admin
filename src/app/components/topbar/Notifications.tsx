@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   IconButton,
   Tooltip,
@@ -12,6 +13,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useGlobals } from "../../hooks/useGlobals";
 
 export default function NotificationsMenu() {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { notifications, setNotifications } = useGlobals();
 
@@ -31,7 +33,7 @@ export default function NotificationsMenu() {
 
   return (
     <>
-      <Tooltip title="Notifications">
+      <Tooltip title={t("topbar.notifications")}>
         <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
           <Badge badgeContent={unreadCount} color="error">
             <NotificationsIcon />
@@ -45,7 +47,7 @@ export default function NotificationsMenu() {
         onClose={() => setAnchorEl(null)}
         PaperProps={{ style: { width: 320, maxHeight: 400 } }}
       >
-        {notifications.length === 0 && <MenuItem>No notifications</MenuItem>}
+        {notifications.length === 0 && <MenuItem>{t("topbar.noNotifications")}</MenuItem>}
 
         {notifications.map((notif, index) => (
           <MenuItem
@@ -70,7 +72,7 @@ export default function NotificationsMenu() {
         {notifications.length > 0 && (
           <>
             <Divider />
-            <MenuItem onClick={handleMarkAllRead}>Mark all as read</MenuItem>
+            <MenuItem onClick={handleMarkAllRead}>{t("topbar.markAllRead")}</MenuItem>
           </>
         )}
       </Menu>

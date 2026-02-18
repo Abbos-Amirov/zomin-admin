@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   IconButton,
   Tooltip,
@@ -11,7 +12,6 @@ import {
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-import LanguageIcon from "@mui/icons-material/Language";
 import MemberService from "../../../services/Member.service";
 import {
   sweetErrorHandling,
@@ -22,11 +22,11 @@ import { frontendUrl, Messages } from "../../../lib/config";
 
 export default function SettingsMenu({
   darkMode,
-  language,
 }: {
   darkMode: boolean;
-  language: "EN" | "UZ";
+  language?: string;
 }) {
+  const { t } = useTranslation();
   const { setAuthMember } = useGlobals();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -47,7 +47,7 @@ export default function SettingsMenu({
 
   return (
     <>
-      <Tooltip title="Settings">
+      <Tooltip title={t("topbar.settings")}>
         <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
           <SettingsRoundedIcon />
         </IconButton>
@@ -63,15 +63,8 @@ export default function SettingsMenu({
           <ListItemIcon>
             <DarkModeIcon fontSize="small" />
           </ListItemIcon>
-          Theme Mode
+          {t("topbar.themeMode")}
           <Switch checked={darkMode} size="small" />
-        </MenuItem>
-
-        <MenuItem>
-          <ListItemIcon>
-            <LanguageIcon fontSize="small" />
-          </ListItemIcon>
-          Language ({language})
         </MenuItem>
 
         <Divider />
@@ -80,7 +73,7 @@ export default function SettingsMenu({
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          Logout
+          {t("topbar.logout")}
         </MenuItem>
       </Menu>
     </>

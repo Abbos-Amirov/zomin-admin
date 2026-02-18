@@ -1,0 +1,97 @@
+{
+  "common": {
+    "search": "Qidirish…",
+    "action": "Amal",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "add": "Qo'shish",
+    "status": "Holat",
+    "updated": "Yangilandi",
+    "created": "Yaratildi",
+    "deleted": "O'chirildi"
+  },
+  "sidebar": {
+    "adminPanel": "Admin Panel",
+    "dashboard": "Boshqaruv paneli",
+    "menu": "Menyu",
+    "orders": "Buyurtmalar",
+    "tables": "Stollar",
+    "users": "Foydalanuvchilar"
+  },
+  "topbar": {
+    "search": "Qidirish…",
+    "notifications": "Bildirishnomalar",
+    "settings": "Sozlamalar",
+    "noNotifications": "Bildirishnomalar yo'q",
+    "markAllRead": "Barchasini o'qilgan deb belgilash",
+    "themeMode": "Mavzu rejimi",
+    "language": "Til",
+    "logout": "Chiqish"
+  },
+  "dashboard": {
+    "overview": "Boshqaruv paneli umumiy ko'rinishi",
+    "totalOrders": "Jami buyurtmalar",
+    "pendingOrders": "Kutilayotgan buyurtmalar",
+    "completedOrders": "Bajarilgan buyurtmalar",
+    "totalItems": "Jami mahsulotlar",
+    "availableItems": "Mavjud mahsulotlar",
+    "unavailableItems": "Mavjud emas",
+    "freeTables": "Bo'sh stollar",
+    "tablesOccupied": "Band stollar",
+    "cleaningTables": "Tozalanishda",
+    "callWaiterRequests": "Ofitsiant chaqiruvlari",
+    "todayIncome": "Bugungi daromad",
+    "avgOrderValue": "O'rtacha buyurtma qiymati",
+    "tableStatus": "Stol holati",
+    "occupied": "Band",
+    "cleaning": "Tozalanishda",
+    "free": "Bo'sh",
+    "topSellingItems": "Eng ko'p sotiladigan mahsulotlar",
+    "ordersByCategory": "Kategoriya bo'yicha buyurtmalar",
+    "newOrder": "Yangi buyurtma",
+    "addTable": "Stol qo'shish",
+    "createNewOrderConfirm": "Yangi buyurtma yaratmoqchimisiz?",
+    "markAsReadConfirm": "O'qilgan deb belgilashni xohlaysizmi?"
+  },
+  "menu": {
+    "title": "Menyu",
+    "newProduct": "Yangi mahsulot",
+    "editProduct": "Mahsulotni tahrirlash",
+    "productName": "Mahsulot nomi",
+    "productPrice": "Mahsulot narxi",
+    "productLeftCount": "Qolgan soni",
+    "name": "Nomi",
+    "price": "Narxi"
+  },
+  "orders": {
+    "title": "Buyurtmalar"
+  },
+  "tables": {
+    "title": "Stollar",
+    "addNewTable": "Yangi stol qo'shish",
+    "editTable": "Stolni tahrirlash",
+    "tableNumber": "Stol raqami",
+    "available": "Mavjud",
+    "occupied": "Band",
+    "cleaning": "Tozalanishda"
+  },
+  "users": {
+    "title": "Foydalanuvchilar",
+    "nickname": "Taxallus",
+    "phoneNumber": "Telefon raqami",
+    "memberStatus": "A'zo holati",
+    "typeHere": "Bu yerga yozing",
+    "active": "Faol",
+    "block": "Bloklangan",
+    "delete": "O'chirish"
+  },
+  "errors": {
+    "somethingWrong": "Nimadir xato ketdi!",
+    "loginFirst": "Avval tizimga kiring!",
+    "fillAllInputs": "Barcha maydonlarni to'ldiring!",
+    "messageEmpty": "Xabar bo'sh!",
+    "imageFormat": "Faqat jpeg, jpg, png formatidagi rasmlar ruxsat etiladi!"
+  }
+}

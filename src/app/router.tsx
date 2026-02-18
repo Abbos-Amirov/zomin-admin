@@ -8,29 +8,10 @@ import MenuPage from '../screens/menuPage';
 import OrdersPage from '../screens/ordersPage';
 import UsersPage from '../screens/usersPage';
 import TablesPage from '../screens/tablesPage';
-import LoginPage from '../screens/loginPage';
-import { useGlobals } from './hooks/useGlobals';
-
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { authMember } = useGlobals();
-  
-  if (authMember) {
-    return <Navigate to="/" replace />;
-  }
-  
-  return <>{children}</>;
-};
 
 const AppRouter = () => (
   <Routes>
-    <Route 
-      path="/login" 
-      element={
-        <PublicRoute>
-          <LoginPage />
-        </PublicRoute>
-      } 
-    />
+    <Route path="/login" element={<Navigate to="/" replace />} />
     <Route 
       path="/products" 
       element={

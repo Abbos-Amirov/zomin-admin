@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -45,6 +46,7 @@ const categoryColors: any = {
 };
 
 export default function CategoryPie() {
+  const { t } = useTranslation();
   const { orderStatis } = useSelector(orderStatisRetriever);
   const categories = orderStatis?.ordersByCategory.map((val) => val.collection);
   const values = orderStatis?.ordersByCategory.map((val) => val.orders);
@@ -74,7 +76,7 @@ export default function CategoryPie() {
     <Card sx={{ borderRadius: 3, height: 360 }}>
       <CardContent sx={{ height: 1 }}>
         <Typography variant="h5" fontWeight={"700"} sx={{ mb: 1 }}>
-          Orders by Category
+          {t("dashboard.ordersByCategory")}
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <div style={{ height: 220 }}>

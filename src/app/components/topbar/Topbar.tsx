@@ -3,6 +3,7 @@ import { Box, Stack, Paper, Avatar, useTheme } from "@mui/material";
 import { serverApi } from "../../../lib/config";
 import SettingsMenu from "./Settings";
 import NotificationsMenu from "./Notifications";
+import LanguageSelector from "./LanguageSelector";
 import TopbarLeft from "./TopbarLeft";
 import { useGlobals } from "../../hooks/useGlobals";
 
@@ -31,10 +32,11 @@ export default function Topbar(props: TopbarProps) {
         {/* LEFT SECTION */}
         <TopbarLeft onMenuClick={onMenuClick} />
 
-        {/* RIGHT SECTION stays same */}
+        {/* RIGHT SECTION */}
         <Stack direction="row" alignItems="center" spacing={0.5}>
+          <LanguageSelector />
           <NotificationsMenu />
-          <SettingsMenu darkMode={false} language="EN" />
+          <SettingsMenu darkMode={false} />
           <Avatar
             alt="Profile"
             src={`${serverApi}/${authMember?.memberImage}`}

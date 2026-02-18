@@ -1,0 +1,97 @@
+{
+  "common": {
+    "search": "Поиск…",
+    "action": "Действие",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "add": "Добавить",
+    "status": "Статус",
+    "updated": "Обновлено",
+    "created": "Создано",
+    "deleted": "Удалено"
+  },
+  "sidebar": {
+    "adminPanel": "Панель администратора",
+    "dashboard": "Панель управления",
+    "menu": "Меню",
+    "orders": "Заказы",
+    "tables": "Столы",
+    "users": "Пользователи"
+  },
+  "topbar": {
+    "search": "Поиск…",
+    "notifications": "Уведомления",
+    "settings": "Настройки",
+    "noNotifications": "Нет уведомлений",
+    "markAllRead": "Отметить все как прочитанные",
+    "themeMode": "Режим темы",
+    "language": "Язык",
+    "logout": "Выйти"
+  },
+  "dashboard": {
+    "overview": "Обзор панели управления",
+    "totalOrders": "Всего заказов",
+    "pendingOrders": "Ожидающие заказы",
+    "completedOrders": "Выполненные заказы",
+    "totalItems": "Всего товаров",
+    "availableItems": "Доступные товары",
+    "unavailableItems": "Недоступные товары",
+    "freeTables": "Свободные столы",
+    "tablesOccupied": "Занятые столы",
+    "cleaningTables": "На уборке",
+    "callWaiterRequests": "Вызовы официанта",
+    "todayIncome": "Доход за сегодня",
+    "avgOrderValue": "Средний чек",
+    "tableStatus": "Статус столов",
+    "occupied": "Занят",
+    "cleaning": "На уборке",
+    "free": "Свободен",
+    "topSellingItems": "Топ продаж",
+    "ordersByCategory": "Заказы по категориям",
+    "newOrder": "Новый заказ",
+    "addTable": "Добавить стол",
+    "createNewOrderConfirm": "Создать новый заказ?",
+    "markAsReadConfirm": "Отметить как прочитанное?"
+  },
+  "menu": {
+    "title": "Меню",
+    "newProduct": "Новый товар",
+    "editProduct": "Редактировать товар",
+    "productName": "Название товара",
+    "productPrice": "Цена товара",
+    "productLeftCount": "Остаток",
+    "name": "Название",
+    "price": "Цена"
+  },
+  "orders": {
+    "title": "Заказы"
+  },
+  "tables": {
+    "title": "Столы",
+    "addNewTable": "Добавить стол",
+    "editTable": "Редактировать стол",
+    "tableNumber": "Номер стола",
+    "available": "ДОСТУПЕН",
+    "occupied": "ЗАНЯТ",
+    "cleaning": "НА УБОРКЕ"
+  },
+  "users": {
+    "title": "Пользователи",
+    "nickname": "Никнейм",
+    "phoneNumber": "Номер телефона",
+    "memberStatus": "Статус участника",
+    "typeHere": "Введите здесь",
+    "active": "АКТИВЕН",
+    "block": "ЗАБЛОКИРОВАН",
+    "delete": "УДАЛЕН"
+  },
+  "errors": {
+    "somethingWrong": "Что-то пошло не так!",
+    "loginFirst": "Пожалуйста, войдите в систему!",
+    "fillAllInputs": "Заполните все поля!",
+    "messageEmpty": "Сообщение пустое!",
+    "imageFormat": "Разрешены только изображения в формате jpeg, jpg, png!"
+  }
+}

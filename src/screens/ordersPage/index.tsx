@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Stack, Typography } from "@mui/material";
 import OrdersFilters from "./OrdersFilters";
 import OrdersTable from "./OrdersTable";
@@ -17,6 +18,7 @@ const actionDispatch = (dispatch: Dispatch) => ({
 });
 
 export default function OrdersPage() {
+  const { t } = useTranslation();
   const { setOrders } = actionDispatch(useDispatch());
 
   const [open, setOpen] = useState<boolean>(false);
@@ -41,7 +43,7 @@ export default function OrdersPage() {
   return (
     <Stack spacing={2} className="order-page">
       <Typography variant="h3" fontWeight={700} textAlign={"center"}>
-        Orders
+        {t("orders.title")}
       </Typography>
 
       <OrdersFilters
