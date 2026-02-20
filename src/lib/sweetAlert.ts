@@ -3,8 +3,11 @@ import Swal from "sweetalert2";
 import { Messages } from "./config";
 
 export const sweetErrorHandling = async (err: any) => {
+  if (err?.response?.status === 404) return;
+  if (err?.response?.status === 504) return;
   const error = err.response?.data ?? err;
-  const message = error?.message ?? Messages.error1;
+  const message =
+    error?.message ?? error?.error ?? String(error) ?? Messages.error1;
   await Swal.fire({
     icon: "error",
     text: message,

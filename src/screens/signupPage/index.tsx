@@ -16,8 +16,9 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
-import { LoginInput } from "../../lib/types/member";
+import { MemberInput } from "../../lib/types/member";
 import MemberService from "../../services/Member.service";
 import { sweetErrorHandling, sweetTopSuccessAlert } from "../../lib/sweetAlert";
 import { useGlobals } from "../../app/hooks/useGlobals";
@@ -25,36 +26,47 @@ import { useNavigate, Link as RouterLink, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "../../css/loginPage.css";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const { t } = useTranslation();
   const { authMember, setAuthMember } = useGlobals();
   const navigate = useNavigate();
-  const [loginInput, setLoginInput] = useState<LoginInput>({
+  const [signupInput, setSignupInput] = useState<MemberInput & { confirmPassword: string }>({
     memberNick: "",
+    memberPhone: "",
     memberPassword: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const handleLoginRequest = async () => {
+  const handleSignupRequest = async () => {
     try {
       setError("");
-      if (!loginInput.memberNick || !loginInput.memberPassword) {
+      if (!signupInput.memberNick || !signupInput.memberPhone || !signupInput.memberPassword) {
         setError(t("auth.fillAllFields"));
+        return;
+      }
+      if (signupInput.memberPassword !== signupInput.confirmPassword) {
+        setError(t("auth.passwordsNotMatch"));
+        return;
+      }
+      if (signupInput.memberPassword.length < 4) {
+        setError(t("auth.passwordTooShort"));
         return;
       }
 
       setLoading(true);
       const member = new MemberService();
-      const result = await member.login(loginInput);
+      const { confirmPassword, ...input } = signupInput;
+      const result = await member.signup(input);
 
       setAuthMember(result);
-      await sweetTopSuccessAlert(t("auth.loginSuccess"), 1000);
+      await sweetTopSuccessAlert(t("auth.signupSuccess"), 1000);
       navigate("/", { replace: true });
     } catch (err: any) {
-      console.log("Error, handleLoginRequest:", err);
-      const errorMessage = err.response?.data?.message || t("auth.loginFailed");
+      console.log("Error, handleSignupRequest:", err);
+      const errorMessage = err.response?.data?.message || t("auth.signupFailed");
       setError(errorMessage);
       sweetErrorHandling(err);
     } finally {
@@ -77,7 +89,7 @@ export default function LoginPage() {
                 {t("auth.adminPanel")}
               </Typography>
               <Typography variant="body2" color="text.secondary" className="login-subtitle">
-                {t("auth.signInSubtitle")}
+                {t("auth.signupSubtitle")}
               </Typography>
             </Box>
 
@@ -94,9 +106,9 @@ export default function LoginPage() {
                 fullWidth
                 label={t("auth.username")}
                 variant="outlined"
-                value={loginInput.memberNick}
+                value={signupInput.memberNick}
                 onChange={(e) =>
-                  setLoginInput({ ...loginInput, memberNick: e.target.value })
+                  setSignupInput({ ...signupInput, memberNick: e.target.value })
                 }
                 disabled={loading}
                 autoComplete="username"
@@ -112,15 +124,35 @@ export default function LoginPage() {
 
               <TextField
                 fullWidth
+                label={t("auth.phoneNumber")}
+                variant="outlined"
+                value={signupInput.memberPhone}
+                onChange={(e) =>
+                  setSignupInput({ ...signupInput, memberPhone: e.target.value })
+                }
+                disabled={loading}
+                autoComplete="tel"
+                className="login-textfield"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon style={{ color: "rgba(0, 0, 0, 0.54)" }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <TextField
+                fullWidth
                 label={t("auth.password")}
                 type={showPassword ? "text" : "password"}
                 variant="outlined"
-                value={loginInput.memberPassword}
+                value={signupInput.memberPassword}
                 onChange={(e) =>
-                  setLoginInput({ ...loginInput, memberPassword: e.target.value })
+                  setSignupInput({ ...signupInput, memberPassword: e.target.value })
                 }
                 disabled={loading}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 className="login-textfield"
                 InputProps={{
                   startAdornment: (
@@ -141,8 +173,29 @@ export default function LoginPage() {
                     </InputAdornment>
                   ),
                 }}
+              />
+
+              <TextField
+                fullWidth
+                label={t("auth.confirmPassword")}
+                type={showPassword ? "text" : "password"}
+                variant="outlined"
+                value={signupInput.confirmPassword}
+                onChange={(e) =>
+                  setSignupInput({ ...signupInput, confirmPassword: e.target.value })
+                }
+                disabled={loading}
+                autoComplete="new-password"
+                className="login-textfield"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon style={{ color: "rgba(0, 0, 0, 0.54)" }} />
+                    </InputAdornment>
+                  ),
+                }}
                 onKeyPress={(e) => {
-                  if (e.key === "Enter") handleLoginRequest();
+                  if (e.key === "Enter") handleSignupRequest();
                 }}
               />
             </Box>
@@ -151,17 +204,17 @@ export default function LoginPage() {
               fullWidth
               variant="contained"
               size="large"
-              onClick={handleLoginRequest}
+              onClick={handleSignupRequest}
               disabled={loading}
               className="login-button"
             >
-              {loading ? t("auth.loggingIn") : t("auth.signIn")}
+              {loading ? t("auth.signingUp") : t("auth.signUp")}
             </Button>
 
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: 1 }}>
-              {t("auth.noAccount")}{" "}
-              <Link component={RouterLink} to="/signup" sx={{ fontWeight: 600 }}>
-                {t("auth.signUp")}
+              {t("auth.alreadyHaveAccount")}{" "}
+              <Link component={RouterLink} to="/login" sx={{ fontWeight: 600 }}>
+                {t("auth.signIn")}
               </Link>
             </Typography>
           </Paper>
@@ -170,4 +223,3 @@ export default function LoginPage() {
     </Box>
   );
 }
-

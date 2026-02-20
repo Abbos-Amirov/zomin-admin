@@ -1,4 +1,26 @@
 {
+  "auth": {
+    "adminPanel": "Admin Panel",
+    "signInSubtitle": "Sign in to continue",
+    "signupSubtitle": "Create an account",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "phoneNumber": "Phone number",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "loggingIn": "Logging in…",
+    "signingUp": "Signing up…",
+    "fillAllFields": "Please fill in all fields",
+    "passwordsNotMatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 4 characters",
+    "loginSuccess": "Login successful!",
+    "loginFailed": "Login failed. Please check your credentials",
+    "signupSuccess": "Account created!",
+    "signupFailed": "Signup failed",
+    "noAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?"
+  },
   "common": {
     "search": "Search…",
     "action": "Action",

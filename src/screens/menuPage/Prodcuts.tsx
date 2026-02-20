@@ -22,7 +22,7 @@ import {
   ProductStatus,
 } from "../../lib/enums/product.enums";
 import { retrieveProducts } from "./selector";
-import { serverApi } from "../../lib/config";
+import { imageBaseUrl } from "../../lib/config";
 
 const productsRetriever = createSelector(retrieveProducts, (products) => ({
   products,
@@ -150,6 +150,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
             <Stack className="list-category-section">
               <Stack className="product-category">
                 {[
+                  ProductCollection.ALL,
                   ProductCollection.DISH,
                   ProductCollection.DESSERT,
                   ProductCollection.DRINK,
@@ -165,7 +166,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                         : "secondary"
                     }
                     className="order"
-                    sx={{ marginTop: item === "DISH" ? "25px" : "10px" }}
+                    sx={{ marginTop: item === "ALL" ? "25px" : "10px" }}
                     onClick={() => searchCollectionHandler(item)}
                   >
                     {item}
@@ -175,11 +176,15 @@ export default function ProductsPage(props: ProdcutsPageProps) {
               <Stack className="product-wrapper">
                 {products.length !== 0 ? (
                   products.map((product: Product) => {
-                    const imagePath = `${serverApi}/${product.productImages[0]}`;
+                    const hasImages =
+                      product.productImages && product.productImages.length > 0;
+                    const imagePath = hasImages
+                      ? `${imageBaseUrl}/${product.productImages[0]}`
+                      : "";
                     const sizeVolume =
                       product.productCollection === ProductCollection.DRINK
-                        ? product.productVolume + " litre"
-                        : product.productSize + " size";
+                        ? (product.productVolume ?? 0) + " litre"
+                        : (product.productSize ?? "NORMAL") + " size";
                     const productStat = product.productStatus;
                     return (
                       <Stack key={product._id} className="product-card">

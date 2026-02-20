@@ -10,7 +10,8 @@ import LanguageIcon from "@mui/icons-material/Language";
 import { useTranslation } from "react-i18next";
 
 const languages = [
-  { code: "uz", label: "O'zbek" },
+  { code: "uz", label: "O'zbek (Lotin)" },
+  { code: "uz-Cyrl", label: "Ўзбек (Кирилл)" },
   { code: "en", label: "English" },
   { code: "ru", label: "Русский" },
 ];

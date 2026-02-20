@@ -12,7 +12,6 @@ import OrderService from "../../services/Order.service";
 import ProductService from "../../services/Product.service";
 import TableService from "../../services/Table.service";
 import TableInfo from "./TableStatus";
-import { sweetErrorHandling } from "../../lib/sweetAlert";
 
 /** REDUX SLICE & SELECTOR */
 const actionDispatch = (dispatch: Dispatch) => ({
@@ -37,32 +36,19 @@ export default function DashboardPage() {
       .then((data) => {
         setOrderStatis(data);
       })
-      .catch((err) => {
-        console.log(err);
-        sweetErrorHandling(err).then();
-      });
+      .catch((err) => console.warn("getOrderStatis:", err));
 
     const product = new ProductService();
     product
       .getProductsStat()
-      .then((data) => {
-        setProductStatus(data);
-      })
-      .catch((err) => {
-        console.log(err);
-        sweetErrorHandling(err).then();
-      });
+      .then((data) => setProductStatus(data))
+      .catch((err) => console.warn("getProductsStat:", err));
 
     const table = new TableService();
     table
       .getAllTables(inquiry)
-      .then((data) => {
-        setTableStatus(data);
-      })
-      .catch((err) => {
-        console.log(err);
-        sweetErrorHandling(err).then();
-      });
+      .then((data) => setTableStatus(data))
+      .catch((err) => console.warn("getAllTables:", err));
   }, [inquiry]);
   return (
     <>
@@ -72,8 +58,4 @@ export default function DashboardPage() {
       <QuickActions />
     </>
   );
-}
-
-function state(state: unknown): unknown {
-  throw new Error("Function not implemented.");
 }

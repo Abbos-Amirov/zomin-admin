@@ -104,9 +104,9 @@ export default function TableDialog(props: TableDialogProps) {
                 });
               }}
             >
-              <MenuItem value="AVAILABLE">AVAILABLE</MenuItem>
-              <MenuItem value="OCCUPIED">OCCUPIED</MenuItem>
-              <MenuItem value="CLEANING">CLEANING</MenuItem>
+              <MenuItem value="AVAILABLE">{t("tables.available")}</MenuItem>
+              <MenuItem value="OCCUPIED">{t("tables.occupied")}</MenuItem>
+              <MenuItem value="CLEANING">{t("tables.cleaning")}</MenuItem>
             </Select>
           </FormControl>
         </Stack>

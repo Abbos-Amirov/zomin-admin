@@ -1,14 +1,20 @@
 import { io } from "socket.io-client";
 
-export const serverApi: string = `${process.env.REACT_APP_API_URL}`;
-export const frontendUrl: string = `${process.env.REACT_APP_FRONTEND_URL}`;
+const apiBase =
+  process.env.REACT_APP_API_URL || "http://127.0.0.1:3001";
+export const serverApi: string =
+  process.env.NODE_ENV === "development" ? "" : apiBase;
+/** Rasmlar uchun backend URL (proxy bypass, to'g'ridan-to'g'ri so'rov) */
+export const imageBaseUrl: string = apiBase;
+export const frontendUrl: string =
+  process.env.REACT_APP_FRONTEND_URL || "http://localhost:3002";
 
 export const socket = io(serverApi, {
   transports: ["websocket"],
   withCredentials: true,
 });
 export const Messages = {
-  error1: "Somthing went wrong!",
+  error1: "Something went wrong!",
   error2: "Please login first!",
   error3: "Please fulfill all inputs!",
   error4: "Message is empty!",

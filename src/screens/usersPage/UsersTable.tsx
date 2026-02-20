@@ -24,7 +24,7 @@ import { retrieveUsers } from "./selector";
 import { MemberStatus } from "../../lib/enums/member.enum";
 import { MemberUpdateInput, UserInquiry } from "../../lib/types/member";
 import { useSelector } from "react-redux";
-import { dateFmt, serverApi } from "../../lib/config";
+import { dateFmt, imageBaseUrl } from "../../lib/config";
 
 const usersRetriever = createSelector(retrieveUsers, (users) => ({
   users,
@@ -85,7 +85,7 @@ export default function UsersTable(props: UsersTableProps) {
                   }}
                 >
                   <Avatar
-                    src={`${serverApi}/${u.memberImage}`}
+                    src={`${imageBaseUrl}/${u.memberImage}`}
                     alt={u.memberNick}
                     sx={{ width: 36, height: 36 }}
                   />

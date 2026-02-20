@@ -22,7 +22,7 @@ import {
   ProductVolume,
 } from "../../lib/enums/product.enums";
 import { Product, ProductFormValues } from "../../lib/types/product";
-import { serverApi } from "../../lib/config";
+import { imageBaseUrl } from "../../lib/config";
 
 interface ProductDialogProps {
   mode: ProductDialogMode;
@@ -145,7 +145,7 @@ export default function ProductDialog(props: ProductDialogProps) {
     if (!s) return "";
     if (s.startsWith("blob:") || s.startsWith("data:")) return s;
     if (s.startsWith("http://") || s.startsWith("https://")) return s;
-    return `${serverApi}/${s}`;
+    return `${imageBaseUrl}/${s}`;
   };
 
   // Derive canSubmit from the same validation logic (no state writes here)

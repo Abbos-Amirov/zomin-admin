@@ -1,4 +1,26 @@
 {
+  "auth": {
+    "adminPanel": "Панель администратора",
+    "signInSubtitle": "Войдите для продолжения",
+    "signupSubtitle": "Создать аккаунт",
+    "username": "Имя пользователя",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "phoneNumber": "Номер телефона",
+    "signIn": "Войти",
+    "signUp": "Регистрация",
+    "loggingIn": "Вход…",
+    "signingUp": "Регистрация…",
+    "fillAllFields": "Заполните все поля",
+    "passwordsNotMatch": "Пароли не совпадают",
+    "passwordTooShort": "Пароль должен быть не менее 4 символов",
+    "loginSuccess": "Вход выполнен!",
+    "loginFailed": "Ошибка входа. Проверьте данные",
+    "signupSuccess": "Аккаунт создан!",
+    "signupFailed": "Ошибка регистрации",
+    "noAccount": "Нет аккаунта?",
+    "alreadyHaveAccount": "Уже есть аккаунт?"
+  },
   "common": {
     "search": "Поиск…",
     "action": "Действие",

@@ -1,4 +1,26 @@
 {
+  "auth": {
+    "adminPanel": "Admin Panel",
+    "signInSubtitle": "Davom etish uchun tizimga kiring",
+    "signupSubtitle": "Hisob yaratish",
+    "username": "Foydalanuvchi nomi",
+    "password": "Parol",
+    "confirmPassword": "Parolni tasdiqlang",
+    "phoneNumber": "Telefon raqami",
+    "signIn": "Kirish",
+    "signUp": "Ro'yxatdan o'tish",
+    "loggingIn": "Kirilmoqda…",
+    "signingUp": "Ro'yxatdan o'tilmoqda…",
+    "fillAllFields": "Barcha maydonlarni to'ldiring",
+    "passwordsNotMatch": "Parollar mos kelmadi",
+    "passwordTooShort": "Parol kamida 4 ta belgidan iborat bo'lishi kerak",
+    "loginSuccess": "Muvaffaqiyatli kirdingiz!",
+    "loginFailed": "Kirish muvaffaqiyatsiz. Ma'lumotlaringizni tekshiring",
+    "signupSuccess": "Hisob yaratildi!",
+    "signupFailed": "Ro'yxatdan o'tish muvaffaqiyatsiz",
+    "noAccount": "Hisobingiz yo'qmi?",
+    "alreadyHaveAccount": "Allaqachon hisobingiz bormi?"
+  },
   "common": {
     "search": "Qidirish…",
     "action": "Amal",

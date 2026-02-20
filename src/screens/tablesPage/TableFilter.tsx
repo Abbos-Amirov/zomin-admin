@@ -53,9 +53,9 @@ export default function TableFilter(props: TableFilterProps) {
     setTableSearch({ ...tableSearch });
   };
 
-  const searchTableStatusHandler = (status: TableStatus) => {
+  const searchTableStatusHandler = (status: TableStatus | "") => {
     tableSearch.page = 1;
-    tableSearch.status = status;
+    tableSearch.status = status || undefined;
     setTableSearch({ ...tableSearch });
   };
 
@@ -99,15 +99,15 @@ export default function TableFilter(props: TableFilterProps) {
               <InputLabel>{t("orders.status")}</InputLabel>
               <Select
                 label="Status"
-                value={edit.tableStatus}
+                value={tableSearch.status ?? ""}
                 onChange={(e) =>
-                  searchTableStatusHandler(e.target.value as TableStatus)
+                  searchTableStatusHandler(e.target.value as TableStatus | "")
                 }
               >
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="AVAILABLE">AVAILABLE</MenuItem>
-                <MenuItem value="OCCUPIED">OCCUPIED</MenuItem>
-                <MenuItem value="CLEANING">CLEANING</MenuItem>
+                <MenuItem value="">{t("orders.all")}</MenuItem>
+                <MenuItem value="AVAILABLE">{t("tables.available")}</MenuItem>
+                <MenuItem value="OCCUPIED">{t("tables.occupied")}</MenuItem>
+                <MenuItem value="CLEANING">{t("tables.cleaning")}</MenuItem>
               </Select>
             </FormControl>
           </Stack>

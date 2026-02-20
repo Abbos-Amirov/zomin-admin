@@ -112,10 +112,10 @@ export default function TableInfo(props: TableInfoProps) {
         <Divider className="table-status-divider" />
 
         <Grid container spacing={1.5} className="table-status-grid" sx={{ width: '100%', margin: 0 }}>
-          {tableStatus.map((t) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} xl={2.4} key={t._id} sx={{ display: 'flex', minWidth: 0 }}>
+          {tableStatus.map((table) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} xl={2.4} key={table._id} sx={{ display: 'flex', minWidth: 0 }}>
               <Box
-                className={`table-card ${getTableStatusClass(t.tableStatus)}`}
+                className={`table-card ${getTableStatusClass(table.tableStatus)}`}
                 sx={{ width: '100%', minWidth: 0 }}
               >
                 <Stack
@@ -127,18 +127,22 @@ export default function TableInfo(props: TableInfoProps) {
                 >
                   <Stack className="table-card-left">
                     <Typography variant="h3" className="table-number">
-                      {t.tableNumber}
+                      {table.tableNumber}
                     </Typography>
                     <Typography variant="body2" className="table-status-label">
-                      {t.tableStatus}
+                      {table.tableStatus === TableStatus.AVAILABLE
+                        ? t("tables.available")
+                        : table.tableStatus === TableStatus.OCCUPIED
+                        ? t("tables.occupied")
+                        : t("tables.cleaning")}
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={1} alignItems="center" className="table-card-right">
-                    {t.tableCall === TableCall.ACTIVE && (
+                    {table.tableCall === TableCall.ACTIVE && (
                       <Button
                         onClick={() =>
                           callButtonHandler({
-                            _id: t._id,
+                            _id: table._id,
                             tableCall: TableCall.PAUSE,
                           })
                         }
@@ -158,7 +162,7 @@ export default function TableInfo(props: TableInfoProps) {
                       </Button>
                     )}
                     <Avatar className="table-icon-avatar">
-                      {t.tableStatus === TableStatus.CLEANING ? (
+                      {table.tableStatus === TableStatus.CLEANING ? (
                         <CleaningServicesRoundedIcon fontSize="large" />
                       ) : (
                         <TableRestaurantIcon fontSize="large" />

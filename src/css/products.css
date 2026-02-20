@@ -48,15 +48,17 @@
 }
 
 .products-page .products .dishes-filter-section .order{
-  width: 70px;
+  min-width: 70px;
   height: 36.5px;
   margin-left: 20px;
+  padding: 0 14px;
   border-radius: 8px;
   font-family: Roboto;
   font-size: 14px;
   font-weight: 500;
   line-height: 16px;
   letter-spacing: 0%;
+  white-space: nowrap;
 }
 
 .products-page .products .list-category-section{

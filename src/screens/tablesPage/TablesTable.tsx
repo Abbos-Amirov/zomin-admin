@@ -48,6 +48,13 @@ const statusColor = (s: TableStatus) =>
     ? "error"
     : "warning";
 
+const getStatusLabel = (t: (key: string) => string, s: TableStatus) =>
+  s === TableStatus.AVAILABLE
+    ? t("tables.available")
+    : s === TableStatus.OCCUPIED
+    ? t("tables.occupied")
+    : t("tables.cleaning");
+
 // --- helpers: SVG → PNG ---
 function downloadSvgAsPng(svgEl: SVGSVGElement, filename: string, px = 1024) {
   const clone = svgEl.cloneNode(true) as SVGSVGElement;
@@ -154,7 +161,7 @@ export default function TablesTable(props: TablesTableProps) {
                 <TableCell>
                   <Chip
                     size="small"
-                    label={t.tableStatus}
+                    label={getStatusLabel(trans, t.tableStatus)}
                     color={statusColor(t.tableStatus) as any}
                   />
                 </TableCell>
@@ -212,9 +219,9 @@ export default function TablesTable(props: TablesTableProps) {
                           })
                         }
                       >
-                        <MenuItem value="AVAILABLE">AVAILABLE</MenuItem>
-                        <MenuItem value="OCCUPIED">OCCUPIED</MenuItem>
-                        <MenuItem value="CLEANING">CLEANING</MenuItem>
+                        <MenuItem value="AVAILABLE">{trans("tables.available")}</MenuItem>
+                        <MenuItem value="OCCUPIED">{trans("tables.occupied")}</MenuItem>
+                        <MenuItem value="CLEANING">{trans("tables.cleaning")}</MenuItem>
                       </Select>
                     </FormControl>
 

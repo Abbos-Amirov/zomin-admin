@@ -43,46 +43,51 @@ export default function MenuPage() {
     page: 1,
     limit: 8,
     order: "createdAt",
-    productCollection: ProductCollection.DISH,
+    productCollection: ProductCollection.ALL,
     search: "",
   });
 
   useEffect(() => {
     product
       .getAllProducts(productSearch)
-      .then((data) => setProducts(data))
-      .catch((err) => console.log(err));
+      .then((data) => setProducts(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.warn("getAllProducts:", err);
+        if (err?.response?.status !== 404 && err?.response?.status !== 504) {
+          setProducts([]);
+          sweetErrorHandling(err).then();
+        }
+      });
   }, [productSearch]);
 
   useEffect(() => {
     if (searchText === "") {
-      productSearch.search = "";
-      setProductSearch({ ...productSearch });
+      setProductSearch((prev) =>
+        prev.search === "" ? prev : { ...prev, search: "" }
+      );
     }
   }, [searchText]);
 
   /** HANDLERS */
 
   const searchCollectionHandler = (colletion: ProductCollection) => {
-    productSearch.page = 1;
-    productSearch.productCollection = colletion;
-    setProductSearch({ ...productSearch });
+    setProductSearch((prev) => ({
+      ...prev,
+      page: 1,
+      productCollection: colletion,
+    }));
   };
 
   const searchOrderHandler = (order: string) => {
-    productSearch.page = 1;
-    productSearch.order = order;
-    setProductSearch({ ...productSearch });
+    setProductSearch((prev) => ({ ...prev, page: 1, order }));
   };
 
   const searchProductHandler = () => {
-    productSearch.search = searchText;
-    setProductSearch({ ...productSearch });
+    setProductSearch((prev) => ({ ...prev, search: searchText }));
   };
 
   const paginationHandler = (e: ChangeEvent<any>, value: number) => {
-    productSearch.page = value;
-    setProductSearch({ ...productSearch });
+    setProductSearch((prev) => ({ ...prev, page: value }));
   };
 
   const productUpdateHandler = async (input: ProductUpdateInput) => {

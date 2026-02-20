@@ -1,6 +1,6 @@
 import { Box, Stack, Paper, Avatar, useTheme } from "@mui/material";
 
-import { serverApi } from "../../../lib/config";
+import { imageBaseUrl } from "../../../lib/config";
 import SettingsMenu from "./Settings";
 import NotificationsMenu from "./Notifications";
 import LanguageSelector from "./LanguageSelector";
@@ -39,7 +39,7 @@ export default function Topbar(props: TopbarProps) {
           <SettingsMenu />
           <Avatar
             alt="Profile"
-            src={`${serverApi}/${authMember?.memberImage}`}
+            src={`${imageBaseUrl}/${authMember?.memberImage}`}
             sx={{ width: 36, height: 36, ml: 0.5 }}
           />
         </Stack>

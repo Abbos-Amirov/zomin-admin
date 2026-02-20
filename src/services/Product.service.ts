@@ -31,14 +31,28 @@ class ProductService {
       let url =
         this.path +
         `/admin/product/all?limit=${input.limit}&order=${input.order}&page=${input.page}`;
-      if (input.productCollection)
+      if (
+        input.productCollection &&
+        input.productCollection !== "ALL"
+      )
         url += `&productCollection=${input.productCollection}`;
-      if (input.search) url += `&search=${input.search}`;
-      const result = await axios.get(url, { withCredentials: true });
-      console.log("getAllProducts: ", result.data);
-      return result.data;
+      if (input.search) url += `&search=${encodeURIComponent(input.search)}`;
+      const result = await axios.get(url, {
+        withCredentials: true,
+        timeout: 30000,
+      });
+      const data = result.data;
+      if (Array.isArray(data)) return data;
+      if (data?.data && Array.isArray(data.data)) return data.data;
+      if (data?.products && Array.isArray(data.products)) return data.products;
+      if (data?.result && Array.isArray(data.result)) return data.result;
+      if (data && typeof data === "object") {
+        const arr = Object.values(data).find((v) => Array.isArray(v));
+        if (arr) return arr as Product[];
+      }
+      return [];
     } catch (err) {
-      console.log("Error, getAllProducts:", err);
+      console.warn("getAllProducts:", err);
       throw err;
     }
   }
@@ -47,8 +61,12 @@ class ProductService {
     input: ProductUpdateInput
   ): Promise<Product> {
     try {
+      const { authentication, authentution, ...payload } = input as ProductUpdateInput & {
+        authentication?: unknown;
+        authentution?: unknown;
+      };
       const url = this.path + `/admin/product/${input._id}`;
-      const result = await axios.post(url, input, { withCredentials: true });
+      const result = await axios.post(url, payload, { withCredentials: true });
       console.log("updateChosenProduct: ", result.data);
       return result.data;
     } catch (err) {
