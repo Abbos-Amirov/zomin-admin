@@ -17,8 +17,9 @@ class MemberService {
       const url = this.path + "/member/signup";
       const result = await axios.post(url, input, { withCredentials: true });
       if (isHtmlResponse(result.data)) {
+        console.error("Signup so'rovi HTML qaytardi. URL:", url);
         throw new Error(
-          "Backend API ga ulanishda xato. /member/signup endpoint mavjud emas yoki REACT_APP_API_URL noto'g'ri."
+          `Backend API ga ulanishda xato. So'rov ${url} ga yuborildi. REACT_APP_API_URL to'g'ri ekanini tekshiring va qayta build qiling.`
         );
       }
       const member = result.data?.member ?? result.data?.user ?? result.data;

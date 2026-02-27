@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 
 const apiBase =
-  process.env.REACT_APP_API_URL || "http://localhost:4009";
+  process.env.REACT_APP_API_URL || "http://38.247.134.248:4009";
 export const serverApi: string = apiBase;
 /** Rasmlar uchun backend URL (proxy bypass, to'g'ridan-to'g'ri so'rov) */
 export const imageBaseUrl: string = apiBase;
