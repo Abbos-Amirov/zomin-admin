@@ -2,6 +2,9 @@ import axios from "axios";
 import { serverApi } from "../lib/config";
 import { Member, MemberUpdateInput, UserInquiry, LoginInput, MemberInput } from "../lib/types/member";
 
+const isHtmlResponse = (data: unknown): boolean =>
+  typeof data === "string" && data.trim().toLowerCase().startsWith("<!doctype html");
+
 class MemberService {
   private readonly path: string;
 
@@ -13,7 +16,15 @@ class MemberService {
     try {
       const url = this.path + "/member/signup";
       const result = await axios.post(url, input, { withCredentials: true });
-      const member = result.data.member;
+      if (isHtmlResponse(result.data)) {
+        throw new Error(
+          "Backend API ga ulanishda xato. /member/signup endpoint mavjud emas yoki REACT_APP_API_URL noto'g'ri."
+        );
+      }
+      const member = result.data?.member ?? result.data?.user ?? result.data;
+      if (!member || !member._id) {
+        throw new Error(result.data?.message || "Ro'yxatdan o'tish muvaffaqiyatsiz.");
+      }
       localStorage.setItem("memberData", JSON.stringify(member));
       return member;
     } catch (err) {
@@ -52,8 +63,15 @@ class MemberService {
     try {
       const url = this.path + "/member/login";
       const result = await axios.post(url, input, { withCredentials: true });
-      console.log("login:", result);
-      const member = result.data.member;
+      if (isHtmlResponse(result.data)) {
+        throw new Error(
+          "Backend API ga ulanishda xato. REACT_APP_API_URL to'g'ri backend manzilini ko'rsatishi kerak (masalan: http://38.247.134.248:3000). 4009 porti frontend uchun bo'lishi mumkin."
+        );
+      }
+      const member = result.data?.member ?? result.data?.user ?? result.data;
+      if (!member || !member._id) {
+        throw new Error(result.data?.message || "Login muvaffaqiyatsiz.");
+      }
       localStorage.setItem("memberData", JSON.stringify(member));
       return member;
     } catch (err) {

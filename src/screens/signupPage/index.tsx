@@ -66,7 +66,18 @@ export default function SignupPage() {
       navigate("/", { replace: true });
     } catch (err: any) {
       console.log("Error, handleSignupRequest:", err);
-      const errorMessage = err.response?.data?.message || t("auth.signupFailed");
+      let errorMessage = t("auth.signupFailed");
+      if (err.code === "ERR_NETWORK" || err.response?.status === 504) {
+        errorMessage =
+          "Backend serverga ulanishda xato (504). Server ishlayotganini va REACT_APP_API_URL to'g'riligini tekshiring.";
+      } else {
+        errorMessage =
+          err.message ||
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.response?.data?.msg ||
+          errorMessage;
+      }
       setError(errorMessage);
       sweetErrorHandling(err);
     } finally {

@@ -54,7 +54,13 @@ export default function LoginPage() {
       navigate("/", { replace: true });
     } catch (err: any) {
       console.log("Error, handleLoginRequest:", err);
-      const errorMessage = err.response?.data?.message || t("auth.loginFailed");
+      let errorMessage = t("auth.loginFailed");
+      if (err.code === "ERR_NETWORK" || err.response?.status === 504) {
+        errorMessage =
+          "Backend serverga ulanishda xato (504). Server ishlayotganini tekshiring.";
+      } else {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
       setError(errorMessage);
       sweetErrorHandling(err);
     } finally {
