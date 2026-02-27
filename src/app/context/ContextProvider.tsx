@@ -5,21 +5,27 @@ import { GlobalContext } from "../hooks/useGlobals";
 import { socket } from "../../lib/config";
 import { Notification } from "../../lib/types/notif";
 
+const safeParse = <T,>(value: string | null, fallback: T): T => {
+  if (!value || value === "undefined" || value === "null") return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+};
+
 const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [authMember, setAuthMember] = useState<Member | null>(() => {
-    const storedMember = localStorage.getItem("memberData");
-    return storedMember ? JSON.parse(storedMember) : null;
-  });
+  const [authMember, setAuthMember] = useState<Member | null>(() =>
+    safeParse<Member | null>(localStorage.getItem("memberData"), null)
+  );
 
-  const [notifications, setNotifications] = useState<Notification[]>(() => {
-    const storedNotifications = localStorage.getItem("notifications");
-    return storedNotifications ? JSON.parse(storedNotifications) : [];
-  });
+  const [notifications, setNotifications] = useState<Notification[]>(() =>
+    safeParse<Notification[]>(localStorage.getItem("notifications"), [])
+  );
 
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const stored = localStorage.getItem("darkMode");
-    return stored ? JSON.parse(stored) === true : false;
-  });
+  const [darkMode, setDarkMode] = useState<boolean>(() =>
+    safeParse<boolean>(localStorage.getItem("darkMode"), false)
+  );
 
   useEffect(() => {
     const cookies = new Cookies();
@@ -31,7 +37,8 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     } else {
       const storedMember = localStorage.getItem("memberData");
       if (storedMember && !authMember) {
-        setAuthMember(JSON.parse(storedMember));
+        const parsed = safeParse<Member | null>(storedMember, null);
+        if (parsed) setAuthMember(parsed);
       }
     }
   }, []);
