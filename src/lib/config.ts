@@ -5,8 +5,12 @@ const apiBase =
 export const serverApi: string = apiBase;
 /** Rasmlar uchun backend URL (proxy bypass, to'g'ridan-to'g'ri so'rov) */
 export const imageBaseUrl: string = apiBase;
+/** Admin panel URL (logout redirect) */
 export const frontendUrl: string =
-  process.env.REACT_APP_FRONTEND_URL || "http://localhost:3002";
+  process.env.REACT_APP_FRONTEND_URL || "http://38.247.134.248:3001";
+/** Zomin client frontend - QR kod orqali mijozlar shu linkga yo'naltiriladi */
+export const clientUrl: string =
+  process.env.REACT_APP_CLIENT_URL || "http://38.247.134.248:3010";
 
 export const socket = io(apiBase, {
   transports: ["websocket", "polling"],

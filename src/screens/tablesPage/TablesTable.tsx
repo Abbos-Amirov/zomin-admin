@@ -29,7 +29,7 @@ import { createSelector } from "@reduxjs/toolkit";
 import { retrieveTables } from "./selector";
 import { useSelector } from "react-redux";
 import { TableStatus } from "../../lib/enums/table.enum";
-import { dateFmt, frontendUrl } from "../../lib/config";
+import { dateFmt, clientUrl } from "../../lib/config";
 import {
   confirmDelete,
   sweetCenterSuccessAlert,
@@ -148,7 +148,7 @@ export default function TablesTable(props: TablesTableProps) {
 
         <TableBody>
           {tables.map((t) => {
-            const url = `${frontendUrl}/table/qr/${encodeURIComponent(
+            const url = `${clientUrl}/table/qr/${encodeURIComponent(
               // Scane URL of table
               t.qrToken
             )}`;
