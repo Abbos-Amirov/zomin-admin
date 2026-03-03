@@ -4,6 +4,7 @@ import { Card, CardContent, Typography, Stack, Grid, Box, Divider, Chip } from "
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import { createSelector } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { retrieveTableStatus } from "./selector";
 import { Table } from "../../lib/types/table";
 import OrderService from "../../services/Order.service";
@@ -17,6 +18,7 @@ const tableStatusRetriever = createSelector(
 
 export default function TableStatusTop() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { tableStatus } = useSelector(tableStatusRetriever);
   const [groupedOrders, setGroupedOrders] = useState<
     Record<string, { orderId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]>
@@ -193,7 +195,11 @@ export default function TableStatusTop() {
               const orders = groupedOrders[tableNumber] ?? [];
               return (
                 <Grid item xs={12} md={6} lg={4} key={`table-orders-${tableNumber}`}>
-                  <Box className="table-top-item">
+                  <Box
+                    className="table-top-item"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => navigate(`/orders-panel/table/${tableNumber}`)}
+                  >
                     <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
                       <Typography variant="body1" className="table-top-number">
                         Stol {tableNumber}
@@ -233,7 +239,7 @@ export default function TableStatusTop() {
                                     </Typography>
                                   </Stack>
                                   <Typography variant="caption">
-                                    qty: {p.quantity} - price: {p.price}
+                                    {p.quantity}X - price: {p.quantity * p.price}
                                   </Typography>
                                 </Stack>
                               ))}
