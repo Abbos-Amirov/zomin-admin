@@ -5,6 +5,11 @@ import { GlobalContext } from "../hooks/useGlobals";
 import { socket } from "../../lib/config";
 import { Notification } from "../../lib/types/notif";
 import NotificationService from "../../services/Notification.service";
+import { useDispatch, useSelector } from "react-redux";
+import { retrieveTableStatus } from "../../screens/dashboardPage/selector";
+import { setTableStatus } from "../../screens/dashboardPage/slice";
+import { Table } from "../../lib/types/table";
+import { TableCall } from "../../lib/enums/tableCall.enum";
 
 const playNotificationSound = () => {
   try {
@@ -48,6 +53,8 @@ const safeParse = <T,>(value: string | null, fallback: T): T => {
 };
 
 const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const dispatch = useDispatch();
+  const tableStatus = useSelector(retrieveTableStatus);
   const [authMember, setAuthMember] = useState<Member | null>(() =>
     safeParse<Member | null>(localStorage.getItem("memberData"), null)
   );
@@ -63,11 +70,22 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const [notificationAlert, setNotificationAlert] = useState<Notification | null>(null);
   const notificationsRef = useRef<Notification[]>([]);
+<<<<<<< HEAD
+=======
+  const tableStatusRef = useRef<Table[]>([]);
+>>>>>>> 375f73c (fix: add notifiction alert)
   const isInitialNotifSyncDoneRef = useRef(false);
 
   useEffect(() => {
     notificationsRef.current = Array.isArray(notifications) ? notifications : [];
   }, [notifications]);
+<<<<<<< HEAD
+=======
+
+  useEffect(() => {
+    tableStatusRef.current = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
+  }, [tableStatus]);
+>>>>>>> 375f73c (fix: add notifiction alert)
 
   useEffect(() => {
     const cookies = new Cookies();
@@ -118,6 +136,20 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
       const newestIncoming = merged.find((n) => !prevMap.has(n.id));
       if (newestIncoming) {
+<<<<<<< HEAD
+=======
+        if (newestIncoming.type === "CALL" && newestIncoming.tableId) {
+          const current = tableStatusRef.current;
+          if (Array.isArray(current) && current.length > 0) {
+            const next = current.map((t) =>
+              t._id === newestIncoming.tableId
+                ? { ...t, tableCall: TableCall.ACTIVE }
+                : t
+            );
+            dispatch(setTableStatus(next));
+          }
+        }
+>>>>>>> 375f73c (fix: add notifiction alert)
         playNotificationSound();
         playNotificationVibration();
         setNotificationAlert(newestIncoming);
@@ -130,7 +162,7 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       alive = false;
       window.clearInterval(id);
     };
-  }, [authMember]);
+  }, [authMember, dispatch]);
 
   useEffect(() => {
     if (authMember) {
@@ -153,6 +185,16 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   }, [darkMode]);
 
   useEffect(() => {
+    const setSpecificTableCallActive = (tableId: string | null | undefined) => {
+      if (!tableId) return;
+      const current = tableStatusRef.current;
+      if (!Array.isArray(current) || current.length === 0) return;
+      const next = current.map((t) =>
+        t._id === tableId ? { ...t, tableCall: TableCall.ACTIVE } : t
+      );
+      dispatch(setTableStatus(next));
+    };
+
     const toNotification = (raw: Notification & Record<string, unknown>): Notification => {
       const notifType = String(raw.type ?? raw.notifType ?? "").toUpperCase();
       const normalizedType: Notification["type"] =
@@ -183,6 +225,9 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       const fullNotif = toNotification(payload);
       playNotificationSound();
       playNotificationVibration();
+      if (fullNotif.type === "CALL") {
+        setSpecificTableCallActive(fullNotif.tableId);
+      }
       setNotificationAlert(fullNotif);
       setNotifications((prev) => {
         const list = Array.isArray(prev) ? prev : [];
@@ -212,7 +257,7 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       socket.off("newOrder", appendIncoming);
       socket.off("newCall", appendIncoming);
     };
-  }, []);
+  }, [dispatch]);
 
   return (
     <GlobalContext.Provider

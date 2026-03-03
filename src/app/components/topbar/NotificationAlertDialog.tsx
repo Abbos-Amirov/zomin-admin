@@ -15,16 +15,76 @@ import PhoneInTalkIcon from "@mui/icons-material/PhoneInTalk";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useNavigate } from "react-router-dom";
 import { useGlobals } from "../../hooks/useGlobals";
+import { useDispatch, useSelector } from "react-redux";
+import TableService from "../../../services/Table.service";
+import { TableCall } from "../../../lib/enums/tableCall.enum";
+import { setTableStatus } from "../../../screens/dashboardPage/slice";
+import { retrieveTableStatus } from "../../../screens/dashboardPage/selector";
+import { Table } from "../../../lib/types/table";
 
 export default function NotificationAlertDialog() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { notificationAlert, setNotificationAlert } = useGlobals();
+  const dispatch = useDispatch();
+  const tableStatus = useSelector(retrieveTableStatus);
 
   const open = Boolean(notificationAlert);
   const isCall = notificationAlert?.type === "CALL";
   const isOrder = notificationAlert?.type === "ORDER";
   const lang = i18n.resolvedLanguage || i18n.language || "uz";
+<<<<<<< HEAD
+
+  const dict = useMemo(() => {
+    if (lang === "ru") {
+      return {
+        typeCall: "Вызов официанта",
+        typeOrder: "Новый заказ",
+        table: "Стол",
+        fromTable: "Со стола",
+        gotIt: "Понятно",
+        openDetails: "Подробнее",
+      };
+    }
+    if (lang === "en") {
+      return {
+        typeCall: "Waiter Call",
+        typeOrder: "New Order",
+        table: "Table",
+        fromTable: "From table",
+        gotIt: "Got it",
+        openDetails: "Open details",
+      };
+    }
+    if (lang === "uz-Cyrl") {
+      return {
+        typeCall: "Официант чақируви",
+        typeOrder: "Янги буюртма",
+        table: "Стол",
+        fromTable: "Қайси столдан",
+        gotIt: "Тушундим",
+        openDetails: "Батафсил",
+      };
+    }
+    return {
+      typeCall: "Ofitsiant chaqiruvi",
+      typeOrder: "Yangi buyurtma",
+      table: "Stol",
+      fromTable: "Qaysi stoldan",
+      gotIt: "Tushundim",
+      openDetails: "Batafsil",
+    };
+  }, [lang]);
+
+  const tableNumber = useMemo(() => {
+    if (!notificationAlert) return null;
+    if (notificationAlert.tableNumber) return notificationAlert.tableNumber;
+    const sourceText = `${notificationAlert.message || ""} ${notificationAlert.title || ""}`;
+    const m = sourceText.match(/(?:Table|Stol|Стол)\s*:?\s*(\d+)/i);
+    return m ? m[1] : null;
+  }, [notificationAlert]);
+=======
+>>>>>>> 375f73c (fix: add notifiction alert)
 
   const dict = useMemo(() => {
     if (lang === "ru") {
@@ -75,7 +135,31 @@ export default function NotificationAlertDialog() {
     return m ? m[1] : null;
   }, [notificationAlert]);
 
-  const handleClose = () => setNotificationAlert(null);
+  const clearSpecificTableCall = async () => {
+    if (!notificationAlert?.tableId || !isCall) return;
+    // Avval UI da shu stolning call ikonkasini o'chiramiz
+    if (Array.isArray(tableStatus) && tableStatus.length > 0) {
+      const updated = (tableStatus as Table[]).map((t) =>
+        t._id === notificationAlert.tableId ? { ...t, tableCall: TableCall.PAUSE } : t
+      );
+      dispatch(setTableStatus(updated));
+    }
+    // Keyin backendga ham mark as read (tableCall=PAUSE) yuboramiz
+    try {
+      const tableSvc = new TableService();
+      await tableSvc.updateChosenTable({
+        _id: notificationAlert.tableId,
+        tableCall: TableCall.PAUSE,
+      });
+    } catch {
+      // Bu xatoni jim qoldiramiz: UI allaqachon o'chirilgan, keyingi fetch baribir sync qiladi
+    }
+  };
+
+  const handleClose = () => {
+    clearSpecificTableCall().then();
+    setNotificationAlert(null);
+  };
 
   const handleGoToTable = () => {
     if (notificationAlert?.tableId) {
