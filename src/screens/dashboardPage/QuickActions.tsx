@@ -14,7 +14,7 @@ export default function QuickActions() {
   const newOrderHandler = () => {
     const confirmation = window.confirm(t("dashboard.createNewOrderConfirm"));
     if (confirmation) {
-      window.location.href = "http://localhost:3000/products";
+      navigate("/products");
     }
   };
 

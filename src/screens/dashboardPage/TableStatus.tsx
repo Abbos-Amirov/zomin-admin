@@ -1,5 +1,5 @@
 // TableStatus.tsx
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -53,6 +53,7 @@ interface TableInfoProps {
 export default function TableInfo(props: TableInfoProps) {
   const { t } = useTranslation();
   const { tableStatus } = useSelector(tableStatusRetriever);
+  const cleaningInProgressRef = useRef<Set<string>>(new Set());
   const activeCallTables = tableStatus.filter(
     (table) => table.tableCall === TableCall.ACTIVE
   );
@@ -73,6 +74,49 @@ export default function TableInfo(props: TableInfoProps) {
       sweetErrorHandling(err).then();
     }
   };
+
+  useEffect(() => {
+    const isExpiredCleaning = (updatedAt: Date | string): boolean => {
+      const updatedAtMs = new Date(updatedAt).getTime();
+      if (!Number.isFinite(updatedAtMs)) return false;
+      return Date.now() - updatedAtMs >= 3 * 60 * 1000;
+    };
+
+    const makeCleaningTablesAvailable = async () => {
+      const currentTables = Array.isArray(tableStatus) ? tableStatus : [];
+      const expiredCleaning = currentTables.filter(
+        (table) =>
+          table.tableStatus === TableStatus.CLEANING &&
+          isExpiredCleaning(table.updatedAt) &&
+          !cleaningInProgressRef.current.has(table._id)
+      );
+
+      if (expiredCleaning.length === 0) return;
+
+      const tableSvc = new TableService();
+      await Promise.all(
+        expiredCleaning.map(async (table) => {
+          cleaningInProgressRef.current.add(table._id);
+          try {
+            await tableSvc.updateChosenTable({
+              _id: table._id,
+              tableStatus: TableStatus.AVAILABLE,
+            });
+          } catch (err) {
+            console.log("auto cleaning->available error:", err);
+          } finally {
+            cleaningInProgressRef.current.delete(table._id);
+          }
+        })
+      );
+
+      setInquiry({ ...inquiry });
+    };
+
+    makeCleaningTablesAvailable();
+    const id = window.setInterval(makeCleaningTablesAvailable, 15000);
+    return () => window.clearInterval(id);
+  }, [tableStatus, inquiry, setInquiry]);
 
   return (
     <Card className="table-status-card">
