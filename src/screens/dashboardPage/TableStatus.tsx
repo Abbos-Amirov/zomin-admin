@@ -53,6 +53,9 @@ interface TableInfoProps {
 export default function TableInfo(props: TableInfoProps) {
   const { t } = useTranslation();
   const { tableStatus } = useSelector(tableStatusRetriever);
+  const activeCallTables = tableStatus.filter(
+    (table) => table.tableCall === TableCall.ACTIVE
+  );
 
   const { setInquiry, inquiry } = props;
 
@@ -108,6 +111,48 @@ export default function TableInfo(props: TableInfoProps) {
             </Stack>
           </Stack>
         </Stack>
+
+        {activeCallTables.length > 0 && (
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            className="table-call-strip"
+          >
+            <Typography variant="body2" className="table-call-strip-title">
+              Call:
+            </Typography>
+            <Stack direction="row" spacing={1} className="table-call-strip-list">
+              {activeCallTables.map((table) => (
+                <Button
+                  key={`top-call-${table._id}`}
+                  onClick={() =>
+                    callButtonHandler({
+                      _id: table._id,
+                      tableCall: TableCall.PAUSE,
+                    })
+                  }
+                  className="table-call-strip-chip"
+                >
+                  <RippleBadge
+                    overlap="circular"
+                    anchorOrigin={{
+                      vertical: "top",
+                      horizontal: "right",
+                    }}
+                    variant="dot"
+                    color="error"
+                  >
+                    <NotificationsRoundedIcon fontSize="small" />
+                  </RippleBadge>
+                  <Typography variant="caption" className="table-call-strip-chip-text">
+                    Stol {table.tableNumber}
+                  </Typography>
+                </Button>
+              ))}
+            </Stack>
+          </Stack>
+        )}
 
         <Divider className="table-status-divider" />
 

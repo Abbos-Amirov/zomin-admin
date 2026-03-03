@@ -12,6 +12,7 @@ import OrderService from "../../services/Order.service";
 import ProductService from "../../services/Product.service";
 import TableService from "../../services/Table.service";
 import TableInfo from "./TableStatus";
+import TableStatusTop from "./TableStatusTop";
 
 /** REDUX SLICE & SELECTOR */
 const actionDispatch = (dispatch: Dispatch) => ({
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   return (
     <>
       <DashboardOverview />
+      <TableStatusTop />
       <TableInfo inquiry={inquiry} setInquiry={setInquiry} />
       <TopItemAndCategory />
       <QuickActions />

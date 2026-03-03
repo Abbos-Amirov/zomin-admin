@@ -67,6 +67,7 @@
     "todayIncome": "Today's Income",
     "avgOrderValue": "Avg Order Value",
     "tableStatus": "Table Status",
+    "ordersPanel": "Orders Panel",
     "occupied": "Occupied",
     "cleaning": "Cleaning",
     "free": "Free",

@@ -67,6 +67,7 @@
     "todayIncome": "Доход за сегодня",
     "avgOrderValue": "Средний чек",
     "tableStatus": "Статус столов",
+    "ordersPanel": "Панель заказов",
     "occupied": "Занят",
     "cleaning": "На уборке",
     "free": "Свободен",
