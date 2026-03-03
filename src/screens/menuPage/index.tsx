@@ -104,8 +104,8 @@ export default function MenuPage() {
   const productDeleteHandler = async (input: ProductUpdateInput) => {
     if (!(await confirmDelete(input.productName))) return;
     try {
-      const data = await product.updateChosenProduct(input);
-      removeProduct(data);
+      await product.deleteChosenProduct(input._id);
+      removeProduct({ _id: input._id } as Product);
       sweetCenterSuccessAlert("Deleted", 700);
     } catch (err) {
       sweetErrorHandling(err);

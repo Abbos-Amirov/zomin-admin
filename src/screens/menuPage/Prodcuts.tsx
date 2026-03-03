@@ -269,12 +269,12 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                             size="small"
                             sx={{
                               bgcolor:
-                                productStat === ProductStatus.PROCESS
+                                productStat === ProductStatus.PAUSE
                                   ? "error.main"
                                   : "success.main",
                               "&:hover": {
                                 bgcolor:
-                                  productStat === ProductStatus.PROCESS
+                                  productStat === ProductStatus.PAUSE
                                     ? "error.dark"
                                     : "success.dark",
                               },
@@ -292,7 +292,7 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                               })
                             }
                           >
-                            {productStat === ProductStatus.PROCESS
+                            {productStat === ProductStatus.PAUSE
                               ? t("menu.setPause")
                               : t("menu.setProcess")}
                           </Button>

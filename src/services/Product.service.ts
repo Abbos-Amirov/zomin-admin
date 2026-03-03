@@ -88,6 +88,18 @@ class ProductService {
     });
     return data;
   }
+
+  public async deleteChosenProduct(id: string): Promise<unknown> {
+    try {
+      const url = `${this.path}/admin/product/delete/${id}`;
+      const result = await axios.post(url, {}, { withCredentials: true });
+      console.log("deleteChosenProduct: ", result.data);
+      return result.data;
+    } catch (err) {
+      console.log("Error, deleteChosenProduct:", err);
+      throw err;
+    }
+  }
 }
 
 export default ProductService;
