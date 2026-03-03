@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import Cookies from "universal-cookie";
 import { Member } from "../../lib/types/member";
 import { GlobalContext } from "../hooks/useGlobals";
@@ -33,6 +33,11 @@ const playNotificationVibration = () => {
   if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
 };
 
+const extractTableNumber = (text: string): string | null => {
+  const m = text.match(/(?:Table|Stol|Стол)\s*:?\s*(\d+)/i);
+  return m ? m[1] : null;
+};
+
 const safeParse = <T,>(value: string | null, fallback: T): T => {
   if (!value || value === "undefined" || value === "null") return fallback;
   try {
@@ -57,6 +62,12 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   );
 
   const [notificationAlert, setNotificationAlert] = useState<Notification | null>(null);
+  const notificationsRef = useRef<Notification[]>([]);
+  const isInitialNotifSyncDoneRef = useRef(false);
+
+  useEffect(() => {
+    notificationsRef.current = Array.isArray(notifications) ? notifications : [];
+  }, [notifications]);
 
   useEffect(() => {
     const cookies = new Cookies();
@@ -89,16 +100,28 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       const incoming = await notifSvc.getNotifications();
       if (!alive || !Array.isArray(incoming) || incoming.length === 0) return;
 
-      setNotifications((prev) => {
-        const prevList = Array.isArray(prev) ? prev : [];
-        const prevMap = new Map(prevList.map((n) => [n.id, n]));
-        const merged = incoming.map((n) => {
-          const existing = prevMap.get(n.id);
-          // Agar user o'qib bo'lgan bo'lsa, read=true saqlanib qolsin
-          return existing ? { ...n, read: existing.read ?? n.read } : n;
-        });
-        return merged;
+      const prevList = notificationsRef.current;
+      const prevMap = new Map(prevList.map((n) => [n.id, n]));
+      const merged = incoming.map((n) => {
+        const existing = prevMap.get(n.id);
+        // Agar user o'qib bo'lgan bo'lsa, read=true saqlanib qolsin
+        return existing ? { ...n, read: existing.read ?? n.read } : n;
       });
+
+      setNotifications(merged);
+
+      // Birinchi syncda eski xabarlarga alert chiqarmaymiz.
+      if (!isInitialNotifSyncDoneRef.current) {
+        isInitialNotifSyncDoneRef.current = true;
+        return;
+      }
+
+      const newestIncoming = merged.find((n) => !prevMap.has(n.id));
+      if (newestIncoming) {
+        playNotificationSound();
+        playNotificationVibration();
+        setNotificationAlert(newestIncoming);
+      }
     };
 
     syncNotifications();
@@ -136,18 +159,22 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         notifType === "ORDER" ? "ORDER"
         : notifType === "CALL" || notifType === "TABLE_CALL" ? "CALL"
         : undefined;
+      const title = String(raw.title ?? "");
+      const message = String(raw.message ?? raw.title ?? "Yangi xabar");
+      const tableNumberFromText = extractTableNumber(`${title} ${message}`);
       return {
         id: String(
           raw.id ??
           raw._id ??
           `${raw.createdAt ?? Date.now()}-${raw.tableId ?? raw.table_id ?? ""}-${raw.message ?? raw.title ?? ""}`
         ),
-        message: String(raw.message ?? raw.title ?? "Yangi xabar"),
+        title,
+        message,
         status: String(raw.status ?? raw.notifStatus ?? ""),
         read: false,
         type: normalizedType,
         tableId: (raw.tableId ?? raw.table_id ?? null) as string | null,
-        tableNumber: (raw.tableNumber ?? raw.table_number ?? null) as string | null,
+        tableNumber: (raw.tableNumber ?? raw.table_number ?? tableNumberFromText ?? null) as string | null,
         orderId: (raw.orderId ?? raw.order_id ?? null) as string | null,
       };
     };

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -16,13 +17,63 @@ import { useNavigate } from "react-router-dom";
 import { useGlobals } from "../../hooks/useGlobals";
 
 export default function NotificationAlertDialog() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { notificationAlert, setNotificationAlert } = useGlobals();
 
   const open = Boolean(notificationAlert);
   const isCall = notificationAlert?.type === "CALL";
   const isOrder = notificationAlert?.type === "ORDER";
+  const lang = i18n.resolvedLanguage || i18n.language || "uz";
+
+  const dict = useMemo(() => {
+    if (lang === "ru") {
+      return {
+        typeCall: "Вызов официанта",
+        typeOrder: "Новый заказ",
+        table: "Стол",
+        fromTable: "Со стола",
+        gotIt: "Понятно",
+        openDetails: "Подробнее",
+      };
+    }
+    if (lang === "en") {
+      return {
+        typeCall: "Waiter Call",
+        typeOrder: "New Order",
+        table: "Table",
+        fromTable: "From table",
+        gotIt: "Got it",
+        openDetails: "Open details",
+      };
+    }
+    if (lang === "uz-Cyrl") {
+      return {
+        typeCall: "Официант чақируви",
+        typeOrder: "Янги буюртма",
+        table: "Стол",
+        fromTable: "Қайси столдан",
+        gotIt: "Тушундим",
+        openDetails: "Батафсил",
+      };
+    }
+    return {
+      typeCall: "Ofitsiant chaqiruvi",
+      typeOrder: "Yangi buyurtma",
+      table: "Stol",
+      fromTable: "Qaysi stoldan",
+      gotIt: "Tushundim",
+      openDetails: "Batafsil",
+    };
+  }, [lang]);
+
+  const tableNumber = useMemo(() => {
+    if (!notificationAlert) return null;
+    if (notificationAlert.tableNumber) return notificationAlert.tableNumber;
+    const sourceText = `${notificationAlert.message || ""} ${notificationAlert.title || ""}`;
+    const m = sourceText.match(/(?:Table|Stol|Стол)\s*:?\s*(\d+)/i);
+    return m ? m[1] : null;
+  }, [notificationAlert]);
 
   const handleClose = () => setNotificationAlert(null);
 
@@ -49,7 +100,7 @@ export default function NotificationAlertDialog() {
         {isCall && (
           <Chip
             icon={<PhoneInTalkIcon sx={{ fontSize: 18 }} />}
-            label={t("notificationAlert.typeCall") || "Qo'ng'iroq"}
+            label={dict.typeCall}
             color="primary"
             size="small"
           />
@@ -57,7 +108,7 @@ export default function NotificationAlertDialog() {
         {isOrder && (
           <Chip
             icon={<ShoppingCartIcon sx={{ fontSize: 18 }} />}
-            label={t("notificationAlert.typeOrder") || "Buyurtma"}
+            label={dict.typeOrder}
             color="success"
             size="small"
           />
@@ -75,7 +126,7 @@ export default function NotificationAlertDialog() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, color: "text.secondary" }}>
             <TableRestaurantIcon fontSize="small" />
             <Typography variant="body2">
-              {t("tableStatus.table") || "Stol"} {notificationAlert.tableNumber || notificationAlert.tableId}
+              {dict.fromTable}: {dict.table} {tableNumber || notificationAlert.tableId}
             </Typography>
           </Box>
         )}
@@ -85,11 +136,11 @@ export default function NotificationAlertDialog() {
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleClose} variant="outlined">
-          {t("notificationAlert.gotIt") || "Tushundim"}
+          {dict.gotIt}
         </Button>
         {notificationAlert.tableId && (
           <Button onClick={handleGoToTable} variant="contained">
-            {t("tableStatus.openDetails") || "Stolga o'tish"}
+            {dict.openDetails}
           </Button>
         )}
       </DialogActions>
