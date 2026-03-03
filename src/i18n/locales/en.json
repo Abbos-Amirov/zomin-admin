@@ -68,6 +68,7 @@
     "avgOrderValue": "Avg Order Value",
     "tableStatus": "Table Status",
     "ordersPanel": "Orders Panel",
+    "paid": "Paid",
     "occupied": "Occupied",
     "cleaning": "Cleaning",
     "free": "Free",

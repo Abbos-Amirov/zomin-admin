@@ -1,14 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, Typography, Stack, Grid, Box, Divider, Chip } from "@mui/material";
+import { Card, CardContent, Typography, Stack, Grid, Box, Divider, Chip, Button } from "@mui/material";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import { createSelector } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { retrieveTableStatus } from "./selector";
 import { Table } from "../../lib/types/table";
 import OrderService from "../../services/Order.service";
 import { serverApi, socket } from "../../lib/config";
+import { setTableStatus } from "./slice";
+import { TableStatus } from "../../lib/enums/table.enum";
+import TableService from "../../services/Table.service";
 import "../../css/tableStatus.css";
 
 const tableStatusRetriever = createSelector(
@@ -19,9 +22,10 @@ const tableStatusRetriever = createSelector(
 export default function TableStatusTop() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { tableStatus } = useSelector(tableStatusRetriever);
   const [groupedOrders, setGroupedOrders] = useState<
-    Record<string, { orderId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]>
+    Record<string, { orderId: string; tableId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]>
   >({});
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -51,11 +55,13 @@ export default function TableStatusTop() {
         ? payload.rows
         : [];
 
-      const grouped: Record<string, { orderId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]> = {};
+      const grouped: Record<string, { orderId: string; tableId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]> = {};
 
       rawOrders.forEach((order: any) => {
         const orderType = String(order?.orderType ?? order?.order_type ?? "").toUpperCase();
         if (orderType && orderType !== "TABLE") return;
+        const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
+        if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") return;
 
         const tableNumberRaw =
           order?.tableNumber ?? order?.table_number ?? order?.table?.tableNumber ?? order?.table?.table_number;
@@ -108,6 +114,7 @@ export default function TableStatusTop() {
 
         const orderView = {
           orderId: String(order?._id ?? order?.id ?? ""),
+          tableId: String(order?.tableId ?? order?.table_id ?? ""),
           orderStatus: String(order?.orderStatus ?? order?.order_status ?? ""),
           paymentStatus: String(order?.paymentStatus ?? order?.payment_status ?? ""),
           paymentMethod: String(order?.paymentMethod ?? order?.payment_method ?? ""),
@@ -168,13 +175,49 @@ export default function TableStatusTop() {
   }, [fetchOrdersByTable]);
 
   const tableNumbers = useMemo(() => {
-    const fromTables = (Array.isArray(tableStatus) ? tableStatus : []).map((t: Table) =>
-      String(t.tableNumber)
-    );
     const fromOrders = Object.keys(groupedOrders);
-    const unique = Array.from(new Set([...fromTables, ...fromOrders])).filter(Boolean);
+    const unique = Array.from(new Set(fromOrders)).filter(Boolean);
     return unique.sort((a, b) => Number(a) - Number(b));
-  }, [tableStatus, groupedOrders]);
+  }, [groupedOrders]);
+
+  const handleCompleteTableOrders = useCallback(
+    async (tableNumber: string) => {
+      const orders = groupedOrders[tableNumber] ?? [];
+      const fromOrder = orders.find((o) => o.tableId)?.tableId;
+      const fromStore = (Array.isArray(tableStatus) ? tableStatus : []).find(
+        (t: Table) => String(t.tableNumber) === String(tableNumber)
+      )?._id;
+      const tableId = fromOrder || fromStore;
+      if (!tableId) return;
+
+      try {
+        const orderSvc = new OrderService();
+        await orderSvc.completeTableOrders(tableId);
+
+        // Stol holatini "tozalanmoqda"ga o‘tkazamiz (UIda darhol ko‘rinsin)
+        const currentTables = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
+        if (currentTables.length > 0) {
+          const nextTables = currentTables.map((t) =>
+            t._id === tableId ? { ...t, tableStatus: TableStatus.CLEANING } : t
+          );
+          dispatch(setTableStatus(nextTables));
+        }
+
+        // Backend table status ham sync bo‘lsin
+        const tableSvc = new TableService();
+        await tableSvc.updateChosenTable({
+          _id: tableId,
+          tableStatus: TableStatus.CLEANING,
+        });
+
+        // Bu paneldan yo‘qolsin
+        fetchOrdersByTable(true);
+      } catch (err) {
+        console.error("handleCompleteTableOrders error:", err);
+      }
+    },
+    [dispatch, fetchOrdersByTable, groupedOrders, tableStatus]
+  );
 
   return (
     <Card className="table-status-card table-status-top-card">
@@ -193,6 +236,15 @@ export default function TableStatusTop() {
           <Grid container spacing={1} className="table-status-top-grid">
             {tableNumbers.map((tableNumber) => {
               const orders = groupedOrders[tableNumber] ?? [];
+              const tableTotal = orders.reduce(
+                (sum, order) =>
+                  sum +
+                  order.products.reduce(
+                    (orderSum, product) => orderSum + product.quantity * product.price,
+                    0
+                  ),
+                0
+              );
               return (
                 <Grid item xs={12} md={6} lg={4} key={`table-orders-${tableNumber}`}>
                   <Box
@@ -234,12 +286,26 @@ export default function TableStatusTop() {
                                       alt={p.productName}
                                       sx={{ width: 28, height: 28, borderRadius: 0.75, objectFit: "cover", bgcolor: "rgba(0,0,0,0.04)" }}
                                     />
-                                    <Typography variant="caption" sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 160 }}>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        fontSize: "1rem",
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        maxWidth: 160,
+                                      }}
+                                    >
                                       {p.productName}
                                     </Typography>
                                   </Stack>
                                   <Typography variant="caption">
-                                    {p.quantity}X - price: {p.quantity * p.price}
+                                    <Box component="span" sx={{ fontSize: "1.2rem", fontWeight: 700 }}>
+                                      {p.quantity}x
+                                    </Box>{" "}
+                                    <Box component="span" sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
+                                      - price: {p.quantity * p.price}
+                                    </Box>
                                   </Typography>
                                 </Stack>
                               ))}
@@ -248,6 +314,22 @@ export default function TableStatusTop() {
                         ))}
                       </Stack>
                     )}
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mt={1}>
+                      <Typography variant="body2" sx={{ fontWeight: 700, fontSize: "1.05rem" }}>
+                        Jami: {tableTotal}
+                      </Typography>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompleteTableOrders(String(tableNumber));
+                        }}
+                      >
+                        {t("dashboard.paid")}
+                      </Button>
+                    </Stack>
                   </Box>
                 </Grid>
               );

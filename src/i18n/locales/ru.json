@@ -68,6 +68,7 @@
     "avgOrderValue": "Средний чек",
     "tableStatus": "Статус столов",
     "ordersPanel": "Панель заказов",
+    "paid": "Оплачено",
     "occupied": "Занят",
     "cleaning": "На уборке",
     "free": "Свободен",

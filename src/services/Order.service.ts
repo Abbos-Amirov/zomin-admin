@@ -54,6 +54,18 @@ class OrderService {
       throw err;
     }
   }
+
+  public async completeTableOrders(tableId: string): Promise<unknown> {
+    try {
+      const url = `${this.path}/admin/order/table/${tableId}/complete`;
+      const result = await axios.post(url, {}, { withCredentials: true });
+      console.log("completeTableOrders: ", result);
+      return result.data;
+    } catch (err) {
+      console.log("Error, completeTableOrders:", err);
+      throw err;
+    }
+  }
 }
 
 export default OrderService;
