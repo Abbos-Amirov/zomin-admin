@@ -70,22 +70,16 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const [notificationAlert, setNotificationAlert] = useState<Notification | null>(null);
   const notificationsRef = useRef<Notification[]>([]);
-<<<<<<< HEAD
-=======
   const tableStatusRef = useRef<Table[]>([]);
->>>>>>> 375f73c (fix: add notifiction alert)
   const isInitialNotifSyncDoneRef = useRef(false);
 
   useEffect(() => {
     notificationsRef.current = Array.isArray(notifications) ? notifications : [];
   }, [notifications]);
-<<<<<<< HEAD
-=======
 
   useEffect(() => {
     tableStatusRef.current = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
   }, [tableStatus]);
->>>>>>> 375f73c (fix: add notifiction alert)
 
   useEffect(() => {
     const cookies = new Cookies();
@@ -136,8 +130,6 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
       const newestIncoming = merged.find((n) => !prevMap.has(n.id));
       if (newestIncoming) {
-<<<<<<< HEAD
-=======
         if (newestIncoming.type === "CALL" && newestIncoming.tableId) {
           const current = tableStatusRef.current;
           if (Array.isArray(current) && current.length > 0) {
@@ -149,7 +141,6 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             dispatch(setTableStatus(next));
           }
         }
->>>>>>> 375f73c (fix: add notifiction alert)
         playNotificationSound();
         playNotificationVibration();
         setNotificationAlert(newestIncoming);

@@ -33,58 +33,6 @@ export default function NotificationAlertDialog() {
   const isCall = notificationAlert?.type === "CALL";
   const isOrder = notificationAlert?.type === "ORDER";
   const lang = i18n.resolvedLanguage || i18n.language || "uz";
-<<<<<<< HEAD
-
-  const dict = useMemo(() => {
-    if (lang === "ru") {
-      return {
-        typeCall: "Вызов официанта",
-        typeOrder: "Новый заказ",
-        table: "Стол",
-        fromTable: "Со стола",
-        gotIt: "Понятно",
-        openDetails: "Подробнее",
-      };
-    }
-    if (lang === "en") {
-      return {
-        typeCall: "Waiter Call",
-        typeOrder: "New Order",
-        table: "Table",
-        fromTable: "From table",
-        gotIt: "Got it",
-        openDetails: "Open details",
-      };
-    }
-    if (lang === "uz-Cyrl") {
-      return {
-        typeCall: "Официант чақируви",
-        typeOrder: "Янги буюртма",
-        table: "Стол",
-        fromTable: "Қайси столдан",
-        gotIt: "Тушундим",
-        openDetails: "Батафсил",
-      };
-    }
-    return {
-      typeCall: "Ofitsiant chaqiruvi",
-      typeOrder: "Yangi buyurtma",
-      table: "Stol",
-      fromTable: "Qaysi stoldan",
-      gotIt: "Tushundim",
-      openDetails: "Batafsil",
-    };
-  }, [lang]);
-
-  const tableNumber = useMemo(() => {
-    if (!notificationAlert) return null;
-    if (notificationAlert.tableNumber) return notificationAlert.tableNumber;
-    const sourceText = `${notificationAlert.message || ""} ${notificationAlert.title || ""}`;
-    const m = sourceText.match(/(?:Table|Stol|Стол)\s*:?\s*(\d+)/i);
-    return m ? m[1] : null;
-  }, [notificationAlert]);
-=======
->>>>>>> 375f73c (fix: add notifiction alert)
 
   const dict = useMemo(() => {
     if (lang === "ru") {
