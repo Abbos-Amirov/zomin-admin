@@ -21,8 +21,11 @@ export interface Order {
   orderStatus: OrderStatus;
   orderTotal: number;
   deliveryFee: number;
+  orderDelivery?: number;
   tableId: string | null;
   memberId: string | null;
+  tableNumber?: string | number;
+  memberNick?: string;
   orderNote: string;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;

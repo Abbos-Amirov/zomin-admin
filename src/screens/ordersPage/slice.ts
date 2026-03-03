@@ -12,9 +12,14 @@ const ordersPageSlice = createSlice({
     setOrders: (state, action) => {
       state.orders = action.payload;
     },
+    addOrder: (state, action) => {
+      const order = action.payload;
+      const exists = state.orders.some((o: { _id?: unknown }) => String(o._id) === String(order._id));
+      if (!exists) state.orders = [order, ...state.orders];
+    },
   },
 });
 
-export const { setOrders } = ordersPageSlice.actions;
+export const { setOrders, addOrder } = ordersPageSlice.actions;
 
 export default ordersPageSlice.reducer;

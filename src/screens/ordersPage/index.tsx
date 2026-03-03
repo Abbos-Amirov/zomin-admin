@@ -5,21 +5,23 @@ import OrdersFilters from "./OrdersFilters";
 import OrdersTable from "./OrdersTable";
 import OrderEditDialog from "./OrderEditDialog";
 import { Order, OrderInquiry, OrderUpdateInput } from "../../lib/types/order";
-import { setOrders } from "./slice";
+import { setOrders, addOrder } from "./slice";
 import { Dispatch } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
 import OrderService from "../../services/Order.service";
+import { socket } from "../../lib/config";
 import { sweetErrorHandling } from "../../lib/sweetAlert";
 import "../../css/orders.css"
 
 /** REDUX SLICE & SELECTOR */
 const actionDispatch = (dispatch: Dispatch) => ({
   setOrders: (data: Order[]) => dispatch(setOrders(data)),
+  addOrder: (order: Order) => dispatch(addOrder(order)),
 });
 
 export default function OrdersPage() {
   const { t } = useTranslation();
-  const { setOrders } = actionDispatch(useDispatch());
+  const { setOrders, addOrder } = actionDispatch(useDispatch());
 
   const [open, setOpen] = useState<boolean>(false);
   const [edit, setEdit] = useState<OrderUpdateInput>({ orderId: "" });
@@ -39,6 +41,19 @@ export default function OrdersPage() {
         sweetErrorHandling(err).then();
       });
   }, [orderSearch]);
+
+  useEffect(() => {
+    const onOrderCreated = (order: Order & { orderDelivery?: number }) => {
+      addOrder({
+        ...order,
+        deliveryFee: order.deliveryFee ?? order.orderDelivery ?? 0,
+      } as Order);
+    };
+    socket.on("orderCreated", onOrderCreated);
+    return () => {
+      socket.off("orderCreated", onOrderCreated);
+    };
+  }, [addOrder]);
 
   return (
     <Stack spacing={2} className="order-page">

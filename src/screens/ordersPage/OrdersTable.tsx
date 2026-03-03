@@ -107,8 +107,8 @@ export default function OrdersTable(props: OrderTableProps) {
                     color={typeColor(v.orderType) as any}
                   />
                 </TableCell>
-                <TableCell>{v.tableId ?? "-"}</TableCell>
-                <TableCell>{v.memberId ?? "-"}</TableCell>
+                <TableCell>{v.tableNumber ?? v.tableId ?? "-"}</TableCell>
+                <TableCell>{v.memberNick ?? v.memberId ?? "-"}</TableCell>
                 <TableCell align="right">₩{grand}</TableCell>
                 <TableCell align="right">₩{v.deliveryFee}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600 }}>
