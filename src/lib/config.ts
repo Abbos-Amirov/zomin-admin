@@ -13,10 +13,10 @@ export const clientUrl: string =
   process.env.REACT_APP_CLIENT_URL || "http://38.247.134.248:3010";
 
 export const socket = io(apiBase, {
-  transports: ["websocket", "polling"],
-  withCredentials: true,
+  transports: ["websocket"],
   reconnection: true,
-  reconnectionAttempts: 5,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
 });
 export const Messages = {
   error1: "Something went wrong!",

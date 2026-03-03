@@ -3,6 +3,7 @@ import { Box, Stack, Paper, Avatar, useTheme } from "@mui/material";
 import { imageBaseUrl } from "../../../lib/config";
 import SettingsMenu from "./Settings";
 import NotificationsMenu from "./Notifications";
+import NotificationAlertDialog from "./NotificationAlertDialog";
 import LanguageSelector from "./LanguageSelector";
 import TopbarLeft from "./TopbarLeft";
 import { useGlobals } from "../../hooks/useGlobals";
@@ -44,6 +45,7 @@ export default function Topbar(props: TopbarProps) {
           />
         </Stack>
       </Paper>
+      <NotificationAlertDialog />
     </Box>
   );
 }

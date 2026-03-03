@@ -4,6 +4,34 @@ import { Member } from "../../lib/types/member";
 import { GlobalContext } from "../hooks/useGlobals";
 import { socket } from "../../lib/config";
 import { Notification } from "../../lib/types/notif";
+import NotificationService from "../../services/Notification.service";
+
+const playNotificationSound = () => {
+  try {
+    const Ctx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    const ctx = new Ctx();
+    if (ctx.state === "suspended") ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 900;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+  } catch {
+    // autoplay policy bo'lishi mumkin
+  }
+};
+
+const playNotificationVibration = () => {
+  if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+};
 
 const safeParse = <T,>(value: string | null, fallback: T): T => {
   if (!value || value === "undefined" || value === "null") return fallback;
@@ -19,13 +47,16 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     safeParse<Member | null>(localStorage.getItem("memberData"), null)
   );
 
-  const [notifications, setNotifications] = useState<Notification[]>(() =>
-    safeParse<Notification[]>(localStorage.getItem("notifications"), [])
-  );
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    const parsed = safeParse<unknown>(localStorage.getItem("notifications"), []);
+    return Array.isArray(parsed) ? (parsed as Notification[]) : [];
+  });
 
   const [darkMode, setDarkMode] = useState<boolean>(() =>
     safeParse<boolean>(localStorage.getItem("darkMode"), false)
   );
+
+  const [notificationAlert, setNotificationAlert] = useState<Notification | null>(null);
 
   useEffect(() => {
     const cookies = new Cookies();
@@ -40,8 +71,43 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         const parsed = safeParse<Member | null>(storedMember, null);
         if (parsed) setAuthMember(parsed);
       }
+      // Admin kirganida bazadagi notificationlarni yuklash (real-time dan tashqari)
+      const notifSvc = new NotificationService();
+      notifSvc.getNotifications().then((list) => {
+        if (list.length > 0) setNotifications(list);
+      });
     }
   }, []);
+
+  // Socket ishlamasa ham qo'ng'iroqcha realtimega yaqin yangilanib turishi uchun polling
+  useEffect(() => {
+    if (!authMember) return;
+    let alive = true;
+    const notifSvc = new NotificationService();
+
+    const syncNotifications = async () => {
+      const incoming = await notifSvc.getNotifications();
+      if (!alive || !Array.isArray(incoming) || incoming.length === 0) return;
+
+      setNotifications((prev) => {
+        const prevList = Array.isArray(prev) ? prev : [];
+        const prevMap = new Map(prevList.map((n) => [n.id, n]));
+        const merged = incoming.map((n) => {
+          const existing = prevMap.get(n.id);
+          // Agar user o'qib bo'lgan bo'lsa, read=true saqlanib qolsin
+          return existing ? { ...n, read: existing.read ?? n.read } : n;
+        });
+        return merged;
+      });
+    };
+
+    syncNotifications();
+    const id = window.setInterval(syncNotifications, 5000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, [authMember]);
 
   useEffect(() => {
     if (authMember) {
@@ -64,6 +130,40 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   }, [darkMode]);
 
   useEffect(() => {
+    const toNotification = (raw: Notification & Record<string, unknown>): Notification => {
+      const notifType = String(raw.type ?? raw.notifType ?? "").toUpperCase();
+      const normalizedType: Notification["type"] =
+        notifType === "ORDER" ? "ORDER"
+        : notifType === "CALL" || notifType === "TABLE_CALL" ? "CALL"
+        : undefined;
+      return {
+        id: String(
+          raw.id ??
+          raw._id ??
+          `${raw.createdAt ?? Date.now()}-${raw.tableId ?? raw.table_id ?? ""}-${raw.message ?? raw.title ?? ""}`
+        ),
+        message: String(raw.message ?? raw.title ?? "Yangi xabar"),
+        status: String(raw.status ?? raw.notifStatus ?? ""),
+        read: false,
+        type: normalizedType,
+        tableId: (raw.tableId ?? raw.table_id ?? null) as string | null,
+        tableNumber: (raw.tableNumber ?? raw.table_number ?? null) as string | null,
+        orderId: (raw.orderId ?? raw.order_id ?? null) as string | null,
+      };
+    };
+
+    const appendIncoming = (payload: Notification & Record<string, unknown>) => {
+      const fullNotif = toNotification(payload);
+      playNotificationSound();
+      playNotificationVibration();
+      setNotificationAlert(fullNotif);
+      setNotifications((prev) => {
+        const list = Array.isArray(prev) ? prev : [];
+        if (list.some((n) => n.id === fullNotif.id)) return list;
+        return [fullNotif, ...list];
+      });
+    };
+
     socket.on("connect", () => {
       console.log("✅ Connected:", socket.id);
     });
@@ -72,18 +172,18 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       console.error("❌ Socket connect error:", err.message);
     });
 
-    socket.on("newNotification", (notif: Notification) => {
-      console.log("📩 newNotif:", notif);
-      setNotifications((prev) => {
-        const updated = [{ ...notif, read: false }, ...prev];
-        return updated;
-      });
-    });
+    socket.on("newNotification", appendIncoming);
+    socket.on("notification", appendIncoming);
+    socket.on("newOrder", appendIncoming);
+    socket.on("newCall", appendIncoming);
 
     return () => {
       socket.off("connect");
       socket.off("connect_error");
-      socket.off("newNotification");
+      socket.off("newNotification", appendIncoming);
+      socket.off("notification", appendIncoming);
+      socket.off("newOrder", appendIncoming);
+      socket.off("newCall", appendIncoming);
     };
   }, []);
 
@@ -94,6 +194,8 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setAuthMember,
         notifications,
         setNotifications,
+        notificationAlert,
+        setNotificationAlert,
         darkMode,
         setDarkMode,
       }}

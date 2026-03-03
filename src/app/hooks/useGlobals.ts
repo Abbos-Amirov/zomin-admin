@@ -7,6 +7,8 @@ interface GlobalInterface {
   setAuthMember: Dispatch<SetStateAction<Member | null>>;
   notifications: Notification[];
   setNotifications: Dispatch<SetStateAction<Notification[]>>;
+  notificationAlert: Notification | null;
+  setNotificationAlert: Dispatch<SetStateAction<Notification | null>>;
   darkMode: boolean;
   setDarkMode: Dispatch<SetStateAction<boolean>>;
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   IconButton,
@@ -18,6 +18,33 @@ export default function NotificationsMenu() {
   const { notifications, setNotifications } = useGlobals();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const prevUnreadRef = useRef(unreadCount);
+
+  useEffect(() => {
+    // Qo'ng'iroqcha soni oshganda bitta qisqa ovoz
+    if (unreadCount > prevUnreadRef.current) {
+      try {
+        const Ctx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext;
+        const ctx = new Ctx();
+        if (ctx.state === "suspended") ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 920;
+        gain.gain.setValueAtTime(0.28, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.2);
+      } catch {
+        // autoplay policy bo'lishi mumkin
+      }
+    }
+    prevUnreadRef.current = unreadCount;
+  }, [unreadCount]);
 
   // ✅ Mark single notif as read
   const handleMarkRead = (id: string) => {
