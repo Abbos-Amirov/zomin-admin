@@ -121,6 +121,7 @@
     "payStatus": "Pay Status",
     "created": "Created",
     "actions": "Actions",
+    "detail": "Detail",
     "edit": "Edit",
     "noOrders": "No orders",
     "editOrder": "Edit Order"
@@ -140,6 +141,7 @@
     "created": "Created",
     "updated": "Updated",
     "actions": "Actions",
+    "detail": "Detail",
     "edit": "Edit",
     "delete": "Delete",
     "noTables": "No tables",

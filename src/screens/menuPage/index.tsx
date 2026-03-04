@@ -127,6 +127,7 @@ export default function MenuPage() {
     } catch (e) {
       console.error(e);
       sweetErrorHandling(e).then();
+      throw e;
     }
   };
   return (

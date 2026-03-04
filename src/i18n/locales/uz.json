@@ -121,6 +121,7 @@
     "payStatus": "To'lov holati",
     "created": "Yaratilgan",
     "actions": "Amallar",
+    "detail": "Batafsil",
     "edit": "Tahrirlash",
     "noOrders": "Buyurtmalar yo'q",
     "editOrder": "Buyurtmani tahrirlash"
@@ -140,6 +141,7 @@
     "created": "Yaratilgan",
     "updated": "Yangilangan",
     "actions": "Amallar",
+    "detail": "Batafsil",
     "edit": "Tahrirlash",
     "delete": "O'chirish",
     "noTables": "Stollar yo'q",

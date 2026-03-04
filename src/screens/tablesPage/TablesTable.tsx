@@ -1,6 +1,7 @@
 // src/features/tables/TablesTable.tsx
 import React, { ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Button,
   Chip,
@@ -96,7 +97,8 @@ interface TablesTableProps {
 
 export default function TablesTable(props: TablesTableProps) {
   const { t: trans } = useTranslation();
-  const { tableSearch, setTableSearch, setOpen, setCreate, edit, setEdit } =
+  const navigate = useNavigate();
+  const { tableSearch, setTableSearch, setOpen, setCreate, setEdit } =
     props;
 
   const { tables } = useSelector(tablesRetriever);
@@ -166,7 +168,22 @@ export default function TablesTable(props: TablesTableProps) {
                   />
                 </TableCell>
 
-                <TableCell sx={{ fontFamily: "monospace" }}>{"-"}</TableCell>
+                <TableCell sx={{ fontFamily: "monospace" }}>
+                  <Stack direction="column" spacing={0.5} alignItems="flex-start">
+                    <span>-</span>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() =>
+                        navigate(
+                          `/orders-panel/table/${encodeURIComponent(t.tableNumber)}`
+                        )
+                      }
+                    >
+                      {trans("tables.detail")}
+                    </Button>
+                  </Stack>
+                </TableCell>
 
                 {/* QR preview + Download buttons */}
                 <TableCell>

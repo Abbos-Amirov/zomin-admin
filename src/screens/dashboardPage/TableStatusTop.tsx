@@ -197,8 +197,11 @@ export default function TableStatusTop() {
         // Stol holatini "tozalanmoqda"ga o‘tkazamiz (UIda darhol ko‘rinsin)
         const currentTables = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
         if (currentTables.length > 0) {
+          const nowIso = new Date().toISOString();
           const nextTables = currentTables.map((t) =>
-            t._id === tableId ? { ...t, tableStatus: TableStatus.CLEANING } : t
+            t._id === tableId
+              ? { ...t, tableStatus: TableStatus.CLEANING, updatedAt: nowIso }
+              : t
           );
           dispatch(setTableStatus(nextTables));
         }

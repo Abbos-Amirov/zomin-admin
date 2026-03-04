@@ -28,11 +28,13 @@ interface ProductDialogProps {
   mode: ProductDialogMode;
   open: boolean;
   onClose: () => void;
-  onSubmit: (fd: FormData, id?: string) => void;
+  onSubmit: (fd: FormData, id?: string) => Promise<void>;
   initialValues?: Product;
 }
 
 const SLOT_COUNT = 5;
+const ALLOWED_IMAGE_MIME = new Set(["image/jpeg", "image/png"]);
+const ALLOWED_IMAGE_EXT = [".jpg", ".jpeg", ".png"];
 
 const EMPTY: ProductFormValues = {
   productName: "",
@@ -165,11 +167,23 @@ export default function ProductDialog(props: ProductDialogProps) {
 
   const onFilePick = (slotIndex: number, f: File | null) => {
     if (!f) return;
+    const lowerName = String(f.name || "").toLowerCase();
+    const hasAllowedExt = ALLOWED_IMAGE_EXT.some((ext) =>
+      lowerName.endsWith(ext)
+    );
+    const hasAllowedMime =
+      !f.type || ALLOWED_IMAGE_MIME.has(String(f.type).toLowerCase());
+    if (!(hasAllowedExt || hasAllowedMime)) {
+      setErrors((prev) => ({ ...prev, productImages: t("errors.imageFormat") }));
+      return;
+    }
+
     setForm((p) => {
       const used = p.existingUrls.length + p.newFiles.length;
       if (used >= SLOT_COUNT) return p;
       return { ...p, newFiles: [...p.newFiles, f] };
     });
+    setErrors((prev) => ({ ...prev, productImages: "" }));
   };
 
   // Remove (click an image): remove from existing first, then new files
@@ -189,7 +203,7 @@ export default function ProductDialog(props: ProductDialogProps) {
     }
   };
 
-  const submit = () => {
+  const submit = async () => {
     const e = getErrors(form);
     setErrors(e);
     if (Object.keys(e).length) return;
@@ -214,8 +228,12 @@ export default function ProductDialog(props: ProductDialogProps) {
     form.newFiles.forEach((f) => fd.append("productImages", f));
 
     const id = mode === ProductDialogMode.EDIT ? initialValues?._id : undefined;
-    onSubmit(fd, id);
-    onClose();
+    try {
+      await onSubmit(fd, id);
+      onClose();
+    } catch (err) {
+      // keep dialog open so user can fix input and retry
+    }
   };
 
   return (
@@ -428,7 +446,7 @@ export default function ProductDialog(props: ProductDialogProps) {
                         ref={(el) => (inputsRef.current[i] = el)}
                         type="file"
                         hidden
-                        accept="image/*"
+                        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                         onChange={(e) => {
                           onFilePick(i, e.target.files?.[0] ?? null);
                           // allow selecting the same file again

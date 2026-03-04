@@ -18,12 +18,13 @@ import CleaningServicesRoundedIcon from "@mui/icons-material/CleaningServicesRou
 import { RippleBadge } from "../../app/MaterialTheme/styled";
 import { retrieveTableStatus } from "./selector";
 import { createSelector } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { TableStatus } from "../../lib/enums/table.enum";
 import { TableCall } from "../../lib/enums/tableCall.enum";
 import { TableInquiry, TableUpdateInput } from "../../lib/types/table";
 import { sweetErrorHandling } from "../../lib/sweetAlert";
 import TableService from "../../services/Table.service";
+import { setTableStatus } from "./slice";
 import "../../css/tableStatus.css";
 
 /** REDUX SLICE & SELECTOR */
@@ -52,6 +53,7 @@ interface TableInfoProps {
 
 export default function TableInfo(props: TableInfoProps) {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const { tableStatus } = useSelector(tableStatusRetriever);
   const cleaningInProgressRef = useRef<Set<string>>(new Set());
   const activeCallTables = tableStatus.filter(
@@ -94,6 +96,7 @@ export default function TableInfo(props: TableInfoProps) {
       if (expiredCleaning.length === 0) return;
 
       const tableSvc = new TableService();
+      const transitionedIds = new Set<string>();
       await Promise.all(
         expiredCleaning.map(async (table) => {
           cleaningInProgressRef.current.add(table._id);
@@ -102,6 +105,7 @@ export default function TableInfo(props: TableInfoProps) {
               _id: table._id,
               tableStatus: TableStatus.AVAILABLE,
             });
+            transitionedIds.add(table._id);
           } catch (err) {
             console.log("auto cleaning->available error:", err);
           } finally {
@@ -110,13 +114,23 @@ export default function TableInfo(props: TableInfoProps) {
         })
       );
 
+      if (transitionedIds.size > 0) {
+        const nowIso = new Date().toISOString();
+        const nextTables = currentTables.map((table) =>
+          transitionedIds.has(table._id)
+            ? { ...table, tableStatus: TableStatus.AVAILABLE, updatedAt: nowIso }
+            : table
+        );
+        dispatch(setTableStatus(nextTables));
+      }
+
       setInquiry({ ...inquiry });
     };
 
     makeCleaningTablesAvailable();
     const id = window.setInterval(makeCleaningTablesAvailable, 15000);
     return () => window.clearInterval(id);
-  }, [tableStatus, inquiry, setInquiry]);
+  }, [dispatch, tableStatus, inquiry, setInquiry]);
 
   return (
     <Card className="table-status-card">
