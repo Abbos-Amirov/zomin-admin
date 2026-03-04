@@ -92,7 +92,7 @@ export default function MenuPage() {
 
   const productUpdateHandler = async (input: ProductUpdateInput) => {
     try {
-      const data = await product.updateChosenProduct(input);
+      const data = await product.toggleProductStatus(input._id);
       updateProduct(data);
       sweetCenterSuccessAlert("Updated!", 700)
     } catch (err) {

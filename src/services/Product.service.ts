@@ -75,6 +75,18 @@ class ProductService {
     }
   }
 
+  public async toggleProductStatus(id: string): Promise<Product> {
+    try {
+      const url = `${this.path}/admin/product/${id}/toggle-status`;
+      const result = await axios.get(url, { withCredentials: true });
+      console.log("toggleProductStatus: ", result.data);
+      return result.data;
+    } catch (err) {
+      console.log("Error, toggleProductStatus:", err);
+      throw err;
+    }
+  }
+
   public async createNewProduct(fd: FormData): Promise<Product> {
     const { data } = await axios.post(`${serverApi}/admin/product/create`, fd, {
       withCredentials: true,
