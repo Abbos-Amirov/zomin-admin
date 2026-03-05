@@ -6,6 +6,7 @@ import {
   ProductsStat,
   ProductUpdateInput,
 } from "../lib/types/product";
+import { ProductStatus } from "../lib/enums/product.enums";
 
 class ProductService {
   private readonly path: string;
@@ -75,13 +76,28 @@ class ProductService {
     }
   }
 
-  public async toggleProductStatus(id: string): Promise<Product> {
+  public async toggleProductStatus(
+    id: string,
+    nextStatus?: ProductStatus
+  ): Promise<Product> {
     try {
       const url = `${this.path}/admin/product/${id}/toggle-status`;
       const result = await axios.get(url, { withCredentials: true });
       console.log("toggleProductStatus: ", result.data);
       return result.data;
-    } catch (err) {
+    } catch (err: any) {
+      // Some environments don't expose /toggle-status yet.
+      // Fallback to standard product update endpoint.
+      if (err?.response?.status === 404 && nextStatus) {
+        const fallbackUrl = `${this.path}/admin/product/${id}`;
+        const fallback = await axios.post(
+          fallbackUrl,
+          { productStatus: nextStatus },
+          { withCredentials: true }
+        );
+        console.log("toggleProductStatus fallback: ", fallback.data);
+        return fallback.data;
+      }
       console.log("Error, toggleProductStatus:", err);
       throw err;
     }
