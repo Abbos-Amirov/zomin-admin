@@ -235,6 +235,10 @@ export default function TableStatusTop() {
           <Typography variant="body2" color="text.secondary">
             Loading orders...
           </Typography>
+        ) : tableNumbers.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            Faol (yakunlanmagan) stol buyurtmalari topilmadi.
+          </Typography>
         ) : (
           <Grid container spacing={1} className="table-status-top-grid">
             {tableNumbers.map((tableNumber) => {
