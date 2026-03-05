@@ -176,10 +176,15 @@ export default function ProductsPage(props: ProdcutsPageProps) {
               <Stack className="product-wrapper">
                 {products.length !== 0 ? (
                   products.map((product: Product) => {
-                    const hasImages =
-                      product.productImages && product.productImages.length > 0;
-                    const imagePath = hasImages
-                      ? `${imageBaseUrl}/${product.productImages[0]}`
+                    const firstImage = Array.isArray(product.productImages)
+                      ? product.productImages.find(
+                          (img) => typeof img === "string" && img.trim() !== ""
+                        ) ?? ""
+                      : "";
+                    const imagePath = firstImage
+                      ? firstImage.startsWith("http://") || firstImage.startsWith("https://")
+                        ? firstImage
+                        : `${imageBaseUrl}/${firstImage}`.replace(/([^:]\/)\/+/g, "$1")
                       : "";
                     const sizeVolume =
                       product.productCollection === ProductCollection.DRINK

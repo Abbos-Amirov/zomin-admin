@@ -9,6 +9,7 @@ import {
 import { ProductStatus } from "../lib/enums/product.enums";
 
 class ProductService {
+  private static toggleRouteMissing = false;
   private readonly path: string;
 
   constructor() {
@@ -80,6 +81,17 @@ class ProductService {
     id: string,
     nextStatus?: ProductStatus
   ): Promise<Product> {
+    if (ProductService.toggleRouteMissing && nextStatus) {
+      const fallbackUrl = `${this.path}/admin/product/${id}`;
+      const fallback = await axios.post(
+        fallbackUrl,
+        { productStatus: nextStatus },
+        { withCredentials: true }
+      );
+      console.log("toggleProductStatus fallback: ", fallback.data);
+      return fallback.data;
+    }
+
     try {
       const url = `${this.path}/admin/product/${id}/toggle-status`;
       const result = await axios.get(url, { withCredentials: true });
@@ -89,6 +101,7 @@ class ProductService {
       // Some environments don't expose /toggle-status yet.
       // Fallback to standard product update endpoint.
       if (err?.response?.status === 404 && nextStatus) {
+        ProductService.toggleRouteMissing = true;
         const fallbackUrl = `${this.path}/admin/product/${id}`;
         const fallback = await axios.post(
           fallbackUrl,
@@ -123,7 +136,19 @@ class ProductService {
       const result = await axios.post(url, {}, { withCredentials: true });
       console.log("deleteChosenProduct: ", result.data);
       return result.data;
-    } catch (err) {
+    } catch (err: any) {
+      // Production backend may not have /admin/product/delete/:id.
+      // Fallback: mark product as DELETE via generic update route.
+      if (err?.response?.status === 404) {
+        const fallbackUrl = `${this.path}/admin/product/${id}`;
+        const fallback = await axios.post(
+          fallbackUrl,
+          { productStatus: ProductStatus.DELETE },
+          { withCredentials: true }
+        );
+        console.log("deleteChosenProduct fallback: ", fallback.data);
+        return fallback.data;
+      }
       console.log("Error, deleteChosenProduct:", err);
       throw err;
     }
