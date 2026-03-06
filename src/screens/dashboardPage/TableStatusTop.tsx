@@ -5,6 +5,7 @@ import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import { createSelector } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { retrieveTableStatus } from "./selector";
 import { Table } from "../../lib/types/table";
 import OrderService from "../../services/Order.service";
@@ -18,6 +19,7 @@ const tableStatusRetriever = createSelector(
   retrieveTableStatus,
   (tableStatus) => ({ tableStatus })
 );
+let panelEndpointUnavailable = false;
 
 export default function TableStatusTop() {
   const { t } = useTranslation();
@@ -39,34 +41,63 @@ export default function TableStatusTop() {
   const fetchOrdersByTable = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const svc = new OrderService();
-      const payload = (await svc.getAllOrders({ page: 1, limit: 1000 } as any)) as any;
-      const rawOrders = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.orders)
-        ? payload.orders
-        : Array.isArray(payload?.data?.orders)
-        ? payload.data.orders
-        : Array.isArray(payload?.data)
-        ? payload.data
-        : Array.isArray(payload?.result)
-        ? payload.result
-        : Array.isArray(payload?.rows)
-        ? payload.rows
-        : [];
+      let panelRows: any[] = [];
+
+      if (!panelEndpointUnavailable) {
+        try {
+          const { data: payload } = await axios.get(`${serverApi}/admin/orders/all/panel`, {
+            withCredentials: true,
+          });
+          panelRows = Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload?.orders)
+            ? payload.orders
+            : Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload?.data?.orders)
+            ? payload.data.orders
+            : Array.isArray(payload?.rows)
+            ? payload.rows
+            : Array.isArray(payload?.result)
+            ? payload.result
+            : Array.isArray(payload?.tables)
+            ? payload.tables
+            : [];
+        } catch (err: any) {
+          if (err?.response?.status === 404) {
+            // Some environments do not provide panel endpoint.
+            panelEndpointUnavailable = true;
+          } else {
+            throw err;
+          }
+        }
+      }
+
+      if (panelEndpointUnavailable) {
+        const svc = new OrderService();
+        const payload = (await svc.getAllOrders({ page: 1, limit: 1000 } as any)) as any;
+        panelRows = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.orders)
+          ? payload.orders
+          : Array.isArray(payload?.data?.orders)
+          ? payload.data.orders
+          : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.result)
+          ? payload.result
+          : Array.isArray(payload?.rows)
+          ? payload.rows
+          : [];
+      }
 
       const grouped: Record<string, { orderId: string; tableId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]> = {};
 
-      rawOrders.forEach((order: any) => {
+      const mapOrderToView = (order: any) => {
         const orderType = String(order?.orderType ?? order?.order_type ?? "").toUpperCase();
-        if (orderType && orderType !== "TABLE") return;
+        if (orderType && orderType !== "TABLE") return null;
         const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
-        if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") return;
-
-        const tableNumberRaw =
-          order?.tableNumber ?? order?.table_number ?? order?.table?.tableNumber ?? order?.table?.table_number;
-        const tableNumber = String(tableNumberRaw ?? "").trim();
-        if (!tableNumber) return;
+        if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") return null;
 
         const orderItems = Array.isArray(order?.orderItems)
           ? order.orderItems
@@ -112,7 +143,7 @@ export default function TableStatusTop() {
           };
         });
 
-        const orderView = {
+        return {
           orderId: String(order?._id ?? order?.id ?? ""),
           tableId: String(order?.tableId ?? order?.table_id ?? ""),
           orderStatus: String(order?.orderStatus ?? order?.order_status ?? ""),
@@ -121,7 +152,50 @@ export default function TableStatusTop() {
           createdAt: String(order?.createdAt ?? order?.updatedAt ?? ""),
           products,
         };
+      };
 
+      panelRows.forEach((row: any) => {
+        const nestedOrders = Array.isArray(row?.orders)
+          ? row.orders
+          : Array.isArray(row?.orderList)
+          ? row.orderList
+          : Array.isArray(row?.items)
+          ? row.items
+          : null;
+
+        if (nestedOrders) {
+          nestedOrders.forEach((order: any) => {
+            const tableNumber = String(
+              order?.tableNumber ??
+                order?.table_number ??
+                row?.tableNumber ??
+                row?.table_number ??
+                row?.table?.tableNumber ??
+                row?.table?.table_number ??
+                ""
+            ).trim();
+            if (!tableNumber) return;
+            const orderView = mapOrderToView({
+              ...order,
+              tableNumber:
+                order?.tableNumber ??
+                order?.table_number ??
+                row?.tableNumber ??
+                row?.table_number ??
+                row?.table?.tableNumber,
+            });
+            if (!orderView) return;
+            if (!grouped[tableNumber]) grouped[tableNumber] = [];
+            grouped[tableNumber].push(orderView);
+          });
+          return;
+        }
+
+        const tableNumber = String(
+          row?.tableNumber ?? row?.table_number ?? row?.table?.tableNumber ?? row?.table?.table_number ?? ""
+        ).trim();
+        const orderView = mapOrderToView(row);
+        if (!tableNumber || !orderView) return;
         if (!grouped[tableNumber]) grouped[tableNumber] = [];
         grouped[tableNumber].push(orderView);
       });

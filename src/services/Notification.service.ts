@@ -26,35 +26,26 @@ function toNotification(row: NotifFromApi): Notification {
 }
 
 class NotificationService {
-  private static endpointMissing = false;
+  private static endpointUnavailable = false;
   private readonly path: string = serverApi;
-  private readonly endpoints = [
-    "/admin/notifications",
-    "/admin/notification",
-    "/admin/notification/all",
-  ];
+  private readonly endpoint = "/admin/notifications";
 
   /** Bazadagi barcha notificationlarni olish (admin sahifa ochilganda) */
   public async getNotifications(): Promise<Notification[]> {
-    if (NotificationService.endpointMissing) return [];
+    if (NotificationService.endpointUnavailable) return [];
 
-    for (const endpoint of this.endpoints) {
-      try {
-        const url = `${this.path}${endpoint}`;
-        const result = await axios.get<NotifFromApi[]>(url, { withCredentials: true });
-        const list = Array.isArray(result.data) ? result.data : [];
-        return list.map(toNotification);
-      } catch (err: any) {
-        const status = err?.response?.status;
-        // If endpoint doesn't exist, try next possible route.
-        if (status === 404) continue;
-        // For auth/network/other errors, stop retries and return empty list.
-        return [];
+    try {
+      const url = `${this.path}${this.endpoint}`;
+      const result = await axios.get<NotifFromApi[]>(url, { withCredentials: true });
+      const list = Array.isArray(result.data) ? result.data : [];
+      return list.map(toNotification);
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        // Backendda bu route yo'q bo'lsa pollingda qayta-qayta urmaslik.
+        NotificationService.endpointUnavailable = true;
       }
+      return [];
     }
-    // All known endpoints returned 404 in this runtime; avoid repeating noisy requests.
-    NotificationService.endpointMissing = true;
-    return [];
   }
 }
 

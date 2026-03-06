@@ -275,13 +275,13 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                             sx={{
                               bgcolor:
                               productStat === ProductStatus.PAUSE
-                                  ? "error.main"
-                                  : "success.main",
+                                  ? "success.main"
+                                  : "error.main",
                               "&:hover": {
                                 bgcolor:
                                 productStat === ProductStatus.PAUSE
-                                    ? "error.dark"
-                                    : "success.dark",
+                                    ? "success.dark"
+                                    : "error.dark",
                               },
                               textTransform: "none",
                               color: "#f8f8ff",
@@ -298,8 +298,8 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                             }
                           >
                              {productStat === ProductStatus.PAUSE
-                              ? t("menu.setPause")
-                              : t("menu.setProcess")}
+                              ? t("menu.setProcess")
+                              : t("menu.setPause")}
                           </Button>
                         </Box>
                       </Stack>
