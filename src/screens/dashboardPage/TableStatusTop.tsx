@@ -19,7 +19,6 @@ const tableStatusRetriever = createSelector(
   retrieveTableStatus,
   (tableStatus) => ({ tableStatus })
 );
-let panelEndpointUnavailable = false;
 
 export default function TableStatusTop() {
   const { t } = useTranslation();
@@ -41,55 +40,24 @@ export default function TableStatusTop() {
   const fetchOrdersByTable = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      let panelRows: any[] = [];
-
-      if (!panelEndpointUnavailable) {
-        try {
-          const { data: payload } = await axios.get(`${serverApi}/admin/orders/all/panel`, {
-            withCredentials: true,
-          });
-          panelRows = Array.isArray(payload)
-            ? payload
-            : Array.isArray(payload?.orders)
-            ? payload.orders
-            : Array.isArray(payload?.data)
-            ? payload.data
-            : Array.isArray(payload?.data?.orders)
-            ? payload.data.orders
-            : Array.isArray(payload?.rows)
-            ? payload.rows
-            : Array.isArray(payload?.result)
-            ? payload.result
-            : Array.isArray(payload?.tables)
-            ? payload.tables
-            : [];
-        } catch (err: any) {
-          if (err?.response?.status === 404) {
-            // Some environments do not provide panel endpoint.
-            panelEndpointUnavailable = true;
-          } else {
-            throw err;
-          }
-        }
-      }
-
-      if (panelEndpointUnavailable) {
-        const svc = new OrderService();
-        const payload = (await svc.getAllOrders({ page: 1, limit: 1000 } as any)) as any;
-        panelRows = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload?.orders)
-          ? payload.orders
-          : Array.isArray(payload?.data?.orders)
-          ? payload.data.orders
-          : Array.isArray(payload?.data)
-          ? payload.data
-          : Array.isArray(payload?.result)
-          ? payload.result
-          : Array.isArray(payload?.rows)
-          ? payload.rows
-          : [];
-      }
+      const { data: payload } = await axios.get(`${serverApi}/admin/orders/all/panel`, {
+        withCredentials: true,
+      });
+      const panelRows: any[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.orders)
+        ? payload.orders
+        : Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.data?.orders)
+        ? payload.data.orders
+        : Array.isArray(payload?.rows)
+        ? payload.rows
+        : Array.isArray(payload?.result)
+        ? payload.result
+        : Array.isArray(payload?.tables)
+        ? payload.tables
+        : [];
 
       const grouped: Record<string, { orderId: string; tableId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]> = {};
 
