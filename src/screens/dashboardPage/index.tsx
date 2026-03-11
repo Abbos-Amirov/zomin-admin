@@ -5,14 +5,12 @@ import { useDispatch } from "react-redux";
 import { OrderStatis } from "../../lib/types/order";
 import { setOrderStatis, setProductStatus, setTableStatus } from "./slice";
 import { Table, TableInquiry } from "../../lib/types/table";
+import { ProductsStat } from "../../lib/types/product";
 import { Dispatch } from "@reduxjs/toolkit";
 import { useEffect, useState } from "react";
-import { ProductsStat } from "../../lib/types/product";
 import OrderService from "../../services/Order.service";
 import ProductService from "../../services/Product.service";
 import TableService from "../../services/Table.service";
-import TableInfo from "./TableStatus";
-import TableStatusTop from "./TableStatusTop";
 
 /** REDUX SLICE & SELECTOR */
 const actionDispatch = (dispatch: Dispatch) => ({
@@ -54,8 +52,6 @@ export default function DashboardPage() {
   return (
     <>
       <DashboardOverview />
-      <TableStatusTop />
-      <TableInfo inquiry={inquiry} setInquiry={setInquiry} />
       <TopItemAndCategory />
       <QuickActions />
     </>

@@ -144,6 +144,37 @@
   border-color: rgba(255, 255, 255, 0.16);
 }
 
+/* Har bir stol uchun yashik (box) */
+.table-order-box {
+  transition: all 0.25s ease;
+}
+
+[data-theme="dark"] .table-order-box {
+  background: #2d2d2d !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .table-order-box:hover {
+  border-color: rgba(100, 181, 246, 0.6) !important;
+}
+
+/* Berildi bosilganda yashik rangi */
+.table-order-box.table-order-delivered {
+  background: rgba(237, 152, 33, 0.12) !important;
+  border-color: rgba(237, 152, 33, 0.4) !important;
+}
+
+[data-theme="dark"] .table-order-box.table-order-delivered {
+  background: rgba(237, 152, 33, 0.18) !important;
+  border-color: rgba(237, 152, 33, 0.4) !important;
+}
+
+/* Berildi bosilganda stol yashigi dark modeda qora rangda */
+[data-theme="dark"] .table-order-box.table-order-has-delivered {
+  background: #1a1a1a !important;
+  border-color: rgba(237, 152, 33, 0.5) !important;
+}
+
 .table-call-strip {
   margin-bottom: 0.75rem;
   flex-wrap: wrap;

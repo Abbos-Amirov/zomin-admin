@@ -37,6 +37,7 @@
   "sidebar": {
     "adminPanel": "Admin Panel",
     "dashboard": "Boshqaruv paneli",
+    "orderStatus": "Buyurtmalar holati",
     "menu": "Menyu",
     "orders": "Buyurtmalar",
     "tables": "Stollar",
@@ -68,6 +69,10 @@
     "avgOrderValue": "O'rtacha buyurtma qiymati",
     "tableStatus": "Stol holati",
     "ordersPanel": "Buyurtmalar paneli",
+    "ordersUnit": "ta",
+    "priceLabel": "Narxi",
+    "ordersCount": "{{count}} ta buyurtma",
+    "delivered": "Berildi",
     "paid": "To'landi",
     "occupied": "Band",
     "cleaning": "Tozalanishda",

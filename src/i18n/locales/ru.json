@@ -37,6 +37,7 @@
   "sidebar": {
     "adminPanel": "Панель администратора",
     "dashboard": "Панель управления",
+    "orderStatus": "Состояние заказов",
     "menu": "Меню",
     "orders": "Заказы",
     "tables": "Столы",
@@ -68,6 +69,10 @@
     "avgOrderValue": "Средний чек",
     "tableStatus": "Статус столов",
     "ordersPanel": "Панель заказов",
+    "ordersUnit": "шт",
+    "priceLabel": "Цена",
+    "ordersCount": "{{count}} заказов",
+    "delivered": "Выдано",
     "paid": "Оплачено",
     "occupied": "Занят",
     "cleaning": "На уборке",

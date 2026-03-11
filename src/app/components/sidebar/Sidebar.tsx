@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { NavLink } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
@@ -33,6 +34,11 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
       to: "/",
       label: t("sidebar.dashboard"),
       icon: <DashboardIcon className="sidebar-icon" />,
+    },
+    {
+      to: "/order-status",
+      label: t("sidebar.orderStatus"),
+      icon: <AssignmentIcon className="sidebar-icon" />,
     },
     {
       to: "/products",

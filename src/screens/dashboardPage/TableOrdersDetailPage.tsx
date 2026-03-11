@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import OrderService from "../../services/Order.service";
 import { serverApi, socket } from "../../lib/config";
 
@@ -38,6 +39,7 @@ const getTodaySevenAM = (): Date => {
 };
 
 export default function TableOrdersDetailPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { tableNumber = "" } = useParams();
   const [orders, setOrders] = useState<OrderView[]>([]);
@@ -282,7 +284,7 @@ export default function TableOrdersDetailPage() {
                         </Typography>
                       </Stack>
                       <Typography variant="caption">
-                        {p.quantity}X - price: {p.quantity * p.price}
+                        {p.quantity} {t("dashboard.ordersUnit")} - {t("dashboard.priceLabel")}: {p.quantity * p.price}
                       </Typography>
                     </Stack>
                   ))}

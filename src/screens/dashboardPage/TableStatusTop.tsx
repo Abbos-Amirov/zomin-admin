@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, Typography, Stack, Grid, Box, Divider, Chip, Button } from "@mui/material";
+import { Card, CardContent, Typography, Stack, Grid, Box, Divider, Chip, Button, Paper } from "@mui/material";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import { createSelector } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +20,33 @@ const tableStatusRetriever = createSelector(
   (tableStatus) => ({ tableStatus })
 );
 
+const STORAGE_KEY = "orderStatus_deliveredOrderIds";
+
+const parseStored = (): Record<string, Set<string>> => {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed: Record<string, string[]> = JSON.parse(raw);
+    const result: Record<string, Set<string>> = {};
+    for (const [table, ids] of Object.entries(parsed)) {
+      result[table] = new Set(Array.isArray(ids) ? ids : []);
+    }
+    return result;
+  } catch {
+    return {};
+  }
+};
+
+const saveStored = (data: Record<string, Set<string>>) => {
+  try {
+    const toSave: Record<string, string[]> = {};
+    for (const [table, set] of Object.entries(data)) {
+      toSave[table] = Array.from(set);
+    }
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch {}
+};
+
 export default function TableStatusTop() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -29,6 +56,8 @@ export default function TableStatusTop() {
     Record<string, { orderId: string; tableId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]>
   >({});
   const [loading, setLoading] = useState<boolean>(false);
+  /** Berildi bosilganda o'sha paytda mavjud bo'lgan order ID lar; sessionStorage da saqlanadi */
+  const [deliveredOrderIds, setDeliveredOrderIds] = useState<Record<string, Set<string>>>(parseStored);
 
   const resolveImageUrl = useCallback((path?: string | null): string => {
     if (!path) return "";
@@ -182,6 +211,10 @@ export default function TableStatusTop() {
   }, [fetchOrdersByTable]);
 
   useEffect(() => {
+    saveStored(deliveredOrderIds);
+  }, [deliveredOrderIds]);
+
+  useEffect(() => {
     const refreshBySocket = () => {
       // faqat order oqimi bo'yicha yangilash
       fetchOrdersByTable(true);
@@ -255,7 +288,12 @@ export default function TableStatusTop() {
           tableStatus: TableStatus.CLEANING,
         });
 
-        // Bu paneldan yo‘qolsin
+        // Bu paneldan yo‘qolsin va delivered ro‘yxatdan o‘chirish
+        setDeliveredOrderIds((prev) => {
+          const next = { ...prev };
+          delete next[String(tableNumber)];
+          return next;
+        });
         fetchOrdersByTable(true);
       } catch (err) {
         console.error("handleCompleteTableOrders error:", err);
@@ -263,6 +301,12 @@ export default function TableStatusTop() {
     },
     [dispatch, fetchOrdersByTable, groupedOrders, tableStatus]
   );
+
+  const handleDelivered = useCallback((tableNumber: string, orders: { orderId: string }[], e: React.MouseEvent) => {
+    e.stopPropagation();
+    const ids = new Set(orders.map((o) => o.orderId));
+    setDeliveredOrderIds((prev) => ({ ...prev, [String(tableNumber)]: ids }));
+  }, []);
 
   return (
     <Card className="table-status-card table-status-top-card">
@@ -282,7 +326,7 @@ export default function TableStatusTop() {
             Faol (yakunlanmagan) stol buyurtmalari topilmadi.
           </Typography>
         ) : (
-          <Grid container spacing={1} className="table-status-top-grid">
+          <Grid container spacing={2} className="table-status-top-grid">
             {tableNumbers.map((tableNumber) => {
               const orders = groupedOrders[tableNumber] ?? [];
               const tableTotal = orders.reduce(
@@ -294,19 +338,44 @@ export default function TableStatusTop() {
                   ),
                 0
               );
+              const deliveredIds = deliveredOrderIds[String(tableNumber)];
+              const hasAnyDelivered = deliveredIds && deliveredIds.size > 0;
               return (
-                <Grid item xs={12} md={6} lg={4} key={`table-orders-${tableNumber}`}>
-                  <Box
-                    className="table-top-item"
-                    sx={{ cursor: "pointer" }}
+                <Grid item xs={12} sm={6} md={6} lg={4} key={`table-orders-${tableNumber}`}>
+                  <Paper
+                    elevation={2}
+                    className={`table-top-item table-order-box${hasAnyDelivered ? " table-order-has-delivered" : ""}`}
+                    sx={{
+                      cursor: "pointer",
+                      p: 2,
+                      border: "2px solid",
+                      borderColor: "divider",
+                      borderRadius: 2,
+                      bgcolor: "background.paper",
+                      "&:hover": {
+                        borderColor: "primary.main",
+                        boxShadow: 4,
+                      },
+                    }}
                     onClick={() => navigate(`/orders-panel/table/${tableNumber}`)}
                   >
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-                      <Typography variant="body1" className="table-top-number">
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                      <Typography
+                        variant="h4"
+                        sx={{ fontWeight: 800, fontSize: { xs: "1.5rem", sm: "1.75rem" }, color: "primary.main" }}
+                      >
                         Stol {tableNumber}
                       </Typography>
-                      <Stack direction="row" spacing={0.75} alignItems="center">
-                        <Chip size="small" label={`${orders.length} ta order`} />
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="info"
+                          onClick={(e) => handleDelivered(String(tableNumber), orders, e)}
+                        >
+                          {t("dashboard.delivered")}
+                        </Button>
+                        <Chip size="small" label={t("dashboard.ordersCount", { count: orders.length })} variant="outlined" />
                         <TableRestaurantIcon fontSize="small" />
                       </Stack>
                     </Stack>
@@ -317,8 +386,19 @@ export default function TableStatusTop() {
                       </Typography>
                     ) : (
                       <Stack spacing={1}>
-                        {orders.map((order) => (
-                          <Box key={`${tableNumber}-${order.orderId}`} sx={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 1, p: 1 }}>
+                        {orders.map((order) => {
+                          const isOrderDelivered = Boolean(hasAnyDelivered && deliveredIds?.has(order.orderId));
+                          return (
+                          <Box
+                            key={`${tableNumber}-${order.orderId}`}
+                            sx={{
+                              border: "1px solid",
+                              borderColor: isOrderDelivered ? "rgba(237, 152, 33, 0.5)" : "rgba(0,0,0,0.08)",
+                              borderRadius: 1,
+                              p: 1,
+                              bgcolor: isOrderDelivered ? "rgba(237, 152, 33, 0.15)" : "background.paper",
+                            }}
+                          >
                             {order.createdAt && (
                               <Typography variant="caption" sx={{ display: "block", color: "text.secondary", mb: 0.5 }}>
                                 {new Date(order.createdAt).toLocaleString()}
@@ -350,21 +430,22 @@ export default function TableStatusTop() {
                                   </Stack>
                                   <Typography variant="caption">
                                     <Box component="span" sx={{ fontSize: "1.2rem", fontWeight: 700 }}>
-                                      {p.quantity}x
+                                      {p.quantity} {t("dashboard.ordersUnit")}
                                     </Box>{" "}
                                     <Box component="span" sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
-                                      - price: {p.quantity * p.price}
+                                      - {t("dashboard.priceLabel")}: {p.quantity * p.price}
                                     </Box>
                                   </Typography>
                                 </Stack>
                               ))}
                             </Stack>
                           </Box>
-                        ))}
+                          );
+                        })}
                       </Stack>
                     )}
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" mt={1}>
-                      <Typography variant="body2" sx={{ fontWeight: 700, fontSize: "1.05rem" }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2, pt: 1.5, borderTop: 1, borderColor: "divider" }}>
+                      <Typography variant="body1" sx={{ fontWeight: 700, fontSize: "1.15rem" }}>
                         Jami: {tableTotal}
                       </Typography>
                       <Button
@@ -379,7 +460,7 @@ export default function TableStatusTop() {
                         {t("dashboard.paid")}
                       </Button>
                     </Stack>
-                  </Box>
+                  </Paper>
                 </Grid>
               );
             })}

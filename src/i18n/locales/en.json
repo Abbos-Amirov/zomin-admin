@@ -37,6 +37,7 @@
   "sidebar": {
     "adminPanel": "Admin Panel",
     "dashboard": "Dashboard",
+    "orderStatus": "Order Status",
     "menu": "Menu",
     "orders": "Orders",
     "tables": "Tables",
@@ -68,6 +69,10 @@
     "avgOrderValue": "Avg Order Value",
     "tableStatus": "Table Status",
     "ordersPanel": "Orders Panel",
+    "ordersUnit": "pcs",
+    "priceLabel": "Price",
+    "ordersCount": "{{count}} orders",
+    "delivered": "Delivered",
     "paid": "Paid",
     "occupied": "Occupied",
     "cleaning": "Cleaning",
