@@ -161,18 +161,18 @@
 /* Berildi bosilganda yashik rangi */
 .table-order-box.table-order-delivered {
   background: rgba(237, 152, 33, 0.12) !important;
-  border-color: rgba(237, 152, 33, 0.4) !important;
+  border-color: rgba(191, 115, 9, 0.4) !important;
 }
 
 [data-theme="dark"] .table-order-box.table-order-delivered {
   background: rgba(237, 152, 33, 0.18) !important;
-  border-color: rgba(237, 152, 33, 0.4) !important;
+  border-color: rgba(189, 115, 11, 0.4) !important;
 }
 
 /* Berildi bosilganda stol yashigi dark modeda qora rangda */
 [data-theme="dark"] .table-order-box.table-order-has-delivered {
   background: #1a1a1a !important;
-  border-color: rgba(237, 152, 33, 0.5) !important;
+  border-color: rgba(186, 112, 9, 0.5) !important;
 }
 
 .table-call-strip {

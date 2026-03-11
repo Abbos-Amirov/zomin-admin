@@ -66,6 +66,7 @@
     "cleaningTables": "Tozalanishda",
     "callWaiterRequests": "Ofitsiant chaqiruvlari",
     "todayIncome": "Bugungi daromad",
+    "monthlySales": "Umumiy savdo",
     "avgOrderValue": "O'rtacha buyurtma qiymati",
     "tableStatus": "Stol holati",
     "ordersPanel": "Buyurtmalar paneli",
@@ -173,6 +174,14 @@
     "editUser": "Foydalanuvchilarni tahrirlash",
     "save": "Saqlash",
     "cancel": "Bekor qilish"
+  },
+  "sales": {
+    "title": "Savdo statistikasi",
+    "totalSales": "Umumiy savdo (sayt ishga tushganidan beri)",
+    "lastYear": "Oxirgi 1 yillik savdo",
+    "lastMonth": "Oxirgi 1 oylik savdo",
+    "lastWeek": "Oxirgi 1 haftalik savdo",
+    "todayAfter7": "Bugun soat 7 dan keyin qilingan savdo"
   },
   "errors": {
     "somethingWrong": "Nimadir xato ketdi!",

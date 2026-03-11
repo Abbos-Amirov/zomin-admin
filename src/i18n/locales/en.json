@@ -66,6 +66,7 @@
     "cleaningTables": "Cleaning Tables",
     "callWaiterRequests": "Call Waiter Requests",
     "todayIncome": "Today's Income",
+    "monthlySales": "Total Sales",
     "avgOrderValue": "Avg Order Value",
     "tableStatus": "Table Status",
     "ordersPanel": "Orders Panel",
@@ -173,6 +174,14 @@
     "editUser": "Edit user",
     "save": "Save",
     "cancel": "Cancel"
+  },
+  "sales": {
+    "title": "Sales Statistics",
+    "totalSales": "Total sales (since launch)",
+    "lastYear": "Last 1 year sales",
+    "lastMonth": "Last 1 month sales",
+    "lastWeek": "Last 1 week sales",
+    "todayAfter7": "Today's sales (after 7 AM)"
   },
   "errors": {
     "somethingWrong": "Something went wrong!",

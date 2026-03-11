@@ -26,6 +26,32 @@ class OrderService {
     }
   }
 
+  public async getOrdersForStats(): Promise<Order[]> {
+    try {
+      const url = `${this.path}/admin/order/all?page=1&limit=50000&status=COMPLETED&payStatus=PAID`;
+      const result = await axios.get(url, { withCredentials: true });
+      const payload = result.data;
+      return (
+        Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.orders)
+          ? payload.orders
+          : Array.isArray(payload?.data?.orders)
+          ? payload.data.orders
+          : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.result)
+          ? payload.result
+          : Array.isArray(payload?.rows)
+          ? payload.rows
+          : []
+      ) as Order[];
+    } catch (err) {
+      console.warn("getOrdersForStats:", err);
+      return [];
+    }
+  }
+
   public async getAllOrders(input: OrderInquiry): Promise<Order[]> {
     try {
       let url = `${this.path}/admin/order/all?page=${input.page}&limit=${input.limit}`;

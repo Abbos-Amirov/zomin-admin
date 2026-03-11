@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
@@ -45,28 +46,33 @@ const tableStatusRetriever = createSelector(
   (tableStatus) => ({ tableStatus })
 );
 
-function KpiItem({ labelKey, value, icon, iconBg, iconColor, valueColor }: any) {
+function KpiItem({ labelKey, value, icon, iconBg, iconColor, valueColor, onClick }: any) {
   const { t } = useTranslation();
   const label = t(labelKey);
-  const isMoney = labelKey === "dashboard.todayIncome" || labelKey === "dashboard.avgOrderValue";
+  const isMoney = labelKey === "dashboard.monthlySales" || labelKey === "dashboard.todayIncome" || labelKey === "dashboard.avgOrderValue";
   
   // Handle undefined/null values and format properly
   const displayValue = (() => {
     if (value === undefined || value === null) {
-      return isMoney ? "$0.0" : 0;
+      return isMoney ? "₩0" : 0;
     }
     if (isMoney) {
       const numValue = Number(value);
       if (isNaN(numValue)) {
-        return "$0.0";
+        return "₩0";
       }
-      return `$${numValue.toFixed(2)}`;
+      return `₩${numValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
     }
     return value;
   })();
 
   return (
-    <Paper elevation={1} className="kpi-item">
+    <Paper
+      elevation={1}
+      className="kpi-item"
+      onClick={onClick}
+      sx={{ cursor: onClick ? "pointer" : "default", "&:hover": onClick ? { boxShadow: 3 } : {} }}
+    >
       <Stack
         direction="row"
         alignItems="center"
@@ -95,9 +101,37 @@ function KpiItem({ labelKey, value, icon, iconBg, iconColor, valueColor }: any) 
 
 export default function DashboardOverview() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { orderStatis } = useSelector(orderStatisRetriever);
   const { productStatus } = useSelector(productStatusRetriever);
   const { tableStatus } = useSelector(tableStatusRetriever);
+  const [monthlySales, setMonthlySales] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const OrderService = (await import("../../services/Order.service")).default;
+        const svc = new OrderService();
+        const data = await svc.getOrdersForStats();
+        const orders = Array.isArray(data) ? data : [];
+        const now = new Date();
+        const monthAgo = new Date(now);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        const monthAgoMs = monthAgo.getTime();
+        const sum = orders.reduce((s, o) => {
+          const total = Number((o as any).orderTotal ?? o.orderTotal ?? 0) || 0;
+          const created = new Date((o as any).createdAt ?? o.createdAt).getTime();
+          return created >= monthAgoMs ? s + total : s;
+        }, 0);
+        if (!cancelled) setMonthlySales(sum);
+      } catch {
+        if (!cancelled) setMonthlySales(0);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const kpis = [
     // ===== Orders =====
     {
@@ -193,12 +227,13 @@ export default function DashboardOverview() {
       valueColor: "#ef6c00",
     },
     {
-      labelKey: "dashboard.todayIncome",
-      value: orderStatis?.todayIncomeAndAOV?.[0]?.totalSum ?? 0,
+      labelKey: "dashboard.monthlySales",
+      value: monthlySales ?? orderStatis?.todayIncomeAndAOV?.[0]?.totalSum ?? 0,
       icon: <MonetizationOnIcon />,
       iconBg: "#e8f5e9",
       iconColor: "#2e7d32",
       valueColor: "#2e7d32",
+      onClick: () => navigate("/sales-stats"),
     },
     {
       labelKey: "dashboard.avgOrderValue",

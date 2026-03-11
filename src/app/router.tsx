@@ -7,6 +7,7 @@ import SignupPage from '../screens/signupPage';
 
 import DashboardPage from '../screens/dashboardPage';
 import OrderStatusPage from '../screens/orderStatusPage';
+import SalesStatsPage from '../screens/salesStatsPage';
 import TableOrdersDetailPage from '../screens/dashboardPage/TableOrdersDetailPage';
 import MenuPage from '../screens/menuPage';
 import OrdersPage from '../screens/ordersPage';
@@ -17,6 +18,14 @@ const AppRouter = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
     <Route path="/signup" element={<SignupPage />} />
+    <Route 
+      path="/sales-stats"
+      element={
+        <ProtectedRoute>
+          <MainLayout><SalesStatsPage /></MainLayout>
+        </ProtectedRoute>
+      } 
+    />
     <Route 
       path="/order-status" 
       element={
