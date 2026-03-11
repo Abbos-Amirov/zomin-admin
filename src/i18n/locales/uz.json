@@ -70,6 +70,7 @@
     "avgOrderValue": "O'rtacha buyurtma qiymati",
     "tableStatus": "Stol holati",
     "ordersPanel": "Buyurtmalar paneli",
+    "detail": "Batafsil",
     "ordersUnit": "ta",
     "priceLabel": "Narxi",
     "ordersCount": "{{count}} ta buyurtma",

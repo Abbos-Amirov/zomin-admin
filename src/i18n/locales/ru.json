@@ -70,6 +70,7 @@
     "avgOrderValue": "Средний чек",
     "tableStatus": "Статус столов",
     "ordersPanel": "Панель заказов",
+    "detail": "Подробнее",
     "ordersUnit": "шт",
     "priceLabel": "Цена",
     "ordersCount": "{{count}} заказов",

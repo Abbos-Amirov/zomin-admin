@@ -10,6 +10,7 @@ import OrderStatusPage from '../screens/orderStatusPage';
 import SalesStatsPage from '../screens/salesStatsPage';
 import CompletedOrdersStatsPage from '../screens/completedOrdersStatsPage';
 import TableOrdersDetailPage from '../screens/dashboardPage/TableOrdersDetailPage';
+import AllTablesOrdersDetailPage from '../screens/dashboardPage/AllTablesOrdersDetailPage';
 import MenuPage from '../screens/menuPage';
 import OrdersPage from '../screens/ordersPage';
 import UsersPage from '../screens/usersPage';
@@ -40,6 +41,14 @@ const AppRouter = () => (
       element={
         <ProtectedRoute>
           <MainLayout><OrderStatusPage /></MainLayout>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/orders-panel/all"
+      element={
+        <ProtectedRoute>
+          <MainLayout><AllTablesOrdersDetailPage /></MainLayout>
         </ProtectedRoute>
       } 
     />

@@ -70,6 +70,7 @@
     "avgOrderValue": "Avg Order Value",
     "tableStatus": "Table Status",
     "ordersPanel": "Orders Panel",
+    "detail": "Detail",
     "ordersUnit": "pcs",
     "priceLabel": "Price",
     "ordersCount": "{{count}} orders",

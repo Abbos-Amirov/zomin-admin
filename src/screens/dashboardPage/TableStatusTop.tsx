@@ -315,6 +315,13 @@ export default function TableStatusTop() {
           <Typography variant="h5" className="table-status-top-title">
             {t("dashboard.ordersPanel")}
           </Typography>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => navigate("/orders-panel/all")}
+          >
+            {t("dashboard.detail")}
+          </Button>
         </Stack>
 
         {loading ? (
