@@ -157,6 +157,7 @@ export default function DashboardOverview() {
       iconBg: "#e8f5e9",
       iconColor: "#2e7d32",
       valueColor: "#2e7d32",
+      onClick: () => navigate("/completed-orders-stats"),
     },
 
     // ===== Items =====

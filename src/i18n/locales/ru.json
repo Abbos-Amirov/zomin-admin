@@ -183,6 +183,21 @@
     "lastWeek": "Продажа за последнюю неделю",
     "todayAfter7": "Продажа сегодня (после 7:00)"
   },
+  "completedOrders": {
+    "title": "Статистика выполненных заказов",
+    "all": "За всё время",
+    "lastYear": "За последний год",
+    "lastMonth": "За последний месяц",
+    "lastWeek": "За последнюю неделю",
+    "lastDay": "За последний день",
+    "orderDate": "Дата",
+    "productName": "Товар",
+    "quantity": "Кол-во",
+    "price": "Цена",
+    "total": "Итого",
+    "noOrders": "Заказы не найдены",
+    "ordersCount": "{{count}}"
+  },
   "errors": {
     "somethingWrong": "Что-то пошло не так!",
     "loginFirst": "Пожалуйста, войдите в систему!",

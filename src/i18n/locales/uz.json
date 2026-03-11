@@ -183,6 +183,21 @@
     "lastWeek": "Oxirgi 1 haftalik savdo",
     "todayAfter7": "Bugun soat 7 dan keyin qilingan savdo"
   },
+  "completedOrders": {
+    "title": "Bajarilgan buyurtmalar statistikasi",
+    "all": "Umumiy",
+    "lastYear": "Oxirgi 1 yil",
+    "lastMonth": "Oxirgi 1 oy",
+    "lastWeek": "Oxirgi 1 hafta",
+    "lastDay": "Oxirgi 1 kun",
+    "orderDate": "Sana",
+    "productName": "Mahsulot",
+    "quantity": "Soni",
+    "price": "Narxi",
+    "total": "Jami",
+    "noOrders": "Buyurtmalar topilmadi",
+    "ordersCount": "{{count}} ta"
+  },
   "errors": {
     "somethingWrong": "Nimadir xato ketdi!",
     "loginFirst": "Avval tizimga kiring!",

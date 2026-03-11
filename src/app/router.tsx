@@ -8,6 +8,7 @@ import SignupPage from '../screens/signupPage';
 import DashboardPage from '../screens/dashboardPage';
 import OrderStatusPage from '../screens/orderStatusPage';
 import SalesStatsPage from '../screens/salesStatsPage';
+import CompletedOrdersStatsPage from '../screens/completedOrdersStatsPage';
 import TableOrdersDetailPage from '../screens/dashboardPage/TableOrdersDetailPage';
 import MenuPage from '../screens/menuPage';
 import OrdersPage from '../screens/ordersPage';
@@ -18,6 +19,14 @@ const AppRouter = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
     <Route path="/signup" element={<SignupPage />} />
+    <Route 
+      path="/completed-orders-stats"
+      element={
+        <ProtectedRoute>
+          <MainLayout><CompletedOrdersStatsPage /></MainLayout>
+        </ProtectedRoute>
+      } 
+    />
     <Route 
       path="/sales-stats"
       element={

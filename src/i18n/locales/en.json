@@ -183,6 +183,21 @@
     "lastWeek": "Last 1 week sales",
     "todayAfter7": "Today's sales (after 7 AM)"
   },
+  "completedOrders": {
+    "title": "Completed Orders Statistics",
+    "all": "All time",
+    "lastYear": "Last 1 year",
+    "lastMonth": "Last 1 month",
+    "lastWeek": "Last 1 week",
+    "lastDay": "Last 1 day",
+    "orderDate": "Date",
+    "productName": "Product",
+    "quantity": "Qty",
+    "price": "Price",
+    "total": "Total",
+    "noOrders": "No orders found",
+    "ordersCount": "{{count}}"
+  },
   "errors": {
     "somethingWrong": "Something went wrong!",
     "loginFirst": "Please login first!",
