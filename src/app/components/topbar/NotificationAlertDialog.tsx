@@ -109,13 +109,27 @@ export default function NotificationAlertDialog() {
     setNotificationAlert(null);
   };
 
-  const handleGoToTable = () => {
-    if (notificationAlert?.tableId) {
-      navigate(`/tables/${notificationAlert.tableId}`, {
-        state: notificationAlert.tableNumber ? { tableNumber: notificationAlert.tableNumber } : undefined,
+  const handleGoToDetails = () => {
+    const n = notificationAlert;
+    if (!n) return;
+    const resolvedTableNum = n.tableNumber || tableNumber;
+    // ORDER tipida buyurtma batafsiliga yoki stol buyurtmalariga o'tish
+    if (isOrder) {
+      if (n.orderId) {
+        navigate(`/orders/${n.orderId}`);
+      } else if (resolvedTableNum) {
+        navigate(`/orders-panel/table/${encodeURIComponent(resolvedTableNum)}`);
+      } else if (n.tableId) {
+        navigate(`/tables/${n.tableId}`, {
+          state: resolvedTableNum ? { tableNumber: resolvedTableNum } : undefined,
+        });
+      }
+    } else if (n.tableId) {
+      navigate(`/tables/${n.tableId}`, {
+        state: resolvedTableNum ? { tableNumber: resolvedTableNum } : undefined,
       });
-      setNotificationAlert(null);
     }
+    setNotificationAlert(null);
   };
 
   if (!notificationAlert) return null;
@@ -131,18 +145,20 @@ export default function NotificationAlertDialog() {
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, pb: 0 }}>
         {isCall && (
           <Chip
-            icon={<PhoneInTalkIcon sx={{ fontSize: 18 }} />}
+            icon={<PhoneInTalkIcon sx={{ fontSize: 22 }} />}
             label={dict.typeCall}
             color="primary"
-            size="small"
+            size="medium"
+            sx={{ fontSize: 16, fontWeight: 600 }}
           />
         )}
         {isOrder && (
           <Chip
-            icon={<ShoppingCartIcon sx={{ fontSize: 18 }} />}
+            icon={<ShoppingCartIcon sx={{ fontSize: 22 }} />}
             label={dict.typeOrder}
             color="success"
-            size="small"
+            size="medium"
+            sx={{ fontSize: 16, fontWeight: 600 }}
           />
         )}
         {!isCall && !isOrder && (
@@ -154,10 +170,10 @@ export default function NotificationAlertDialog() {
         )}
       </DialogTitle>
       <DialogContent sx={{ pt: 1.5 }}>
-        {notificationAlert.tableId && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, color: "text.secondary" }}>
-            <TableRestaurantIcon fontSize="small" />
-            <Typography variant="body2">
+        {(notificationAlert.tableId || tableNumber) && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, color: "text.secondary" }}>
+            <TableRestaurantIcon sx={{ fontSize: 28 }} />
+            <Typography variant="h6" sx={{ fontSize: 20, fontWeight: 700 }}>
               {dict.fromTable}: {dict.table} {tableNumber || notificationAlert.tableId}
             </Typography>
           </Box>
@@ -170,8 +186,8 @@ export default function NotificationAlertDialog() {
         <Button onClick={handleClose} variant="outlined">
           {dict.gotIt}
         </Button>
-        {notificationAlert.tableId && (
-          <Button onClick={handleGoToTable} variant="contained">
+        {(notificationAlert.tableId || notificationAlert.orderId || tableNumber) && (
+          <Button onClick={handleGoToDetails} variant="contained">
             {dict.openDetails}
           </Button>
         )}
