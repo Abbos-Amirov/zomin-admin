@@ -78,6 +78,17 @@ class OrderService {
     }
   }
 
+  public async getOrderById(orderId: string): Promise<any> {
+    try {
+      const url = `${this.path}/admin/order/${orderId}`;
+      const result = await axios.get(url, { withCredentials: true });
+      return result.data;
+    } catch (err) {
+      console.warn("getOrderById:", err);
+      throw err;
+    }
+  }
+
   public async getAllOrders(input: OrderInquiry): Promise<Order[]> {
     try {
       let url = `${this.path}/admin/order/all?page=${input.page}&limit=${input.limit}`;

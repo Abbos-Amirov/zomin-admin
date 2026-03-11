@@ -1,5 +1,6 @@
 import React, { ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import PaginationItem from "@mui/material/PaginationItem";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -63,6 +64,7 @@ interface OrderTableProps {
 
 export default function OrdersTable(props: OrderTableProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { orderSearch, setOrderSearch, setOpen, edit, setEdit } = props;
 
   const { orders } = useSelector(ordersRetriever);
@@ -96,7 +98,12 @@ export default function OrdersTable(props: OrderTableProps) {
           {orders.map((v) => {
             const grand = v.orderTotal - (v.deliveryFee || 0);
             return (
-              <TableRow key={v._id} hover>
+              <TableRow
+                key={v._id}
+                hover
+                sx={{ cursor: "pointer" }}
+                onClick={() => navigate(`/orders/${v._id}`, { state: { order: v } })}
+              >
                 <TableCell sx={{ fontFamily: "monospace" }}>
                   {v._id.slice(-8)}
                 </TableCell>
@@ -135,7 +142,8 @@ export default function OrdersTable(props: OrderTableProps) {
                     size="small"
                     variant="contained"
                     color="primary"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setOpen(true);
                       setEdit({
                         orderId: v._id,
