@@ -10,12 +10,15 @@ export interface Table {
   activeIdentifier: string;
   createdAt: Date;
   updatedAt: Date;
+  /** Ixtiyoriy matn — backend qabul qilgan qiymat */
+  tableKind?: string;
 }
 
 export interface TableInput {
   tableNumber: string;
   qrToken?: string;
   tableStatus?: TableStatus;
+  tableKind?: string;
 }
 
 export interface TableUpdateInput {
@@ -25,6 +28,7 @@ export interface TableUpdateInput {
   tableStatus?: TableStatus;
   tableCall?: TableCall;
   activeIdentifier?: string | null;
+  tableKind?: string;
 }
 
 export interface TableInquiry {

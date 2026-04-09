@@ -15,6 +15,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 import "../../../css/navbar.css";
@@ -54,6 +55,11 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
       to: "/tables",
       label: t("sidebar.tables"),
       icon: <TableRestaurantIcon className="sidebar-icon" />,
+    },
+    {
+      to: "/takeaway-orders",
+      label: t("sidebar.takeawayOrders"),
+      icon: <LocalShippingIcon className="sidebar-icon" />,
     },
     {
       to: "/user/all",

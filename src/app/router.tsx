@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import MainLayout from './MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from '../screens/loginPage';
@@ -16,6 +16,7 @@ import OrdersPage from '../screens/ordersPage';
 import OrderDetailPage from '../screens/ordersPage/OrderDetailPage';
 import UsersPage from '../screens/usersPage';
 import TablesPage from '../screens/tablesPage';
+import TakeawayOrdersPage from '../screens/takeawayOrdersPage';
 
 const AppRouter = () => (
   <Routes>
@@ -98,6 +99,14 @@ const AppRouter = () => (
       element={
         <ProtectedRoute>
           <MainLayout><TablesPage /></MainLayout>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/takeaway-orders" 
+      element={
+        <ProtectedRoute>
+          <MainLayout><TakeawayOrdersPage /></MainLayout>
         </ProtectedRoute>
       } 
     />

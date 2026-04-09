@@ -122,6 +122,7 @@ export default function TableFilter(props: TableFilterProps) {
                   ...edit,
                   tableNumber: "",
                   tableStatus: TableStatus.CLEANING,
+                  tableKind: undefined,
                 });
               }}
             >

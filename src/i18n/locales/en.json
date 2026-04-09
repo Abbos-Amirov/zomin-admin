@@ -41,7 +41,8 @@
     "menu": "Menu",
     "orders": "Orders",
     "tables": "Tables",
-    "users": "Users"
+    "users": "Users",
+    "takeawayOrders": "Takeaway"
   },
   "topbar": {
     "search": "Search…",
@@ -84,7 +85,37 @@
     "newOrder": "New Order",
     "addTable": "Add table",
     "createNewOrderConfirm": "Do you want to create new order?",
-    "markAsReadConfirm": "Do you want to Mark as Read?"
+    "markAsReadConfirm": "Do you want to Mark as Read?",
+    "linkOrdersTitle": "Orders via link",
+    "dineInOrdersTitle": "Dine-in orders",
+    "takeawayOrdersTitle": "Takeaway orders",
+    "noTakeawayOrders": "No takeaway orders",
+    "noDineInFromLink": "No table orders",
+    "linkDineInAllPaidDismissed": "All table cards were dismissed with Paid. They reappear when a new order arrives for that table.",
+    "arrivalInMinutes": "Arriving in: {{min}} min",
+    "linkDineInStolWord": "TABLE",
+    "linkDineInNoTable": "Not assigned",
+    "linkDineInAlertTitle": "Order marked delivered",
+    "linkDineInAlertTable": "Table",
+    "linkDineInAlertCustomer": "Customer",
+    "linkDineInAlertPhone": "Phone",
+    "linkDineInAlertItems": "Items",
+    "linkDineInAlertOk": "OK",
+    "linkDineInBundleCount": "{{count}} orders",
+    "linkDineInOrderShort": "Order",
+    "noProductsInOrder": "No line items in API response — open order for details.",
+    "takeawayPageTitle": "Takeaway orders",
+    "takeawayPageSubtitle": "Panel API: TAKEOUT orders only",
+    "takeawayPageSubtitleLink": "admin/order/link/takeout — one box per customer",
+    "takeawayPollHint": "Data refreshes every 10 seconds; you’ll get an alert for new orders.",
+    "takeawayPageLoading": "Loading…",
+    "refreshTakeaway": "Refresh",
+    "takeawayPayment": "Payment",
+    "takeawayUnknownCustomer": "Customer",
+    "takeawayOrderInBox": "Order",
+    "takeawayMemberTotal": "Customer total",
+    "takeawayNewOrderAlertTitle": "New takeaway order",
+    "takeawayNewOrderAlertOk": "OK"
   },
   "menu": {
     "title": "Menu",
@@ -154,7 +185,9 @@
     "noTables": "No tables",
     "cancel": "Cancel",
     "create": "Create",
-    "update": "Update"
+    "update": "Update",
+    "tableKind": "Table kind",
+    "tableKindPlaceholder": "e.g. VIP, Bar, Outdoor"
   },
   "users": {
     "title": "Users",

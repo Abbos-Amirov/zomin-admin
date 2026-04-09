@@ -109,6 +109,19 @@ export default function TableDialog(props: TableDialogProps) {
               <MenuItem value="CLEANING">{t("tables.cleaning")}</MenuItem>
             </Select>
           </FormControl>
+          <TextField
+            fullWidth
+            label={t("tables.tableKind")}
+            placeholder={t("tables.tableKindPlaceholder")}
+            value={edit.tableKind ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              setEdit({
+                ...edit,
+                tableKind: v === "" ? undefined : v,
+              });
+            }}
+          />
         </Stack>
       </DialogContent>
       <DialogActions>
@@ -121,18 +134,27 @@ export default function TableDialog(props: TableDialogProps) {
         </Button>
         <Button
           variant="contained"
-          onClick={(e) => {
+          onClick={() => {
+            const tableKindStr = String(edit.tableKind ?? "").trim();
             if (create) {
-              onCreateHandler({
-                tableNumber: edit.tableNumber as string,
+              const payload: TableInput = {
+                tableNumber: String(edit.tableNumber ?? "").trim(),
                 tableStatus: edit.tableStatus as TableStatus,
-              });
+              };
+              if (tableKindStr.length > 0) {
+                payload.tableKind = tableKindStr;
+              }
+              void onCreateHandler(payload);
             } else {
-              onUpdateHandler({
+              const payload: TableUpdateInput = {
                 _id: edit._id as string,
-                tableNumber: edit.tableNumber as string,
+                tableNumber: String(edit.tableNumber ?? "").trim(),
                 tableStatus: edit.tableStatus as TableStatus,
-              });
+              };
+              if (tableKindStr.length > 0) {
+                payload.tableKind = tableKindStr;
+              }
+              void onUpdateHandler(payload);
             }
           }}
         >

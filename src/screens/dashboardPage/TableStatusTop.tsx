@@ -1,6 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, Typography, Stack, Grid, Box, Divider, Chip, Button, Paper } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Stack,
+  Grid,
+  Box,
+  Divider,
+  Chip,
+  Button,
+  Paper,
+  Link,
+} from "@mui/material";
+import PhoneIcon from "@mui/icons-material/Phone";
+import PersonIcon from "@mui/icons-material/Person";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import { createSelector } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +29,83 @@ import { setTableStatus } from "./slice";
 import { TableStatus } from "../../lib/enums/table.enum";
 import TableService from "../../services/Table.service";
 import "../../css/tableStatus.css";
+import { OrderType } from "../../lib/enums/order.enum";
+import {
+  extractProductsFromOrder,
+  type ProductLine,
+} from "../../lib/utils/extractOrderProducts";
+
+/** Panel API dan kelgan buyurtma (stol) */
+type PanelOrderView = {
+  orderId: string;
+  orderType: "TABLE" | "TAKEOUT";
+  tableId: string;
+  tableNumber: string;
+  orderStatus: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  createdAt: string;
+  products: ProductLine[];
+};
+
+/** `/admin/order/link/dine-in` — mijoz + taomlar */
+type LinkDineInOrderView = {
+  orderId: string;
+  customerName: string;
+  customerPhone: string;
+  arrivalInMinutes: number | null;
+  createdAt: string;
+  tableNumber?: string;
+  products: ProductLine[];
+};
+
+function telHref(phone: string): string {
+  const digits = phone.replace(/[^\d+]/g, "");
+  if (!digits) return "#";
+  return `tel:${digits}`;
+}
+
+/** Buyurtma yaratilgan vaqtga daqiqa qo'shib, kelish soatini (HH:mm) */
+function formatArrivalClock(createdAt: string, addMinutes: number): string | null {
+  if (!createdAt || !Number.isFinite(addMinutes)) return null;
+  const d = new Date(createdAt);
+  if (!Number.isFinite(d.getTime())) return null;
+  d.setMinutes(d.getMinutes() + addMinutes);
+  return d.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function mapLinkDineInRow(
+  order: any,
+  resolveImageUrl: (path?: string | null) => string
+): LinkDineInOrderView | null {
+  const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
+  if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") {
+    return null;
+  }
+  const orderId = String(order?._id ?? order?.id ?? "").trim();
+  if (!orderId) return null;
+
+  const rawMin = order?.arrivalInMinutes ?? order?.arrival_in_minutes;
+  let arrivalInMinutes: number | null = null;
+  if (rawMin != null && rawMin !== "") {
+    const n = Number(rawMin);
+    arrivalInMinutes = Number.isFinite(n) ? n : null;
+  }
+
+  return {
+    orderId,
+    customerName: String(order?.customerName ?? order?.customer_name ?? "").trim(),
+    customerPhone: String(order?.customerPhone ?? order?.customer_phone ?? "").trim(),
+    arrivalInMinutes,
+    createdAt: String(order?.createdAt ?? order?.updatedAt ?? ""),
+    tableNumber: String(order?.tableNumber ?? order?.table_number ?? "").trim() || undefined,
+    products: extractProductsFromOrder(order, resolveImageUrl),
+  };
+}
 
 const tableStatusRetriever = createSelector(
   retrieveTableStatus,
@@ -21,6 +113,41 @@ const tableStatusRetriever = createSelector(
 );
 
 const STORAGE_KEY = "orderStatus_deliveredOrderIds";
+const STORAGE_KEY_LINK_DINE = "orderStatus_linkDineInDeliveredOrderIds";
+/** "To'landi" bosilgan stol yashiklari: buyurtma IDlari to'plami imzosi bilan; yangi buyurtma kelganda qayta ko'rinadi */
+const STORAGE_KEY_LINK_DINE_PAID_BUNDLE = "orderStatus_linkDineInPaidBundleSigs";
+
+function linkDineBundleSignature(orders: Pick<LinkDineInOrderView, "orderId">[]): string {
+  return orders.map((o) => o.orderId).sort().join("|");
+}
+
+const parsePaidBundleSigs = (): Record<string, string> => {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY_LINK_DINE_PAID_BUNDLE);
+    if (!raw) return {};
+    const p = JSON.parse(raw) as unknown;
+    return typeof p === "object" && p !== null && !Array.isArray(p) ? (p as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const parseLinkDineDelivered = (): Set<string> => {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY_LINK_DINE);
+    if (!raw) return new Set();
+    const parsed: string[] = JSON.parse(raw);
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+};
+
+const saveLinkDineDelivered = (ids: Set<string>) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY_LINK_DINE, JSON.stringify(Array.from(ids)));
+  } catch {}
+};
 
 const parseStored = (): Record<string, Set<string>> => {
   try {
@@ -52,12 +179,16 @@ export default function TableStatusTop() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { tableStatus } = useSelector(tableStatusRetriever);
-  const [groupedOrders, setGroupedOrders] = useState<
-    Record<string, { orderId: string; tableId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]>
-  >({});
+  const [groupedOrders, setGroupedOrders] = useState<Record<string, PanelOrderView[]>>({});
+  const [linkDineInOrders, setLinkDineInOrders] = useState<LinkDineInOrderView[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   /** Berildi bosilganda o'sha paytda mavjud bo'lgan order ID lar; sessionStorage da saqlanadi */
   const [deliveredOrderIds, setDeliveredOrderIds] = useState<Record<string, Set<string>>>(parseStored);
+  /** Link orqali o'tirib yeyish: berildi belgilangan buyurtma IDlari */
+  const [linkDineInDeliveredIds, setLinkDineInDeliveredIds] = useState<Set<string>>(parseLinkDineDelivered);
+  /** Stol yashigi "To'landi" — joriy buyurtmalar imzosi bilan yashirinadi */
+  const [linkDinePaidBundleSigs, setLinkDinePaidBundleSigs] =
+    useState<Record<string, string>>(parsePaidBundleSigs);
 
   const resolveImageUrl = useCallback((path?: string | null): string => {
     if (!path) return "";
@@ -88,61 +219,28 @@ export default function TableStatusTop() {
         ? payload.tables
         : [];
 
-      const grouped: Record<string, { orderId: string; tableId: string; orderStatus: string; paymentStatus: string; paymentMethod: string; createdAt: string; products: { productName: string; productImage: string; quantity: number; price: number }[] }[]> = {};
+      const grouped: Record<string, PanelOrderView[]> = {};
 
-      const mapOrderToView = (order: any) => {
-        const orderType = String(order?.orderType ?? order?.order_type ?? "").toUpperCase();
-        if (orderType && orderType !== "TABLE") return null;
+      const mapOrderToView = (order: any): PanelOrderView | null => {
+        const orderTypeRaw = String(order?.orderType ?? order?.order_type ?? "").toUpperCase();
+        if (orderTypeRaw === OrderType.DELIVERY) return null;
         const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
         if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") return null;
 
-        const orderItems = Array.isArray(order?.orderItems)
-          ? order.orderItems
-          : Array.isArray(order?.order_items)
-          ? order.order_items
-          : [];
-        const productData = Array.isArray(order?.productData)
-          ? order.productData
-          : Array.isArray(order?.product_data)
-          ? order.product_data
-          : Array.isArray(order?.products)
-          ? order.products
-          : [];
+        const normalizedType: "TABLE" | "TAKEOUT" =
+          orderTypeRaw === OrderType.TAKEOUT ? "TAKEOUT" : "TABLE";
 
-        const productById = new Map<string, any>();
-        productData.forEach((p: any) => {
-          const pid = String(p?._id ?? p?.id ?? "").trim();
-          if (pid) productById.set(pid, p);
-        });
+        const products = extractProductsFromOrder(order, resolveImageUrl);
 
-        const products = orderItems.map((item: any) => {
-          const productId = String(
-            item?.productId ?? item?.product_id ?? item?.product?._id ?? item?.product?.id ?? ""
-          ).trim();
-          const product = productById.get(productId) ?? item?.product ?? {};
-          const images = Array.isArray(product?.productImages)
-            ? product.productImages
-            : Array.isArray(product?.product_images)
-            ? product.product_images
-            : [];
-          const productImage = resolveImageUrl(images[0] ?? "");
-          const quantity = Number(item?.itemQuantity ?? item?.item_quantity ?? item?.quantity ?? 0) || 0;
-          const price =
-            Number(item?.itemPrice ?? item?.item_price ?? product?.productPrice ?? product?.product_price ?? 0) || 0;
-
-          return {
-            productName: String(
-              product?.productName ?? product?.product_name ?? item?.productName ?? item?.product_name ?? "Unknown product"
-            ),
-            productImage,
-            quantity,
-            price,
-          };
-        });
+        const tableNumberStr = String(
+          order?.tableNumber ?? order?.table_number ?? ""
+        ).trim();
 
         return {
           orderId: String(order?._id ?? order?.id ?? ""),
+          orderType: normalizedType,
           tableId: String(order?.tableId ?? order?.table_id ?? ""),
+          tableNumber: tableNumberStr,
           orderStatus: String(order?.orderStatus ?? order?.order_status ?? ""),
           paymentStatus: String(order?.paymentStatus ?? order?.payment_status ?? ""),
           paymentMethod: String(order?.paymentMethod ?? order?.payment_method ?? ""),
@@ -171,7 +269,6 @@ export default function TableStatusTop() {
                 row?.table?.table_number ??
                 ""
             ).trim();
-            if (!tableNumber) return;
             const orderView = mapOrderToView({
               ...order,
               tableNumber:
@@ -182,6 +279,8 @@ export default function TableStatusTop() {
                 row?.table?.tableNumber,
             });
             if (!orderView) return;
+            if (orderView.orderType === "TAKEOUT") return;
+            if (!tableNumber) return;
             if (!grouped[tableNumber]) grouped[tableNumber] = [];
             grouped[tableNumber].push(orderView);
           });
@@ -192,15 +291,32 @@ export default function TableStatusTop() {
           row?.tableNumber ?? row?.table_number ?? row?.table?.tableNumber ?? row?.table?.table_number ?? ""
         ).trim();
         const orderView = mapOrderToView(row);
-        if (!tableNumber || !orderView) return;
+        if (!orderView) return;
+        if (orderView.orderType === "TAKEOUT") return;
+        if (!tableNumber) return;
         if (!grouped[tableNumber]) grouped[tableNumber] = [];
         grouped[tableNumber].push(orderView);
       });
 
       setGroupedOrders(grouped);
+
+      let linkViews: LinkDineInOrderView[] = [];
+      try {
+        const orderSvc = new OrderService();
+        const linkRows = await orderSvc.getLinkDineInOrders();
+        for (const row of linkRows) {
+          const v = mapLinkDineInRow(row, resolveImageUrl);
+          if (v) linkViews.push(v);
+        }
+      } catch (linkErr) {
+        console.warn("fetchOrdersByTable: link dine-in", linkErr);
+        linkViews = [];
+      }
+      setLinkDineInOrders(linkViews);
     } catch (err) {
       console.error("fetchOrdersByTable error:", err);
       setGroupedOrders({});
+      setLinkDineInOrders([]);
     } finally {
       if (!silent) setLoading(false);
     }
@@ -213,6 +329,16 @@ export default function TableStatusTop() {
   useEffect(() => {
     saveStored(deliveredOrderIds);
   }, [deliveredOrderIds]);
+
+  useEffect(() => {
+    saveLinkDineDelivered(linkDineInDeliveredIds);
+  }, [linkDineInDeliveredIds]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY_LINK_DINE_PAID_BUNDLE, JSON.stringify(linkDinePaidBundleSigs));
+    } catch {}
+  }, [linkDinePaidBundleSigs]);
 
   useEffect(() => {
     const refreshBySocket = () => {
@@ -254,6 +380,40 @@ export default function TableStatusTop() {
     const unique = Array.from(new Set(fromOrders)).filter(Boolean);
     return unique.sort((a, b) => Number(a) - Number(b));
   }, [groupedOrders]);
+
+  /** Har bir stol uchun bitta "yashik": shu stolga tegishli barcha link buyurtmalar */
+  const linkDineInByTable = useMemo(() => {
+    const byTable: Record<string, LinkDineInOrderView[]> = {};
+    for (const o of linkDineInOrders) {
+      const k = o.tableNumber?.trim() ? o.tableNumber.trim() : "__none__";
+      if (!byTable[k]) byTable[k] = [];
+      byTable[k].push(o);
+    }
+    const keys = Object.keys(byTable).sort((a, b) => {
+      if (a === "__none__") return 1;
+      if (b === "__none__") return -1;
+      const na = Number(a);
+      const nb = Number(b);
+      if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+      return a.localeCompare(b, undefined, { numeric: true });
+    });
+    return { byTable, keys };
+  }, [linkDineInOrders]);
+
+  /** "To'landi" bilan yopilgan yoki yo'q qilinadigan stollar (imzo mos kelmasa — yangi buyurtma, qayta ko'rsatiladi) */
+  const linkDineInVisibleTableKeys = useMemo(() => {
+    return linkDineInByTable.keys.filter((k) => {
+      const orders = linkDineInByTable.byTable[k] ?? [];
+      const sig = linkDineBundleSignature(orders);
+      return linkDinePaidBundleSigs[k] !== sig;
+    });
+  }, [linkDineInByTable, linkDinePaidBundleSigs]);
+
+  const handleLinkDineBoxPaid = useCallback((tableKey: string, orders: LinkDineInOrderView[], e: React.MouseEvent) => {
+    e.stopPropagation();
+    const sig = linkDineBundleSignature(orders);
+    setLinkDinePaidBundleSigs((prev) => ({ ...prev, [tableKey]: sig }));
+  }, []);
 
   const handleCompleteTableOrders = useCallback(
     async (tableNumber: string) => {
@@ -308,6 +468,15 @@ export default function TableStatusTop() {
     setDeliveredOrderIds((prev) => ({ ...prev, [String(tableNumber)]: ids }));
   }, []);
 
+  const handleLinkDineBerildi = useCallback((o: LinkDineInOrderView, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLinkDineInDeliveredIds((prev) => {
+      const next = new Set(prev);
+      next.add(o.orderId);
+      return next;
+    });
+  }, []);
+
   return (
     <Card className="table-status-card table-status-top-card">
       <CardContent sx={{ width: "100%", padding: "12px 16px" }}>
@@ -323,6 +492,282 @@ export default function TableStatusTop() {
             {t("dashboard.detail")}
           </Button>
         </Stack>
+
+        <Paper
+          elevation={0}
+          className="link-orders-split-panel"
+          sx={{
+            p: 2,
+            mb: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
+          }}
+        >
+          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1.5 }}>
+            {t("dashboard.linkOrdersTitle")}
+          </Typography>
+          <Box
+            className="link-dine-in-column"
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              background: (theme) =>
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(145deg, rgba(25,118,210,0.12) 0%, rgba(0,0,0,0.2) 100%)"
+                  : "linear-gradient(145deg, rgba(25,118,210,0.08) 0%, rgba(255,255,255,0.95) 100%)",
+              border: "1px solid",
+              borderColor: "primary.light",
+              boxShadow: (theme) =>
+                theme.palette.mode === "dark"
+                  ? "0 8px 32px rgba(0,0,0,0.35)"
+                  : "0 8px 28px rgba(25, 118, 210, 0.12)",
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+              <TableRestaurantIcon color="primary" sx={{ fontSize: 28 }} />
+              <Typography variant="subtitle1" color="primary.main" fontWeight={800} sx={{ letterSpacing: 0.3 }}>
+                {t("dashboard.dineInOrdersTitle")}
+              </Typography>
+            </Stack>
+            {linkDineInOrders.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {t("dashboard.noDineInFromLink")}
+              </Typography>
+            ) : linkDineInVisibleTableKeys.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {t("dashboard.linkDineInAllPaidDismissed")}
+              </Typography>
+            ) : (
+              <Grid
+                container
+                spacing={2.5}
+                alignItems="stretch"
+                sx={{
+                  maxHeight: { xs: "min(85vh, 780px)", sm: "min(75vh, 820px)" },
+                  overflow: "auto",
+                  pr: 0.5,
+                }}
+              >
+                {linkDineInVisibleTableKeys.map((tableKey) => {
+                  const orders = linkDineInByTable.byTable[tableKey] ?? [];
+                  const tableLabel =
+                    tableKey === "__none__" ? t("dashboard.linkDineInNoTable") : tableKey;
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={`link-bundle-${tableKey}`}>
+                    <Paper
+                      elevation={3}
+                      className="link-dine-in-table-bundle"
+                      sx={{
+                        p: 2,
+                        height: "100%",
+                        borderRadius: 2,
+                        border: "2px solid",
+                        borderColor: "primary.main",
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark" ? "rgba(0,0,0,0.25)" : "background.paper",
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        flexWrap="wrap"
+                        gap={1}
+                        sx={{ mb: 2, pb: 1.5, borderBottom: 1, borderColor: "divider" }}
+                      >
+                        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                          <Typography variant="h5" fontWeight={900} color="primary.main">
+                            {t("dashboard.linkDineInStolWord")} {tableLabel}
+                          </Typography>
+                          <Chip
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            label={t("dashboard.linkDineInBundleCount", { count: orders.length })}
+                          />
+                        </Stack>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          onClick={(e) => handleLinkDineBoxPaid(tableKey, orders, e)}
+                          sx={{ fontWeight: 800 }}
+                        >
+                          {t("dashboard.paid")}
+                        </Button>
+                      </Stack>
+                      <Grid container spacing={2} alignItems="stretch">
+                        {orders.map((o) => {
+                          const lineTotal = o.products.reduce((s, p) => s + p.quantity * p.price, 0);
+                          const arrivalClock =
+                            o.arrivalInMinutes != null
+                              ? formatArrivalClock(o.createdAt, o.arrivalInMinutes)
+                              : null;
+                          const isDelivered = linkDineInDeliveredIds.has(o.orderId);
+                          return (
+                            <Grid item xs={12} key={`link-dine-${o.orderId}`}>
+                            <Paper
+                              elevation={isDelivered ? 0 : 2}
+                              className={`link-dine-in-card${isDelivered ? " link-dine-in-card--delivered" : ""}`}
+                              sx={{
+                                p: 2,
+                                height: "100%",
+                                cursor: "pointer",
+                                borderRadius: 2,
+                                border: "2px solid",
+                                borderColor: isDelivered ? "warning.main" : "divider",
+                                bgcolor: isDelivered ? "rgba(237, 152, 33, 0.12)" : "action.hover",
+                                transition: "box-shadow 0.2s, border-color 0.2s",
+                                "&:hover": {
+                                  borderColor: isDelivered ? "warning.dark" : "primary.main",
+                                  boxShadow: 3,
+                                },
+                              }}
+                              onClick={() => navigate(`/orders/${o.orderId}`)}
+                            >
+                              <Stack spacing={1.25}>
+                                <Stack
+                                  direction="row"
+                                  alignItems="center"
+                                  justifyContent="space-between"
+                                  flexWrap="wrap"
+                                  gap={1}
+                                >
+                                  <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>
+                                    {t("dashboard.linkDineInOrderShort")} · …{o.orderId.slice(-6)}
+                                  </Typography>
+                                  <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="warning"
+                                    onClick={(e) => handleLinkDineBerildi(o, e)}
+                                    sx={{ fontWeight: 800, px: 1.5 }}
+                                  >
+                                    {t("dashboard.delivered")}
+                                  </Button>
+                                </Stack>
+
+                                {o.createdAt ? (
+                                  <Typography variant="caption" color="text.secondary">
+                                    {new Date(o.createdAt).toLocaleString()}
+                                  </Typography>
+                                ) : null}
+
+                                {o.customerName ? (
+                                  <Stack direction="row" spacing={0.75} alignItems="center">
+                                    <PersonIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    <Typography variant="body2" fontWeight={600}>
+                                      {o.customerName}
+                                    </Typography>
+                                  </Stack>
+                                ) : null}
+
+                                {o.customerPhone ? (
+                                  <Stack direction="row" spacing={0.75} alignItems="center">
+                                    <PhoneIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    <Link
+                                      component="a"
+                                      href={telHref(o.customerPhone)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      underline="hover"
+                                      color="primary"
+                                      sx={{ fontWeight: 600 }}
+                                    >
+                                      {o.customerPhone}
+                                    </Link>
+                                  </Stack>
+                                ) : null}
+
+                                {o.arrivalInMinutes != null ? (
+                                  <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap">
+                                    <AccessTimeIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    <Typography variant="body2" component="div">
+                                      {t("dashboard.arrivalInMinutes", { min: o.arrivalInMinutes })}
+                                      {arrivalClock ? (
+                                        <Box
+                                          component="span"
+                                          sx={{ fontWeight: 700, ml: 0.75, whiteSpace: "nowrap" }}
+                                        >
+                                          · {arrivalClock}
+                                        </Box>
+                                      ) : null}
+                                    </Typography>
+                                  </Stack>
+                                ) : null}
+
+                                <Divider flexItem />
+
+                                {o.products.length === 0 ? (
+                                  <Typography variant="body2" color="warning.main" fontWeight={600}>
+                                    {t("dashboard.noProductsInOrder")}
+                                  </Typography>
+                                ) : (
+                                  <Stack spacing={0.75}>
+                                    {o.products.map((p, idx) => (
+                                      <Stack
+                                        key={`${o.orderId}-p-${idx}`}
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        spacing={1}
+                                      >
+                                        <Stack
+                                          direction="row"
+                                          spacing={1}
+                                          alignItems="center"
+                                          sx={{ minWidth: 0, flex: 1 }}
+                                        >
+                                          <Box
+                                            component="img"
+                                            src={
+                                              p.productImage ||
+                                              "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                                            }
+                                            alt=""
+                                            sx={{
+                                              width: 32,
+                                              height: 32,
+                                              borderRadius: 0.75,
+                                              objectFit: "cover",
+                                              bgcolor: "rgba(0,0,0,0.04)",
+                                              flexShrink: 0,
+                                            }}
+                                          />
+                                          <Typography variant="body2" sx={{ flex: 1, minWidth: 0, wordBreak: "break-word" }}>
+                                            {p.productName}
+                                          </Typography>
+                                        </Stack>
+                                        <Typography variant="body2" fontWeight={600}>
+                                          ×{p.quantity} · {p.quantity * p.price}
+                                        </Typography>
+                                      </Stack>
+                                    ))}
+                                  </Stack>
+                                )}
+
+                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                  <Typography variant="caption" color="text.secondary">
+                                    ID …{o.orderId.slice(-6)}
+                                  </Typography>
+                                  <Typography fontWeight={700}>{lineTotal}</Typography>
+                                </Stack>
+                              </Stack>
+                            </Paper>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            )}
+          </Box>
+        </Paper>
 
         {loading ? (
           <Typography variant="body2" color="text.secondary">
@@ -412,40 +857,46 @@ export default function TableStatusTop() {
                               </Typography>
                             )}
                             <Divider sx={{ mb: 0.75 }} />
-                            <Stack spacing={0.75}>
-                              {order.products.map((p, idx) => (
-                                <Stack key={`${order.orderId}-${idx}`} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-                                  <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-                                    <Box
-                                      component="img"
-                                      src={p.productImage || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}
-                                      alt={p.productName}
-                                      sx={{ width: 28, height: 28, borderRadius: 0.75, objectFit: "cover", bgcolor: "rgba(0,0,0,0.04)" }}
-                                    />
-                                    <Typography
-                                      variant="caption"
-                                      sx={{
-                                        fontSize: "1rem",
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        maxWidth: 160,
-                                      }}
-                                    >
-                                      {p.productName}
+                            {order.products.length === 0 ? (
+                              <Typography variant="body2" color="warning.main" fontWeight={600}>
+                                {t("dashboard.noProductsInOrder")}
+                              </Typography>
+                            ) : (
+                              <Stack spacing={0.75}>
+                                {order.products.map((p, idx) => (
+                                  <Stack key={`${order.orderId}-${idx}`} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                                    <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+                                      <Box
+                                        component="img"
+                                        src={p.productImage || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}
+                                        alt={p.productName}
+                                        sx={{ width: 28, height: 28, borderRadius: 0.75, objectFit: "cover", bgcolor: "rgba(0,0,0,0.04)" }}
+                                      />
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          fontSize: "1rem",
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          maxWidth: 160,
+                                        }}
+                                      >
+                                        {p.productName}
+                                      </Typography>
+                                    </Stack>
+                                    <Typography variant="caption">
+                                      <Box component="span" sx={{ fontSize: "1.2rem", fontWeight: 700 }}>
+                                        {p.quantity} {t("dashboard.ordersUnit")}
+                                      </Box>{" "}
+                                      <Box component="span" sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
+                                        - {t("dashboard.priceLabel")}: {p.quantity * p.price}
+                                      </Box>
                                     </Typography>
                                   </Stack>
-                                  <Typography variant="caption">
-                                    <Box component="span" sx={{ fontSize: "1.2rem", fontWeight: 700 }}>
-                                      {p.quantity} {t("dashboard.ordersUnit")}
-                                    </Box>{" "}
-                                    <Box component="span" sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
-                                      - {t("dashboard.priceLabel")}: {p.quantity * p.price}
-                                    </Box>
-                                  </Typography>
-                                </Stack>
-                              ))}
-                            </Stack>
+                                ))}
+                              </Stack>
+                            )}
                           </Box>
                           );
                         })}

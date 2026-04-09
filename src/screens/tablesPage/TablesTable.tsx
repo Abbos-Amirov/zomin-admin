@@ -253,6 +253,7 @@ export default function TablesTable(props: TablesTableProps) {
                           _id: t._id,
                           tableNumber: t.tableNumber,
                           tableStatus: t.tableStatus,
+                          tableKind: t.tableKind,
                         });
                       }}
                     >

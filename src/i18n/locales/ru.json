@@ -41,7 +41,8 @@
     "menu": "Меню",
     "orders": "Заказы",
     "tables": "Столы",
-    "users": "Пользователи"
+    "users": "Пользователи",
+    "takeawayOrders": "На вынос"
   },
   "topbar": {
     "search": "Поиск…",
@@ -84,7 +85,37 @@
     "newOrder": "Новый заказ",
     "addTable": "Добавить стол",
     "createNewOrderConfirm": "Создать новый заказ?",
-    "markAsReadConfirm": "Отметить как прочитанное?"
+    "markAsReadConfirm": "Отметить как прочитанное?",
+    "linkOrdersTitle": "Заказы по ссылке",
+    "dineInOrdersTitle": "Заказы в зале",
+    "takeawayOrdersTitle": "Заказы на вынос (с собой)",
+    "noTakeawayOrders": "Нет заказов на вынос",
+    "noDineInFromLink": "Нет заказов за столом",
+    "linkDineInAllPaidDismissed": "Все карточки столов скрыты (Оплачено). Они появятся снова при новом заказе за этот стол.",
+    "arrivalInMinutes": "Прибытие через: {{min}} мин",
+    "linkDineInStolWord": "СТОЛ",
+    "linkDineInNoTable": "Не указан",
+    "linkDineInAlertTitle": "Заказ отмечен как выданный",
+    "linkDineInAlertTable": "Номер стола",
+    "linkDineInAlertCustomer": "Клиент",
+    "linkDineInAlertPhone": "Телефон",
+    "linkDineInAlertItems": "Заказ (блюда)",
+    "linkDineInAlertOk": "Понятно",
+    "linkDineInBundleCount": "{{count}} заказов",
+    "linkDineInOrderShort": "Заказ",
+    "noProductsInOrder": "Позиции не пришли в ответе API — откройте заказ.",
+    "takeawayPageTitle": "Заказы на вынос (с собой)",
+    "takeawayPageSubtitle": "Панель API: только TAKEOUT",
+    "takeawayPageSubtitleLink": "admin/order/link/takeout — отдельно по каждому клиенту",
+    "takeawayPollHint": "Данные обновляются каждые 10 с; при новом заказе — уведомление.",
+    "takeawayPageLoading": "Загрузка…",
+    "refreshTakeaway": "Обновить",
+    "takeawayPayment": "Оплата",
+    "takeawayUnknownCustomer": "Клиент",
+    "takeawayOrderInBox": "Заказ",
+    "takeawayMemberTotal": "Итого по клиенту",
+    "takeawayNewOrderAlertTitle": "Новый заказ на вынос",
+    "takeawayNewOrderAlertOk": "Понятно"
   },
   "menu": {
     "title": "Меню",
@@ -154,7 +185,9 @@
     "noTables": "Нет столов",
     "cancel": "Отмена",
     "create": "Создать",
-    "update": "Обновить"
+    "update": "Обновить",
+    "tableKind": "Тип стола",
+    "tableKindPlaceholder": "Напр.: VIP, бар, уличный"
   },
   "users": {
     "title": "Пользователи",

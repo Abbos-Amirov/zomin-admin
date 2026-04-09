@@ -78,6 +78,52 @@ class OrderService {
     }
   }
 
+  /** Link orqali olib ketish (saboy) buyurtmalari */
+  public async getLinkTakeoutOrders(): Promise<any[]> {
+    try {
+      const url = `${this.path}/admin/order/link/takeout`;
+      const result = await axios.get(url, { withCredentials: true });
+      const payload = result.data;
+      return (
+        Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.orders)
+          ? payload.orders
+          : Array.isArray(payload?.result)
+          ? payload.result
+          : []
+      ) as any[];
+    } catch (err) {
+      console.warn("getLinkTakeoutOrders:", err);
+      return [];
+    }
+  }
+
+  /** Link orqali o‘tirib yeyish buyurtmalari (mijoz ismi, telefon, kelish vaqti) */
+  public async getLinkDineInOrders(): Promise<any[]> {
+    try {
+      const url = `${this.path}/admin/order/link/dine-in`;
+      const result = await axios.get(url, { withCredentials: true });
+      const payload = result.data;
+      return (
+        Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.orders)
+          ? payload.orders
+          : Array.isArray(payload?.result)
+          ? payload.result
+          : []
+      ) as any[];
+    } catch (err) {
+      console.warn("getLinkDineInOrders:", err);
+      return [];
+    }
+  }
+
   public async getOrderById(orderId: string): Promise<any> {
     try {
       const url = `${this.path}/admin/order/${orderId}`;

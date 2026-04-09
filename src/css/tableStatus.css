@@ -1,3 +1,33 @@
+/* Link orqali buyurtmalar: 2 ustun */
+.link-orders-split-panel {
+  width: 100%;
+}
+
+/* O'tirib yeyish (link dine-in) kartochkalari */
+.link-dine-in-column {
+  position: relative;
+}
+
+.link-dine-in-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.link-dine-in-card--delivered::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #ed6c02, #ff9800);
+  border-radius: 2px 0 0 2px;
+}
+
+[data-theme="dark"] .link-dine-in-card--delivered {
+  background: rgba(237, 152, 33, 0.14) !important;
+}
+
 /* Table Status Monitoring System Styles */
 .table-status-card {
   width: 100%;

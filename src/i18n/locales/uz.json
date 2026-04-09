@@ -41,7 +41,8 @@
     "menu": "Menyu",
     "orders": "Buyurtmalar",
     "tables": "Stollar",
-    "users": "Foydalanuvchilar"
+    "users": "Foydalanuvchilar",
+    "takeawayOrders": "Saboy (olib ketish)"
   },
   "topbar": {
     "search": "Qidirish…",
@@ -84,7 +85,37 @@
     "newOrder": "Yangi buyurtma",
     "addTable": "Stol qo'shish",
     "createNewOrderConfirm": "Yangi buyurtma yaratmoqchimisiz?",
-    "markAsReadConfirm": "O'qilgan deb belgilashni xohlaysizmi?"
+    "markAsReadConfirm": "O'qilgan deb belgilashni xohlaysizmi?",
+    "linkOrdersTitle": "Link orqali qilingan buyurtmalar",
+    "dineInOrdersTitle": "O'tirib yeydigan buyurtmalar",
+    "takeawayOrdersTitle": "Olib ketish uchun buyurtmalar (saboy)",
+    "noTakeawayOrders": "Saboy buyurtmalari yo'q",
+    "noDineInFromLink": "Stol buyurtmalari yo'q",
+    "linkDineInAllPaidDismissed": "Barcha stol kartochkalari «To'landi» bilan yopilgan. Shu stolga yangi buyurtma kelsa yana ko'rinadi.",
+    "arrivalInMinutes": "Kelishiga: {{min}} daqiqa",
+    "linkDineInStolWord": "Stol",
+    "linkDineInNoTable": "Ko'rsatilmagan",
+    "linkDineInAlertTitle": "Buyurtma berildi",
+    "linkDineInAlertTable": "Stol raqami",
+    "linkDineInAlertCustomer": "Mijoz",
+    "linkDineInAlertPhone": "Telefon",
+    "linkDineInAlertItems": "Buyurtma (taomlar)",
+    "linkDineInAlertOk": "Tushundim",
+    "linkDineInBundleCount": "{{count}} ta buyurtma",
+    "linkDineInOrderShort": "Buyurtma",
+    "noProductsInOrder": "Taomlar ro'yxati API dan kelmayapti — batafsil sahifada tekshiring.",
+    "takeawayPageTitle": "Olib ketish uchun buyurtmalar (saboy)",
+    "takeawayPageSubtitle": "Panel API: faqat saboy (TAKEOUT) buyurtmalari",
+    "takeawayPageSubtitleLink": "admin/order/link/takeout — har bir mijoz alohida",
+    "takeawayPollHint": "Ma'lumot har 10 soniyada yangilanadi; yangi buyurtma bo'lsa ogohlantirish chiqadi.",
+    "takeawayPageLoading": "Yuklanmoqda…",
+    "refreshTakeaway": "Yangilash",
+    "takeawayPayment": "To'lov",
+    "takeawayUnknownCustomer": "Mijoz",
+    "takeawayOrderInBox": "Buyurtma",
+    "takeawayMemberTotal": "Jami (mijoz)",
+    "takeawayNewOrderAlertTitle": "Yangi saboy buyurtma",
+    "takeawayNewOrderAlertOk": "Tushundim"
   },
   "menu": {
     "title": "Menyu",
@@ -154,7 +185,9 @@
     "noTables": "Stollar yo'q",
     "cancel": "Bekor qilish",
     "create": "Yaratish",
-    "update": "Yangilash"
+    "update": "Yangilash",
+    "tableKind": "Stol turi",
+    "tableKindPlaceholder": "Masalan: VIP, Bar, Tashqari"
   },
   "users": {
     "title": "Foydalanuvchilar",
