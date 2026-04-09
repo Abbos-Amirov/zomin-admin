@@ -1,13 +1,14 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Drawer,
+  Badge,
   Box,
+  Drawer,
   List,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   useMediaQuery,
-  ListItemButton,
 } from "@mui/material";
 import { NavLink } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -20,6 +21,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 import "../../../css/navbar.css";
 import "../../../css/sidebar.css";
+import { useTakeawayAckOptional } from "../../context/TakeawayAckContext";
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -29,6 +31,8 @@ interface SidebarProps {
 const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
   const { t } = useTranslation();
   const isMobile = useMediaQuery("(max-width:900px)");
+  const takeawayAck = useTakeawayAckOptional();
+  const takeawayPending = takeawayAck?.pendingAckCount ?? 0;
 
   const navItems = [
     {
@@ -82,7 +86,31 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
             onClick={isMobile ? onClose : undefined}
           >
             <ListItemButton className="sidebar-button">
-              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemIcon>
+                {item.to === "/takeaway-orders" ? (
+                  <Badge
+                    badgeContent={takeawayPending > 0 ? takeawayPending : undefined}
+                    color="error"
+                    max={99}
+                    overlap="circular"
+                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                    sx={{
+                      "& .MuiBadge-badge": {
+                        fontWeight: 800,
+                        fontSize: "0.7rem",
+                        minWidth: 18,
+                        height: 18,
+                      },
+                    }}
+                  >
+                    <Box component="span" sx={{ display: "inline-flex" }}>
+                      {item.icon}
+                    </Box>
+                  </Badge>
+                ) : (
+                  item.icon
+                )}
+              </ListItemIcon>
               <ListItemText className="sidebar-item" primary={item.label} />
             </ListItemButton>
           </NavLink>

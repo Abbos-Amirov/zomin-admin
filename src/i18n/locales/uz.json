@@ -115,7 +115,10 @@
     "takeawayOrderInBox": "Buyurtma",
     "takeawayMemberTotal": "Jami (mijoz)",
     "takeawayNewOrderAlertTitle": "Yangi saboy buyurtma",
-    "takeawayNewOrderAlertOk": "Tushundim"
+    "takeawayNewOrderAlertOk": "Tushundim",
+    "takeawayPendingBadgeHint": "Qabul kutilmoqda: {{count}} ta",
+    "takeawayAcknowledgeButton": "Qabul qilindi",
+    "takeawayAcknowledgedDone": "Qabul qilindi"
   },
   "menu": {
     "title": "Menyu",

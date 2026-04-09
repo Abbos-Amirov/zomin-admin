@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,23 +23,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import OrderService from "../../services/Order.service";
-import { serverApi } from "../../lib/config";
-import {
-  extractProductsFromOrder,
-  type ProductLine,
-} from "../../lib/utils/extractOrderProducts";
-import { playNotificationSound } from "../../lib/utils/playNotificationSound";
-
-type TakeoutOrderView = {
-  orderId: string;
-  customerName: string;
-  customerPhone: string;
-  arrivalInMinutes: number | null;
-  createdAt: string;
-  memberKey: string;
-  products: ProductLine[];
-};
+import { useTakeawayAck } from "../../app/context/TakeawayAckContext";
 
 function telHref(phone: string): string {
   const digits = phone.replace(/[^\d+]/g, "");
@@ -59,122 +43,23 @@ function formatArrivalClock(createdAt: string, addMinutes: number): string | nul
   });
 }
 
-/** Backend bir xil mijozni memberId yoki telefon orqali bog‘lashi mumkin */
-function memberGroupKey(order: any): string {
-  const mid = String(
-    order?.memberId ?? order?.member_id ?? order?.member?._id ?? order?.member?.id ?? ""
-  ).trim();
-  if (mid) return `m:${mid}`;
-  const phone = String(order?.customerPhone ?? order?.customer_phone ?? "").trim();
-  if (phone) return `p:${phone}`;
-  const name = String(order?.customerName ?? order?.customer_name ?? "").trim();
-  if (name) return `n:${name}`;
-  return `o:${String(order?._id ?? order?.id ?? "")}`;
-}
-
-function mapTakeoutRow(
-  order: any,
-  resolveImageUrl: (path?: string | null) => string
-): TakeoutOrderView | null {
-  const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
-  if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") {
-    return null;
-  }
-  const orderId = String(order?._id ?? order?.id ?? "").trim();
-  if (!orderId) return null;
-
-  const rawMin = order?.arrivalInMinutes ?? order?.arrival_in_minutes;
-  let arrivalInMinutes: number | null = null;
-  if (rawMin != null && rawMin !== "") {
-    const n = Number(rawMin);
-    arrivalInMinutes = Number.isFinite(n) ? n : null;
-  }
-
-  return {
-    orderId,
-    customerName: String(order?.customerName ?? order?.customer_name ?? "").trim(),
-    customerPhone: String(order?.customerPhone ?? order?.customer_phone ?? "").trim(),
-    arrivalInMinutes,
-    createdAt: String(order?.createdAt ?? order?.updatedAt ?? ""),
-    memberKey: memberGroupKey(order),
-    products: extractProductsFromOrder(order, resolveImageUrl),
-  };
-}
-
-const POLL_MS = 10_000;
-
 export default function TakeawayOrdersPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<TakeoutOrderView[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [takeawayAlertOpen, setTakeawayAlertOpen] = useState(false);
-  const [takeawayAlertOrders, setTakeawayAlertOrders] = useState<TakeoutOrderView[]>([]);
-
-  const isFirstFetchRef = useRef(true);
-  const knownOrderIdsRef = useRef<Set<string>>(new Set());
-
-  const resolveImageUrl = useCallback((path?: string | null): string => {
-    if (!path) return "";
-    if (path.startsWith("http://") || path.startsWith("https://")) return path;
-    const base = serverApi.endsWith("/") ? serverApi.slice(0, -1) : serverApi;
-    return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`;
-  }, []);
-
-  const fetchTakeaway = useCallback(
-    async (silent = false) => {
-      if (!silent) setLoading(true);
-      try {
-        const orderSvc = new OrderService();
-        const rows = await orderSvc.getLinkTakeoutOrders();
-        const list: TakeoutOrderView[] = [];
-        for (const row of rows) {
-          const v = mapTakeoutRow(row, resolveImageUrl);
-          if (v) list.push(v);
-        }
-        list.sort((a, b) => {
-          const ta = new Date(a.createdAt).getTime();
-          const tb = new Date(b.createdAt).getTime();
-          return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
-        });
-        setOrders(list);
-
-        const idsNow = new Set(list.map((o) => o.orderId));
-        if (isFirstFetchRef.current) {
-          isFirstFetchRef.current = false;
-          knownOrderIdsRef.current = idsNow;
-        } else {
-          const newOnes = list.filter((o) => !knownOrderIdsRef.current.has(o.orderId));
-          knownOrderIdsRef.current = idsNow;
-          if (newOnes.length > 0) {
-            setTakeawayAlertOrders(newOnes);
-            setTakeawayAlertOpen(true);
-            playNotificationSound();
-          }
-        }
-      } catch (err) {
-        console.error("TakeawayOrdersPage fetch error:", err);
-        setOrders([]);
-      } finally {
-        if (!silent) setLoading(false);
-      }
-    },
-    [resolveImageUrl]
-  );
-
-  useEffect(() => {
-    fetchTakeaway(false);
-  }, [fetchTakeaway]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      fetchTakeaway(true);
-    }, POLL_MS);
-    return () => window.clearInterval(id);
-  }, [fetchTakeaway]);
+  const {
+    orders,
+    loading,
+    refreshTakeaway,
+    pendingAckCount,
+    isOrderPendingAck,
+    acknowledgeOrder,
+    takeawayAlertOpen,
+    setTakeawayAlertOpen,
+    takeawayAlertOrders,
+  } = useTakeawayAck();
 
   const ordersByMember = useMemo(() => {
-    const by: Record<string, TakeoutOrderView[]> = {};
+    const by: Record<string, typeof orders> = {};
     for (const o of orders) {
       if (!by[o.memberKey]) by[o.memberKey] = [];
       by[o.memberKey].push(o);
@@ -204,15 +89,14 @@ export default function TakeawayOrdersPage() {
               <Typography variant="h5" fontWeight={800}>
                 {t("dashboard.takeawayPageTitle")}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t("dashboard.takeawayPageSubtitleLink")}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.25 }}>
-                {t("dashboard.takeawayPollHint")}
-              </Typography>
+              {pendingAckCount > 0 ? (
+                <Typography variant="caption" color="error" fontWeight={700} display="block">
+                  {t("dashboard.takeawayPendingBadgeHint", { count: pendingAckCount })}
+                </Typography>
+              ) : null}
             </Box>
           </Stack>
-          <Button variant="outlined" size="small" onClick={() => fetchTakeaway(false)} disabled={loading}>
+          <Button variant="outlined" size="small" onClick={() => refreshTakeaway()} disabled={loading}>
             {loading ? t("dashboard.takeawayPageLoading") : t("dashboard.refreshTakeaway")}
           </Button>
         </Stack>
@@ -226,10 +110,19 @@ export default function TakeawayOrdersPage() {
         >
           <DialogTitle id="takeaway-new-alert-title" sx={{ fontWeight: 800, color: "secondary.main" }}>
             {t("dashboard.takeawayNewOrderAlertTitle")}
+            {pendingAckCount > 0 ? (
+              <Chip
+                component="span"
+                size="small"
+                label={pendingAckCount}
+                color="error"
+                sx={{ ml: 1, fontWeight: 800, verticalAlign: "middle" }}
+              />
+            ) : null}
           </DialogTitle>
           <DialogContent dividers>
             <Stack spacing={2.5}>
-              {takeawayAlertOrders.map((o) => {
+              {takeawayAlertOrders.map((o, idx) => {
                 const lineTotal = o.products.reduce((s, p) => s + p.quantity * p.price, 0);
                 const arrivalClock =
                   o.arrivalInMinutes != null && o.createdAt
@@ -238,9 +131,12 @@ export default function TakeawayOrdersPage() {
                 return (
                   <Paper key={o.orderId} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                     <Stack spacing={1.25}>
-                      <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>
-                        {t("dashboard.takeawayOrderInBox")} · …{o.orderId.slice(-8)}
-                      </Typography>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+                        <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>
+                          {t("dashboard.takeawayOrderInBox")} · …{o.orderId.slice(-8)}
+                        </Typography>
+                        <Chip size="small" label={idx + 1} color="secondary" variant="filled" sx={{ fontWeight: 800 }} />
+                      </Stack>
                       <Stack direction="row" spacing={0.75} alignItems="center">
                         <PersonIcon sx={{ fontSize: 20, color: "text.secondary" }} />
                         <Typography fontWeight={700}>{o.customerName || t("dashboard.takeawayUnknownCustomer")}</Typography>
@@ -273,9 +169,9 @@ export default function TakeawayOrdersPage() {
                         </Typography>
                       ) : (
                         <Stack spacing={0.75}>
-                          {o.products.map((p, idx) => (
+                          {o.products.map((p, pidx) => (
                             <Stack
-                              key={`${o.orderId}-alert-p-${idx}`}
+                              key={`${o.orderId}-alert-p-${pidx}`}
                               direction="row"
                               justifyContent="space-between"
                               alignItems="flex-start"
@@ -388,6 +284,7 @@ export default function TakeawayOrdersPage() {
                       <Stack spacing={2}>
                         {memberOrders.map((o) => {
                           const lineTotal = o.products.reduce((s, p) => s + p.quantity * p.price, 0);
+                          const pending = isOrderPendingAck(o.orderId);
                           return (
                             <Paper
                               key={o.orderId}
@@ -468,6 +365,23 @@ export default function TakeawayOrdersPage() {
                                     ))}
                                   </Stack>
                                 )}
+
+                                <Button
+                                  fullWidth
+                                  size="small"
+                                  variant={pending ? "contained" : "outlined"}
+                                  color={pending ? "warning" : "success"}
+                                  sx={{ fontWeight: 800, mt: 0.5 }}
+                                  disabled={!pending}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    acknowledgeOrder(o.orderId);
+                                  }}
+                                >
+                                  {pending
+                                    ? t("dashboard.takeawayAcknowledgeButton")
+                                    : t("dashboard.takeawayAcknowledgedDone")}
+                                </Button>
                               </Stack>
                             </Paper>
                           );

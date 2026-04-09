@@ -115,7 +115,10 @@
     "takeawayOrderInBox": "Заказ",
     "takeawayMemberTotal": "Итого по клиенту",
     "takeawayNewOrderAlertTitle": "Новый заказ на вынос",
-    "takeawayNewOrderAlertOk": "Понятно"
+    "takeawayNewOrderAlertOk": "Понятно",
+    "takeawayPendingBadgeHint": "Ожидает подтверждения: {{count}}",
+    "takeawayAcknowledgeButton": "Принято",
+    "takeawayAcknowledgedDone": "Принято"
   },
   "menu": {
     "title": "Меню",

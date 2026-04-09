@@ -115,7 +115,10 @@
     "takeawayOrderInBox": "Order",
     "takeawayMemberTotal": "Customer total",
     "takeawayNewOrderAlertTitle": "New takeaway order",
-    "takeawayNewOrderAlertOk": "OK"
+    "takeawayNewOrderAlertOk": "OK",
+    "takeawayPendingBadgeHint": "Pending acknowledgment: {{count}}",
+    "takeawayAcknowledgeButton": "Mark as received",
+    "takeawayAcknowledgedDone": "Received"
   },
   "menu": {
     "title": "Menu",
