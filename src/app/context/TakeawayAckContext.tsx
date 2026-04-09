@@ -18,6 +18,8 @@ import { playNotificationSound } from "../../lib/utils/playNotificationSound";
 
 export type TakeoutOrderView = {
   orderId: string;
+  /** Backend member id — purge-by-member uchun */
+  memberId: string | null;
   customerName: string;
   customerPhone: string;
   arrivalInMinutes: number | null;
@@ -56,8 +58,13 @@ function mapTakeoutRow(
     arrivalInMinutes = Number.isFinite(n) ? n : null;
   }
 
+  const memberIdStr = String(
+    order?.memberId ?? order?.member_id ?? order?.member?._id ?? order?.member?.id ?? ""
+  ).trim();
+
   return {
     orderId,
+    memberId: memberIdStr || null,
     customerName: String(order?.customerName ?? order?.customer_name ?? "").trim(),
     customerPhone: String(order?.customerPhone ?? order?.customer_phone ?? "").trim(),
     arrivalInMinutes,
@@ -68,6 +75,34 @@ function mapTakeoutRow(
 }
 
 const POLL_MS = 10_000;
+const LS_TAKEAWAY_SALES_OFFSET = "takeaway_dashboard_sales_offset";
+const LS_TAKEAWAY_PAID_MEMBER_SIG = "takeaway_member_box_paid_sigs";
+
+function loadSalesOffset(): number {
+  try {
+    const raw = localStorage.getItem(LS_TAKEAWAY_SALES_OFFSET);
+    if (raw == null || raw === "") return 0;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function loadPaidMemberSigs(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(LS_TAKEAWAY_PAID_MEMBER_SIG);
+    if (!raw) return {};
+    const p = JSON.parse(raw) as unknown;
+    return typeof p === "object" && p !== null && !Array.isArray(p) ? (p as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function memberOrdersSignature(orders: TakeoutOrderView[]): string {
+  return orders.map((o) => o.orderId).sort().join("|");
+}
 
 type TakeawayAckContextValue = {
   orders: TakeoutOrderView[];
@@ -80,6 +115,15 @@ type TakeawayAckContextValue = {
   takeawayAlertOpen: boolean;
   setTakeawayAlertOpen: (open: boolean) => void;
   takeawayAlertOrders: TakeoutOrderView[];
+  /** «To'landi» bosilganda qo‘shilgan summalar — Umumiy savdoga */
+  takeawaySalesOffset: number;
+  /** Mijoz qutisi yashirinadimi (shu buyurtma to‘plami bo‘yicha) */
+  isMemberBoxPaid: (memberKey: string, memberOrders: TakeoutOrderView[]) => boolean;
+  markMemberBoxPaid: (
+    memberKey: string,
+    memberOrders: TakeoutOrderView[],
+    totalAmount: number
+  ) => void | Promise<void>;
 };
 
 const TakeawayAckContext = createContext<TakeawayAckContextValue | null>(null);
@@ -90,6 +134,8 @@ export function TakeawayAckProvider({ children }: PropsWithChildren) {
   const [pendingAckIds, setPendingAckIds] = useState<Set<string>>(() => new Set());
   const [takeawayAlertOpen, setTakeawayAlertOpen] = useState(false);
   const [takeawayAlertOrders, setTakeawayAlertOrders] = useState<TakeoutOrderView[]>([]);
+  const [takeawaySalesOffset, setTakeawaySalesOffset] = useState(loadSalesOffset);
+  const [paidMemberBoxSigs, setPaidMemberBoxSigs] = useState<Record<string, string>>(loadPaidMemberSigs);
 
   const isFirstFetchRef = useRef(true);
   const knownOrderIdsRef = useRef<Set<string>>(new Set());
@@ -173,6 +219,66 @@ export function TakeawayAckProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
+  const isMemberBoxPaid = useCallback(
+    (memberKey: string, memberOrders: TakeoutOrderView[]) => {
+      const sig = memberOrdersSignature(memberOrders);
+      return paidMemberBoxSigs[memberKey] === sig;
+    },
+    [paidMemberBoxSigs]
+  );
+
+  const markMemberBoxPaid = useCallback(
+    async (memberKey: string, memberOrders: TakeoutOrderView[], totalAmount: number) => {
+      const fromOrders = memberOrders.map((o) => o.memberId).find((id) => id && id.trim() !== "");
+      const fromKey =
+        memberKey.startsWith("m:") && memberKey.length > 2 ? memberKey.slice(2).trim() : "";
+      const memberId = String(fromOrders ?? fromKey ?? "").trim();
+
+      const customerPhone = String(
+        memberOrders.find((o) => o.customerPhone?.trim())?.customerPhone ??
+          memberOrders[0]?.customerPhone ??
+          ""
+      ).trim();
+
+      const shouldCallBackend = Boolean(memberId || customerPhone);
+      if (shouldCallBackend) {
+        try {
+          const svc = new OrderService();
+          await svc.purgeByMember({
+            memberId: memberId || "",
+            customerPhone: customerPhone || "",
+          });
+        } catch (err) {
+          console.error("markMemberBoxPaid purgeByMember:", err);
+          return;
+        }
+      }
+
+      const sig = memberOrdersSignature(memberOrders);
+      setPaidMemberBoxSigs((prev) => {
+        const next = { ...prev, [memberKey]: sig };
+        try {
+          localStorage.setItem(LS_TAKEAWAY_PAID_MEMBER_SIG, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      const add = Number(totalAmount) || 0;
+      setTakeawaySalesOffset((prev) => {
+        const n = prev + add;
+        try {
+          localStorage.setItem(LS_TAKEAWAY_SALES_OFFSET, String(n));
+        } catch {}
+        return n;
+      });
+      setPendingAckIds((prev) => {
+        const next = new Set(prev);
+        memberOrders.forEach((o) => next.delete(o.orderId));
+        return next;
+      });
+    },
+    []
+  );
+
   const isOrderPendingAck = useCallback(
     (orderId: string) => pendingAckIds.has(orderId),
     [pendingAckIds]
@@ -191,6 +297,9 @@ export function TakeawayAckProvider({ children }: PropsWithChildren) {
       takeawayAlertOpen,
       setTakeawayAlertOpen,
       takeawayAlertOrders,
+      takeawaySalesOffset,
+      isMemberBoxPaid,
+      markMemberBoxPaid,
     }),
     [
       orders,
@@ -201,6 +310,9 @@ export function TakeawayAckProvider({ children }: PropsWithChildren) {
       acknowledgeOrder,
       takeawayAlertOpen,
       takeawayAlertOrders,
+      takeawaySalesOffset,
+      isMemberBoxPaid,
+      markMemberBoxPaid,
     ]
   );
 

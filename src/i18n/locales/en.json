@@ -90,6 +90,7 @@
     "dineInOrdersTitle": "Dine-in orders",
     "takeawayOrdersTitle": "Takeaway orders",
     "noTakeawayOrders": "No takeaway orders",
+    "takeawayAllBoxesPaid": "All customer boxes are marked paid or there are no orders.",
     "noDineInFromLink": "No table orders",
     "linkDineInAllPaidDismissed": "All table cards were dismissed with Paid. They reappear when a new order arrives for that table.",
     "arrivalInMinutes": "Arriving in: {{min}} min",

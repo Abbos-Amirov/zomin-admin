@@ -175,6 +175,18 @@ class OrderService {
       throw err;
     }
   }
+
+  /** Saboy «To'landi» — body: { memberId, customerPhone } */
+  public async purgeByMember(input: { memberId: string; customerPhone: string }): Promise<unknown> {
+    try {
+      const url = `${this.path}/admin/order/purge-by-member`;
+      const result = await axios.post(url, input, { withCredentials: true });
+      return result.data;
+    } catch (err) {
+      console.warn("purgeByMember:", err);
+      throw err;
+    }
+  }
 }
 
 export default OrderService;

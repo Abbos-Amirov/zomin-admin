@@ -90,6 +90,7 @@
     "dineInOrdersTitle": "Заказы в зале",
     "takeawayOrdersTitle": "Заказы на вынос (с собой)",
     "noTakeawayOrders": "Нет заказов на вынос",
+    "takeawayAllBoxesPaid": "Все карточки клиентов отмечены оплаченными или заказов нет.",
     "noDineInFromLink": "Нет заказов за столом",
     "linkDineInAllPaidDismissed": "Все карточки столов скрыты (Оплачено). Они появятся снова при новом заказе за этот стол.",
     "arrivalInMinutes": "Прибытие через: {{min}} мин",

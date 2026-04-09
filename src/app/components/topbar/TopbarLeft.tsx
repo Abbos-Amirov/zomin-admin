@@ -1,7 +1,8 @@
-import { Stack, IconButton, InputBase, useTheme, useMediaQuery } from "@mui/material";
+import { Badge, IconButton, InputBase, Stack, useMediaQuery, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import { useTakeawayAckOptional } from "../../context/TakeawayAckContext";
 
 interface TopbarLeftProps {
   onMenuClick: () => void;
@@ -11,13 +12,32 @@ export default function TopbarLeft({ onMenuClick }: TopbarLeftProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:900px)");
+  const takeawayAck = useTakeawayAckOptional();
+  const takeawayPending = takeawayAck?.pendingAckCount ?? 0;
 
   return (
     <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1 }}>
       {isMobile && (
-        <IconButton color="primary" edge="start" onClick={onMenuClick} sx={{ mr: 1 }}>
-          <MenuIcon />
-        </IconButton>
+        <Badge
+          badgeContent={takeawayPending > 0 ? takeawayPending : undefined}
+          color="error"
+          max={99}
+          overlap="circular"
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          sx={{
+            mr: 1,
+            "& .MuiBadge-badge": {
+              fontWeight: 800,
+              fontSize: "0.65rem",
+              minWidth: 18,
+              height: 18,
+            },
+          }}
+        >
+          <IconButton color="primary" edge="start" onClick={onMenuClick} aria-label="Open menu">
+            <MenuIcon />
+          </IconButton>
+        </Badge>
       )}
 
       {/* Search Box */}

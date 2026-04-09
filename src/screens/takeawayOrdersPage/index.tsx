@@ -56,6 +56,8 @@ export default function TakeawayOrdersPage() {
     takeawayAlertOpen,
     setTakeawayAlertOpen,
     takeawayAlertOrders,
+    isMemberBoxPaid,
+    markMemberBoxPaid,
   } = useTakeawayAck();
 
   const ordersByMember = useMemo(() => {
@@ -71,13 +73,15 @@ export default function TakeawayOrdersPage() {
         return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
       });
     }
-    const keys = Object.keys(by).sort((a, b) => {
-      const nameA = by[a][0]?.customerName ?? "";
-      const nameB = by[b][0]?.customerName ?? "";
-      return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
-    });
+    const keys = Object.keys(by)
+      .filter((k) => !isMemberBoxPaid(k, by[k] ?? []))
+      .sort((a, b) => {
+        const nameA = by[a][0]?.customerName ?? "";
+        const nameB = by[b][0]?.customerName ?? "";
+        return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
+      });
     return { by, keys };
-  }, [orders]);
+  }, [orders, isMemberBoxPaid]);
 
   return (
     <Card sx={{ borderRadius: 2 }}>
@@ -205,8 +209,10 @@ export default function TakeawayOrdersPage() {
 
         {loading ? (
           <Typography color="text.secondary">{t("dashboard.takeawayPageLoading")}</Typography>
-        ) : ordersByMember.keys.length === 0 ? (
+        ) : orders.length === 0 ? (
           <Typography color="text.secondary">{t("dashboard.noTakeawayOrders")}</Typography>
+        ) : ordersByMember.keys.length === 0 ? (
+          <Typography color="text.secondary">{t("dashboard.takeawayAllBoxesPaid")}</Typography>
         ) : (
           <Grid container spacing={2.5} alignItems="stretch">
             {ordersByMember.keys.map((memberKey) => {
@@ -393,6 +399,19 @@ export default function TakeawayOrdersPage() {
                           {t("dashboard.takeawayMemberTotal")}: {totalAll}
                         </Typography>
                       </Stack>
+
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="success"
+                        sx={{ fontWeight: 800, mt: 0.5 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markMemberBoxPaid(memberKey, memberOrders, totalAll);
+                        }}
+                      >
+                        {t("dashboard.paid")}
+                      </Button>
                     </Stack>
                   </Paper>
                 </Grid>

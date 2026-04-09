@@ -30,6 +30,7 @@ import { useSelector } from "react-redux";
 import { TableStatus } from "../../lib/enums/table.enum";
 import { TableCall } from "../../lib/enums/tableCall.enum";
 import "../../css/dashboardPage.css";
+import { useTakeawayAckOptional } from "../../app/context/TakeawayAckContext";
 
 /** REDUX SLICE & SELECTOR */
 const orderStatisRetriever = createSelector(
@@ -106,6 +107,8 @@ export default function DashboardOverview() {
   const { productStatus } = useSelector(productStatusRetriever);
   const { tableStatus } = useSelector(tableStatusRetriever);
   const [monthlySales, setMonthlySales] = useState<number | null>(null);
+  const takeawayOpt = useTakeawayAckOptional();
+  const takeawaySalesOffset = takeawayOpt?.takeawaySalesOffset ?? 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -131,6 +134,12 @@ export default function DashboardOverview() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  const baseMonthlySales =
+    monthlySales !== null && monthlySales !== undefined
+      ? monthlySales
+      : Number(orderStatis?.todayIncomeAndAOV?.[0]?.totalSum ?? 0) || 0;
+  const displayMonthlySales = baseMonthlySales + takeawaySalesOffset;
 
   const kpis = [
     // ===== Orders =====
@@ -229,7 +238,7 @@ export default function DashboardOverview() {
     },
     {
       labelKey: "dashboard.monthlySales",
-      value: monthlySales ?? orderStatis?.todayIncomeAndAOV?.[0]?.totalSum ?? 0,
+      value: displayMonthlySales,
       icon: <MonetizationOnIcon />,
       iconBg: "#e8f5e9",
       iconColor: "#2e7d32",

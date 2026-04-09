@@ -90,6 +90,7 @@
     "dineInOrdersTitle": "O'tirib yeydigan buyurtmalar",
     "takeawayOrdersTitle": "Olib ketish uchun buyurtmalar (saboy)",
     "noTakeawayOrders": "Saboy buyurtmalari yo'q",
+    "takeawayAllBoxesPaid": "Barcha mijoz qutilari «To'landi» bilan yopilgan yoki buyurtmalar yo'q.",
     "noDineInFromLink": "Stol buyurtmalari yo'q",
     "linkDineInAllPaidDismissed": "Barcha stol kartochkalari «To'landi» bilan yopilgan. Shu stolga yangi buyurtma kelsa yana ko'rinadi.",
     "arrivalInMinutes": "Kelishiga: {{min}} daqiqa",
