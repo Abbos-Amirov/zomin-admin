@@ -53,6 +53,8 @@ type LinkDineInOrderView = {
   orderId: string;
   customerName: string;
   customerPhone: string;
+  /** purge-by-member uchun */
+  memberId?: string | null;
   arrivalInMinutes: number | null;
   createdAt: string;
   tableNumber?: string;
@@ -96,10 +98,18 @@ function mapLinkDineInRow(
     arrivalInMinutes = Number.isFinite(n) ? n : null;
   }
 
+  const memberIdRaw =
+    order?.memberId ?? order?.member_id ?? order?.member?._id ?? order?.member?.id;
+  const memberIdStr =
+    memberIdRaw != null && String(memberIdRaw).trim() !== ""
+      ? String(memberIdRaw).trim()
+      : undefined;
+
   return {
     orderId,
     customerName: String(order?.customerName ?? order?.customer_name ?? "").trim(),
     customerPhone: String(order?.customerPhone ?? order?.customer_phone ?? "").trim(),
+    memberId: memberIdStr,
     arrivalInMinutes,
     createdAt: String(order?.createdAt ?? order?.updatedAt ?? ""),
     tableNumber: String(order?.tableNumber ?? order?.table_number ?? "").trim() || undefined,
@@ -409,11 +419,34 @@ export default function TableStatusTop() {
     });
   }, [linkDineInByTable, linkDinePaidBundleSigs]);
 
-  const handleLinkDineBoxPaid = useCallback((tableKey: string, orders: LinkDineInOrderView[], e: React.MouseEvent) => {
-    e.stopPropagation();
-    const sig = linkDineBundleSignature(orders);
-    setLinkDinePaidBundleSigs((prev) => ({ ...prev, [tableKey]: sig }));
-  }, []);
+  const handleLinkDineBoxPaid = useCallback(
+    async (tableKey: string, orders: LinkDineInOrderView[], e: React.MouseEvent) => {
+      e.stopPropagation();
+      const memberId = String(
+        orders.map((o) => o.memberId).find((id) => id && String(id).trim() !== "") ?? ""
+      ).trim();
+      const customerPhone = String(
+        orders.find((o) => o.customerPhone?.trim())?.customerPhone ?? orders[0]?.customerPhone ?? ""
+      ).trim();
+
+      if (memberId || customerPhone) {
+        try {
+          const orderSvc = new OrderService();
+          await orderSvc.purgeByMember({
+            memberId: memberId || "",
+            customerPhone: customerPhone || "",
+          });
+        } catch (err) {
+          console.error("handleLinkDineBoxPaid purgeByMember:", err);
+          return;
+        }
+      }
+
+      const sig = linkDineBundleSignature(orders);
+      setLinkDinePaidBundleSigs((prev) => ({ ...prev, [tableKey]: sig }));
+    },
+    []
+  );
 
   const handleCompleteTableOrders = useCallback(
     async (tableNumber: string) => {
