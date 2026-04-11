@@ -50,6 +50,7 @@
     "settings": "Sozlamalar",
     "noNotifications": "Bildirishnomalar yo'q",
     "markAllRead": "Barchasini o'qilgan deb belgilash",
+    "notificationsUnreadBadge": "{{count}} ta o'qilmagan",
     "themeMode": "Mavzu rejimi",
     "language": "Til",
     "logout": "Chiqish"

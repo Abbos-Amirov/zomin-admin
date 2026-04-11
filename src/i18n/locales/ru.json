@@ -50,6 +50,7 @@
     "settings": "Настройки",
     "noNotifications": "Нет уведомлений",
     "markAllRead": "Отметить все как прочитанные",
+    "notificationsUnreadBadge": "Не прочитано: {{count}}",
     "themeMode": "Режим темы",
     "language": "Язык",
     "logout": "Выйти"

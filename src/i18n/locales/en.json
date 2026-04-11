@@ -50,6 +50,7 @@
     "settings": "Settings",
     "noNotifications": "No notifications",
     "markAllRead": "Mark all as read",
+    "notificationsUnreadBadge": "{{count}} unread",
     "themeMode": "Theme Mode",
     "language": "Language",
     "logout": "Logout"
