@@ -17,6 +17,7 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import PersonIcon from "@mui/icons-material/Person";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
 import { createSelector } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +39,7 @@ import {
 /** Panel API dan kelgan buyurtma (stol) */
 type PanelOrderView = {
   orderId: string;
-  orderType: "TABLE" | "TAKEOUT";
+  orderType: "TABLE" | "TAKEOUT" | "DELIVERY";
   tableId: string;
   tableNumber: string;
   orderStatus: string;
@@ -80,12 +81,51 @@ function formatArrivalClock(createdAt: string, addMinutes: number): string | nul
   });
 }
 
+/** Backend `{ data: { list: [] } }` yoki `rows` kabi turli shakllarda qaytarishi mumkin */
+function extractPanelRowsPayload(payload: unknown): any[] {
+  if (payload == null) return [];
+  if (Array.isArray(payload)) return payload;
+
+  const p = payload as Record<string, any>;
+  const paths: string[][] = [
+    ["orders"],
+    ["data", "orders"],
+    ["data", "list"],
+    ["data", "items"],
+    ["data", "results"],
+    ["data", "rows"],
+    ["data", "tables"],
+    ["data", "data"],
+    ["data", "panel"],
+    ["data", "panelOrders"],
+    ["result"],
+    ["rows"],
+    ["tables"],
+    ["list"],
+    ["items"],
+    ["data"],
+    ["content"],
+    ["body"],
+    ["data", "body"],
+    ["data", "content"],
+  ];
+
+  for (const path of paths) {
+    let cur: any = p;
+    for (const key of path) {
+      cur = cur?.[key];
+    }
+    if (Array.isArray(cur)) return cur;
+  }
+  return [];
+}
+
 function mapLinkDineInRow(
   order: any,
   resolveImageUrl: (path?: string | null) => string
 ): LinkDineInOrderView | null {
   const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
-  if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") {
+  if (orderStatus === "CANCELLED" || orderStatus === "CANCELED") {
     return null;
   }
   const orderId = String(order?._id ?? order?.id ?? "").trim();
@@ -207,49 +247,63 @@ export default function TableStatusTop() {
     return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`;
   }, []);
 
-  const fetchOrdersByTable = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+  /** Faqat «Oshxonaga tashrif — stol buyurtmalari»: GET /admin/orders/all/panel */
+  const fetchPanelOrders = useCallback(async (): Promise<void> => {
     try {
-      const { data: payload } = await axios.get(`${serverApi}/admin/orders/all/panel`, {
+      const base = String(serverApi).replace(/\/+$/, "");
+      const panelUrl = `${base}/admin/orders/all/panel`;
+      const { data: payload } = await axios.get(panelUrl, {
         withCredentials: true,
       });
-      const panelRows: any[] = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.orders)
-        ? payload.orders
-        : Array.isArray(payload?.data)
-        ? payload.data
-        : Array.isArray(payload?.data?.orders)
-        ? payload.data.orders
-        : Array.isArray(payload?.rows)
-        ? payload.rows
-        : Array.isArray(payload?.result)
-        ? payload.result
-        : Array.isArray(payload?.tables)
-        ? payload.tables
-        : [];
+      const panelRows: any[] = extractPanelRowsPayload(payload);
 
       const grouped: Record<string, PanelOrderView[]> = {};
 
-      const mapOrderToView = (order: any): PanelOrderView | null => {
-        const orderTypeRaw = String(order?.orderType ?? order?.order_type ?? "").toUpperCase();
-        if (orderTypeRaw === OrderType.DELIVERY) return null;
-        const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
-        if (orderStatus === "COMPLETED" || orderStatus === "CANCELLED" || orderStatus === "CANCELED") return null;
+      const tableNumFrom = (order: any, row: any): string =>
+        String(
+          order?.tableNumber ??
+            order?.table_number ??
+            order?.table?.tableNumber ??
+            order?.table?.table_number ??
+            order?.table?.number ??
+            row?.tableNumber ??
+            row?.table_number ??
+            row?.number ??
+            row?.table?.tableNumber ??
+            row?.table?.table_number ??
+            row?.table?.number ??
+            ""
+        ).trim();
 
-        const normalizedType: "TABLE" | "TAKEOUT" =
-          orderTypeRaw === OrderType.TAKEOUT ? "TAKEOUT" : "TABLE";
+      const mapOrderToView = (order: any, row?: any): PanelOrderView | null => {
+        const orderTypeRaw = String(order?.orderType ?? order?.order_type ?? "").toUpperCase();
+        const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
+        if (orderStatus === "CANCELLED" || orderStatus === "CANCELED") return null;
+
+        const normalizedType: "TABLE" | "TAKEOUT" | "DELIVERY" =
+          orderTypeRaw === OrderType.TAKEOUT
+            ? "TAKEOUT"
+            : orderTypeRaw === OrderType.DELIVERY
+            ? "DELIVERY"
+            : "TABLE";
 
         const products = extractProductsFromOrder(order, resolveImageUrl);
 
-        const tableNumberStr = String(
-          order?.tableNumber ?? order?.table_number ?? ""
-        ).trim();
+        const tableNumberStr = row
+          ? tableNumFrom(order, row)
+          : String(
+              order?.tableNumber ??
+                order?.table_number ??
+                order?.table?.tableNumber ??
+                order?.table?.table_number ??
+                order?.table?.number ??
+                ""
+            ).trim();
 
         return {
           orderId: String(order?._id ?? order?.id ?? ""),
           orderType: normalizedType,
-          tableId: String(order?.tableId ?? order?.table_id ?? ""),
+          tableId: String(order?.tableId ?? order?.table_id ?? order?.table?._id ?? ""),
           tableNumber: tableNumberStr,
           orderStatus: String(order?.orderStatus ?? order?.order_status ?? ""),
           paymentStatus: String(order?.paymentStatus ?? order?.payment_status ?? ""),
@@ -259,6 +313,17 @@ export default function TableStatusTop() {
         };
       };
 
+      /** Stol raqami bo‘lmasa DELIVERY ni memberId bo‘yicha yig‘ish */
+      const groupKeyForPanel = (order: any, row: any, orderView: PanelOrderView): string => {
+        const tn = tableNumFrom(order, row);
+        if (tn) return tn;
+        if (orderView.orderType === "DELIVERY") {
+          const mid = String(order?.memberId ?? order?.member_id ?? "").trim();
+          return mid ? `D:${mid}` : "yetkazib";
+        }
+        return "";
+      };
+
       panelRows.forEach((row: any) => {
         const nestedOrders = Array.isArray(row?.orders)
           ? row.orders
@@ -266,75 +331,95 @@ export default function TableStatusTop() {
           ? row.orderList
           : Array.isArray(row?.items)
           ? row.items
+          : Array.isArray(row?.data?.orders)
+          ? row.data.orders
+          : Array.isArray(row?.table?.orders)
+          ? row.table.orders
+          : Array.isArray(row?.activeOrders)
+          ? row.activeOrders
           : null;
 
         if (nestedOrders) {
           nestedOrders.forEach((order: any) => {
-            const tableNumber = String(
-              order?.tableNumber ??
-                order?.table_number ??
-                row?.tableNumber ??
-                row?.table_number ??
-                row?.table?.tableNumber ??
-                row?.table?.table_number ??
-                ""
-            ).trim();
-            const orderView = mapOrderToView({
-              ...order,
-              tableNumber:
-                order?.tableNumber ??
-                order?.table_number ??
-                row?.tableNumber ??
-                row?.table_number ??
-                row?.table?.tableNumber,
-            });
+            const orderView = mapOrderToView(
+              {
+                ...order,
+                tableNumber:
+                  order?.tableNumber ??
+                  order?.table_number ??
+                  row?.tableNumber ??
+                  row?.table_number ??
+                  row?.table?.tableNumber,
+              },
+              row
+            );
             if (!orderView) return;
             if (orderView.orderType === "TAKEOUT") return;
-            if (!tableNumber) return;
-            if (!grouped[tableNumber]) grouped[tableNumber] = [];
-            grouped[tableNumber].push(orderView);
+            const key = groupKeyForPanel(order, row, orderView);
+            if (!key) return;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(orderView);
           });
           return;
         }
 
-        const tableNumber = String(
-          row?.tableNumber ?? row?.table_number ?? row?.table?.tableNumber ?? row?.table?.table_number ?? ""
-        ).trim();
+        if (row?.order && typeof row.order === "object" && !Array.isArray(row.order)) {
+          const order = row.order;
+          const orderView = mapOrderToView(order, row);
+          if (!orderView) return;
+          if (orderView.orderType === "TAKEOUT") return;
+          const key = groupKeyForPanel(order, row, orderView);
+          if (!key) return;
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key].push(orderView);
+          return;
+        }
+
         const orderView = mapOrderToView(row);
         if (!orderView) return;
         if (orderView.orderType === "TAKEOUT") return;
-        if (!tableNumber) return;
-        if (!grouped[tableNumber]) grouped[tableNumber] = [];
-        grouped[tableNumber].push(orderView);
+        const key = groupKeyForPanel(row, row, orderView);
+        if (!key) return;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(orderView);
       });
 
       setGroupedOrders(grouped);
-
-      let linkViews: LinkDineInOrderView[] = [];
-      try {
-        const orderSvc = new OrderService();
-        const linkRows = await orderSvc.getLinkDineInOrders();
-        for (const row of linkRows) {
-          const v = mapLinkDineInRow(row, resolveImageUrl);
-          if (v) linkViews.push(v);
-        }
-      } catch (linkErr) {
-        console.warn("fetchOrdersByTable: link dine-in", linkErr);
-        linkViews = [];
-      }
-      setLinkDineInOrders(linkViews);
     } catch (err) {
-      console.error("fetchOrdersByTable error:", err);
+      console.error("fetchPanelOrders:", err);
       setGroupedOrders({});
-      setLinkDineInOrders([]);
-    } finally {
-      if (!silent) setLoading(false);
     }
   }, [resolveImageUrl]);
 
+  /** Faqat «O'tirib yeydigan buyurtmalar»: GET /admin/order/link/dine-in (panel API emas) */
+  const fetchLinkDineInOrders = useCallback(async (): Promise<void> => {
+    try {
+      const orderSvc = new OrderService();
+      const linkRows = await orderSvc.getLinkDineInOrders();
+      const linkViews: LinkDineInOrderView[] = [];
+      for (const row of linkRows) {
+        const v = mapLinkDineInRow(row, resolveImageUrl);
+        if (v) linkViews.push(v);
+      }
+      setLinkDineInOrders(linkViews);
+    } catch (linkErr) {
+      console.warn("fetchLinkDineInOrders:", linkErr);
+      setLinkDineInOrders([]);
+    }
+  }, [resolveImageUrl]);
+
+  const refreshOrdersData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      await Promise.allSettled([fetchPanelOrders(), fetchLinkDineInOrders()]);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [fetchPanelOrders, fetchLinkDineInOrders]);
+
   useEffect(() => {
-    fetchOrdersByTable();
-  }, [fetchOrdersByTable]);
+    refreshOrdersData();
+  }, [refreshOrdersData]);
 
   useEffect(() => {
     saveStored(deliveredOrderIds);
@@ -353,11 +438,11 @@ export default function TableStatusTop() {
   useEffect(() => {
     const refreshBySocket = () => {
       // faqat order oqimi bo'yicha yangilash
-      fetchOrdersByTable(true);
+      refreshOrdersData(true);
     };
     const refreshByAnyOrderEvent = (eventName: string) => {
       if (String(eventName).toLowerCase().includes("order")) {
-        fetchOrdersByTable(true);
+        refreshOrdersData(true);
       }
     };
 
@@ -374,16 +459,16 @@ export default function TableStatusTop() {
       socket.off("order", refreshBySocket);
       socket.offAny(refreshByAnyOrderEvent);
     };
-  }, [fetchOrdersByTable]);
+  }, [refreshOrdersData]);
 
   useEffect(() => {
     // Socket uzilib qolsa ham list eskirib qolmasligi uchun fallback
     const id = window.setInterval(() => {
-      fetchOrdersByTable(true);
-    }, 5000);
+      refreshOrdersData(true);
+    }, 10_000);
 
     return () => window.clearInterval(id);
-  }, [fetchOrdersByTable]);
+  }, [refreshOrdersData]);
 
   const tableNumbers = useMemo(() => {
     const fromOrders = Object.keys(groupedOrders);
@@ -460,7 +545,7 @@ export default function TableStatusTop() {
 
       try {
         const orderSvc = new OrderService();
-        await orderSvc.completeTableOrders(tableId);
+        await orderSvc.purgeByTable(tableId);
 
         // Stol holatini "tozalanmoqda"ga o‘tkazamiz (UIda darhol ko‘rinsin)
         const currentTables = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
@@ -487,12 +572,12 @@ export default function TableStatusTop() {
           delete next[String(tableNumber)];
           return next;
         });
-        fetchOrdersByTable(true);
+        refreshOrdersData(true);
       } catch (err) {
         console.error("handleCompleteTableOrders error:", err);
       }
     },
-    [dispatch, fetchOrdersByTable, groupedOrders, tableStatus]
+    [dispatch, refreshOrdersData, groupedOrders, tableStatus]
   );
 
   const handleDelivered = useCallback((tableNumber: string, orders: { orderId: string }[], e: React.MouseEvent) => {
@@ -802,16 +887,61 @@ export default function TableStatusTop() {
           </Box>
         </Paper>
 
-        {loading ? (
-          <Typography variant="body2" color="text.secondary">
-            Loading orders...
-          </Typography>
-        ) : tableNumbers.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            Faol (yakunlanmagan) stol buyurtmalari topilmadi.
-          </Typography>
-        ) : (
-          <Grid container spacing={2} className="table-status-top-grid">
+        <Paper
+          elevation={0}
+          className="table-orders-panel-shell"
+          sx={{
+            p: 2,
+            mt: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
+            backgroundImage: (theme) =>
+              theme.palette.mode === "dark"
+                ? "linear-gradient(160deg, rgba(237,108,2,0.14) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.2) 100%)"
+                : "linear-gradient(160deg, rgba(237,108,2,0.08) 0%, rgba(255,255,255,0.98) 45%, rgba(250,248,245,1) 100%)",
+            boxShadow: (theme) =>
+              theme.palette.mode === "dark"
+                ? "0 10px 36px rgba(0,0,0,0.45)"
+                : "0 10px 32px rgba(237, 108, 2, 0.1)",
+          }}
+        >
+          <Stack
+            direction="row"
+            alignItems="flex-start"
+            spacing={1.5}
+            sx={{ mb: 2, pb: 1.5, borderBottom: 1, borderColor: "divider" }}
+          >
+            <RestaurantIcon
+              sx={{
+                fontSize: 32,
+                color: "warning.main",
+                flexShrink: 0,
+                mt: 0.25,
+              }}
+            />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="subtitle1" fontWeight={800} color="warning.dark" sx={{ letterSpacing: 0.2 }}>
+                {t("dashboard.tableOrdersPanelTitle")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {t("dashboard.tableOrdersPanelSubtitle")}
+              </Typography>
+            </Box>
+          </Stack>
+
+          {loading ? (
+            <Typography variant="body2" color="text.secondary">
+              {t("dashboard.tableOrdersPanelLoading")}
+            </Typography>
+          ) : tableNumbers.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              {t("dashboard.tableOrdersPanelEmpty")}
+            </Typography>
+          ) : (
+            <Grid container spacing={2} className="table-status-top-grid">
             {tableNumbers.map((tableNumber) => {
               const orders = groupedOrders[tableNumber] ?? [];
               const tableTotal = orders.reduce(
@@ -955,8 +1085,9 @@ export default function TableStatusTop() {
                 </Grid>
               );
             })}
-          </Grid>
-        )}
+            </Grid>
+          )}
+        </Paper>
       </CardContent>
     </Card>
   );

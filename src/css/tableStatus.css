@@ -1,3 +1,8 @@
+/* Stol buyurtmalari — alohida blok (oshxonada QR/stol) */
+.table-orders-panel-shell {
+  width: 100%;
+}
+
 /* Link orqali buyurtmalar: 2 ustun */
 .link-orders-split-panel {
   width: 100%;

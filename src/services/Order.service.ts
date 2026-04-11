@@ -176,6 +176,18 @@ class OrderService {
     }
   }
 
+  /** «Oshxonaga tashrif» stol yashigi «To'landi» — body: { tableId } */
+  public async purgeByTable(tableId: string): Promise<unknown> {
+    try {
+      const url = `${this.path}/admin/order/purge-by-table`;
+      const result = await axios.post(url, { tableId }, { withCredentials: true });
+      return result.data;
+    } catch (err) {
+      console.warn("purgeByTable:", err);
+      throw err;
+    }
+  }
+
   /** Saboy «To'landi» — body: { memberId, customerPhone } */
   public async purgeByMember(input: { memberId: string; customerPhone: string }): Promise<unknown> {
     try {

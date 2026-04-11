@@ -148,7 +148,7 @@ const ContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     };
 
     syncNotifications();
-    const id = window.setInterval(syncNotifications, 5000);
+    const id = window.setInterval(syncNotifications, 10_000);
     return () => {
       alive = false;
       window.clearInterval(id);
