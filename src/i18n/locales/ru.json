@@ -100,6 +100,7 @@
     "arrivalInMinutes": "Прибытие через: {{min}} мин",
     "linkDineInStolWord": "СТОЛ",
     "linkDineInNoTable": "Не указан",
+    "linkDineInNewOrderAlertTitle": "Новый заказ в зале",
     "linkDineInAlertTitle": "Заказ отмечен как выданный",
     "linkDineInAlertTable": "Номер стола",
     "linkDineInAlertCustomer": "Клиент",

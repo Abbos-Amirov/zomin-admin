@@ -100,6 +100,7 @@
     "arrivalInMinutes": "Kelishiga: {{min}} daqiqa",
     "linkDineInStolWord": "Stol",
     "linkDineInNoTable": "Ko'rsatilmagan",
+    "linkDineInNewOrderAlertTitle": "Yangi o'tirib yeyish buyurtmasi",
     "linkDineInAlertTitle": "Buyurtma berildi",
     "linkDineInAlertTable": "Stol raqami",
     "linkDineInAlertCustomer": "Mijoz",

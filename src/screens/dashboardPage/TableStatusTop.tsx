@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -12,6 +12,10 @@ import {
   Button,
   Paper,
   Link,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
 import PhoneIcon from "@mui/icons-material/Phone";
 import PersonIcon from "@mui/icons-material/Person";
@@ -35,6 +39,7 @@ import {
   extractProductsFromOrder,
   type ProductLine,
 } from "../../lib/utils/extractOrderProducts";
+import { playNotificationSound } from "../../lib/utils/playNotificationSound";
 
 /** Panel API dan kelgan buyurtma (stol) */
 type PanelOrderView = {
@@ -239,6 +244,10 @@ export default function TableStatusTop() {
   /** Stol yashigi "To'landi" — joriy buyurtmalar imzosi bilan yashirinadi */
   const [linkDinePaidBundleSigs, setLinkDinePaidBundleSigs] =
     useState<Record<string, string>>(parsePaidBundleSigs);
+  const [linkDineAlertOpen, setLinkDineAlertOpen] = useState(false);
+  const [linkDineAlertOrders, setLinkDineAlertOrders] = useState<LinkDineInOrderView[]>([]);
+  const isFirstLinkDineFetchRef = useRef(true);
+  const knownLinkDineOrderIdsRef = useRef<Set<string>>(new Set());
 
   const resolveImageUrl = useCallback((path?: string | null): string => {
     if (!path) return "";
@@ -470,6 +479,27 @@ export default function TableStatusTop() {
     return () => window.clearInterval(id);
   }, [refreshOrdersData]);
 
+  useEffect(() => {
+    const idsNow = new Set(linkDineInOrders.map((o) => o.orderId));
+    if (isFirstLinkDineFetchRef.current) {
+      isFirstLinkDineFetchRef.current = false;
+      knownLinkDineOrderIdsRef.current = idsNow;
+      return;
+    }
+    const newOnes = linkDineInOrders.filter((o) => !knownLinkDineOrderIdsRef.current.has(o.orderId));
+    knownLinkDineOrderIdsRef.current = idsNow;
+    if (newOnes.length > 0) {
+      newOnes.sort((a, b) => {
+        const ta = new Date(a.createdAt).getTime();
+        const tb = new Date(b.createdAt).getTime();
+        return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
+      });
+      setLinkDineAlertOrders(newOnes);
+      setLinkDineAlertOpen(true);
+      playNotificationSound();
+    }
+  }, [linkDineInOrders]);
+
   const tableNumbers = useMemo(() => {
     const fromOrders = Object.keys(groupedOrders);
     const unique = Array.from(new Set(fromOrders)).filter(Boolean);
@@ -527,10 +557,36 @@ export default function TableStatusTop() {
         }
       }
 
+      /** Band (OCCUPIED) → tozalanmoqda (CLEANING). 3 daqiqadan keyin `TableStatus.tsx` mavjud (AVAILABLE) qiladi */
+      const tnForTable =
+        tableKey !== "__none__"
+          ? String(tableKey).trim()
+          : String(orders.find((o) => o.tableNumber?.trim())?.tableNumber ?? "").trim();
+      if (tnForTable) {
+        const currentTables = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
+        const t = currentTables.find((tab) => String(tab.tableNumber) === String(tnForTable));
+        if (t?._id && t.tableStatus === TableStatus.OCCUPIED) {
+          const nowIso = new Date().toISOString();
+          const nextTables = currentTables.map((tab) =>
+            tab._id === t._id ? { ...tab, tableStatus: TableStatus.CLEANING, updatedAt: nowIso } : tab
+          );
+          dispatch(setTableStatus(nextTables));
+          try {
+            const tableSvc = new TableService();
+            await tableSvc.updateChosenTable({
+              _id: t._id,
+              tableStatus: TableStatus.CLEANING,
+            });
+          } catch (err) {
+            console.error("handleLinkDineBoxPaid updateChosenTable:", err);
+          }
+        }
+      }
+
       const sig = linkDineBundleSignature(orders);
       setLinkDinePaidBundleSigs((prev) => ({ ...prev, [tableKey]: sig }));
     },
-    []
+    [dispatch, tableStatus]
   );
 
   const handleCompleteTableOrders = useCallback(
@@ -610,6 +666,126 @@ export default function TableStatusTop() {
             {t("dashboard.detail")}
           </Button>
         </Stack>
+
+        <Dialog
+          open={linkDineAlertOpen}
+          onClose={() => setLinkDineAlertOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          aria-labelledby="link-dine-new-alert-title"
+        >
+          <DialogTitle
+            id="link-dine-new-alert-title"
+            sx={{
+              fontWeight: 800,
+              color: "primary.main",
+              fontSize: { xs: "1.4rem", sm: "1.75rem" },
+              lineHeight: 1.35,
+              pr: 6,
+            }}
+          >
+            {t("dashboard.linkDineInNewOrderAlertTitle")}
+            {linkDineAlertOrders.length > 1 ? (
+              <Chip
+                component="span"
+                size="small"
+                label={linkDineAlertOrders.length}
+                color="primary"
+                sx={{ ml: 1, fontWeight: 800, verticalAlign: "middle" }}
+              />
+            ) : null}
+          </DialogTitle>
+          <DialogContent dividers>
+            <Stack spacing={2.5}>
+              {linkDineAlertOrders.map((o, idx) => {
+                const lineTotal = o.products.reduce((s, p) => s + p.quantity * p.price, 0);
+                const arrivalClock =
+                  o.arrivalInMinutes != null && o.createdAt
+                    ? formatArrivalClock(o.createdAt, o.arrivalInMinutes)
+                    : null;
+                const tableLabel = o.tableNumber?.trim()
+                  ? o.tableNumber.trim()
+                  : t("dashboard.linkDineInNoTable");
+                return (
+                  <Paper key={o.orderId} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                    <Stack spacing={1.25}>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+                        <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>
+                          {t("dashboard.linkDineInOrderShort")} · …{o.orderId.slice(-8)}
+                        </Typography>
+                        <Chip size="small" label={idx + 1} color="primary" variant="filled" sx={{ fontWeight: 800 }} />
+                      </Stack>
+                      <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap">
+                        <TableRestaurantIcon sx={{ fontSize: 20, color: "primary.main" }} />
+                        <Typography variant="body2" fontWeight={700}>
+                          {t("dashboard.linkDineInAlertTable")}: {tableLabel}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" spacing={0.75} alignItems="center">
+                        <PersonIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                        <Typography fontWeight={700}>{o.customerName || "—"}</Typography>
+                      </Stack>
+                      {o.customerPhone ? (
+                        <Stack direction="row" spacing={0.75} alignItems="center">
+                          <PhoneIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                          <Link href={telHref(o.customerPhone)} underline="hover" color="primary" fontWeight={600}>
+                            {o.customerPhone}
+                          </Link>
+                        </Stack>
+                      ) : null}
+                      {o.arrivalInMinutes != null ? (
+                        <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap">
+                          <AccessTimeIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                          <Typography variant="body2" fontWeight={600}>
+                            {t("dashboard.arrivalInMinutes", { min: o.arrivalInMinutes })}
+                            {arrivalClock ? (
+                              <Box component="span" sx={{ fontWeight: 700, ml: 0.75 }}>
+                                · {arrivalClock}
+                              </Box>
+                            ) : null}
+                          </Typography>
+                        </Stack>
+                      ) : null}
+                      <Divider />
+                      {o.products.length === 0 ? (
+                        <Typography variant="body2" color="warning.main">
+                          {t("dashboard.noProductsInOrder")}
+                        </Typography>
+                      ) : (
+                        <Stack spacing={0.75}>
+                          {o.products.map((p, pidx) => (
+                            <Stack
+                              key={`${o.orderId}-alert-p-${pidx}`}
+                              direction="row"
+                              justifyContent="space-between"
+                              alignItems="flex-start"
+                              spacing={1}
+                            >
+                              <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                                {p.productName}
+                              </Typography>
+                              <Typography variant="body2" fontWeight={700} whiteSpace="nowrap">
+                                ×{p.quantity} · {p.quantity * p.price}
+                              </Typography>
+                            </Stack>
+                          ))}
+                        </Stack>
+                      )}
+                      <Typography variant="subtitle1" fontWeight={800} color="primary.main" textAlign="right">
+                        {lineTotal}
+                      </Typography>
+                    </Stack>
+                  </Paper>
+                );
+              })}
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button variant="contained" color="primary" onClick={() => setLinkDineAlertOpen(false)}>
+              {t("dashboard.linkDineInAlertOk")}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Paper
           elevation={0}
