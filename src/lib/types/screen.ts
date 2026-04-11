@@ -1,3 +1,4 @@
+import type { LinkDineInOrderView } from "../linkDineInOrderMapping";
 import { Member } from "./member";
 import { Order, OrderStatis } from "./order";
 import { Product, ProductsStat } from "./product";
@@ -17,6 +18,11 @@ export interface DashboardPageState {
   orderStatis: OrderStatis | null;
   tableStatus: Table[];
   productStatus: ProductsStat[];
+  /** Link o'tirib yeyish: qabul kutilayotgan buyurtma IDlari (badge — sidebar / topbar; sahifadan chiqilsa ham saqlanadi) */
+  linkDinePendingAckIds: string[];
+  linkDineInOrders: LinkDineInOrderView[];
+  linkDineAlertOpen: boolean;
+  linkDineAlertOrders: LinkDineInOrderView[];
 }
 
 /** MenuPage */

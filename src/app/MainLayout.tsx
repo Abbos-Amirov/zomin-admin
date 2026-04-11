@@ -4,6 +4,7 @@ import Topbar from "./components/topbar/Topbar";
 import { Box, Stack } from "@mui/material";
 import "../css/mainLayout.css";
 import { TakeawayAckProvider } from "./context/TakeawayAckContext";
+import LinkDineInGlobalSync from "./components/LinkDineInGlobalSync";
 
 const MainLayout = ({ children }: PropsWithChildren) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -12,6 +13,7 @@ const MainLayout = ({ children }: PropsWithChildren) => {
 
   return (
     <TakeawayAckProvider>
+    <LinkDineInGlobalSync />
     <Stack
       direction="row"
       className="main-layout-container"

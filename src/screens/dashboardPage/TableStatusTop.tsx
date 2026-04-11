@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -9,13 +9,10 @@ import {
   Box,
   Divider,
   Chip,
+  Badge,
   Button,
   Paper,
   Link,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
 } from "@mui/material";
 import PhoneIcon from "@mui/icons-material/Phone";
 import PersonIcon from "@mui/icons-material/Person";
@@ -26,11 +23,17 @@ import { createSelector } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { retrieveTableStatus } from "./selector";
+import {
+  retrieveLinkDineInOrders,
+  retrieveLinkDinePendingAckCount,
+  retrieveLinkDinePendingAckIds,
+  retrieveTableStatus,
+} from "./selector";
 import { Table } from "../../lib/types/table";
 import OrderService from "../../services/Order.service";
 import { serverApi, socket } from "../../lib/config";
-import { setTableStatus } from "./slice";
+import { setLinkDinePendingAckIds, setTableStatus } from "./slice";
+import type { LinkDineInOrderView } from "../../lib/linkDineInOrderMapping";
 import { TableStatus } from "../../lib/enums/table.enum";
 import TableService from "../../services/Table.service";
 import "../../css/tableStatus.css";
@@ -39,7 +42,7 @@ import {
   extractProductsFromOrder,
   type ProductLine,
 } from "../../lib/utils/extractOrderProducts";
-import { playNotificationSound } from "../../lib/utils/playNotificationSound";
+import { store } from "../../app/store";
 
 /** Panel API dan kelgan buyurtma (stol) */
 type PanelOrderView = {
@@ -51,19 +54,6 @@ type PanelOrderView = {
   paymentStatus: string;
   paymentMethod: string;
   createdAt: string;
-  products: ProductLine[];
-};
-
-/** `/admin/order/link/dine-in` — mijoz + taomlar */
-type LinkDineInOrderView = {
-  orderId: string;
-  customerName: string;
-  customerPhone: string;
-  /** purge-by-member uchun */
-  memberId?: string | null;
-  arrivalInMinutes: number | null;
-  createdAt: string;
-  tableNumber?: string;
   products: ProductLine[];
 };
 
@@ -123,43 +113,6 @@ function extractPanelRowsPayload(payload: unknown): any[] {
     if (Array.isArray(cur)) return cur;
   }
   return [];
-}
-
-function mapLinkDineInRow(
-  order: any,
-  resolveImageUrl: (path?: string | null) => string
-): LinkDineInOrderView | null {
-  const orderStatus = String(order?.orderStatus ?? order?.order_status ?? "").toUpperCase();
-  if (orderStatus === "CANCELLED" || orderStatus === "CANCELED") {
-    return null;
-  }
-  const orderId = String(order?._id ?? order?.id ?? "").trim();
-  if (!orderId) return null;
-
-  const rawMin = order?.arrivalInMinutes ?? order?.arrival_in_minutes;
-  let arrivalInMinutes: number | null = null;
-  if (rawMin != null && rawMin !== "") {
-    const n = Number(rawMin);
-    arrivalInMinutes = Number.isFinite(n) ? n : null;
-  }
-
-  const memberIdRaw =
-    order?.memberId ?? order?.member_id ?? order?.member?._id ?? order?.member?.id;
-  const memberIdStr =
-    memberIdRaw != null && String(memberIdRaw).trim() !== ""
-      ? String(memberIdRaw).trim()
-      : undefined;
-
-  return {
-    orderId,
-    customerName: String(order?.customerName ?? order?.customer_name ?? "").trim(),
-    customerPhone: String(order?.customerPhone ?? order?.customer_phone ?? "").trim(),
-    memberId: memberIdStr,
-    arrivalInMinutes,
-    createdAt: String(order?.createdAt ?? order?.updatedAt ?? ""),
-    tableNumber: String(order?.tableNumber ?? order?.table_number ?? "").trim() || undefined,
-    products: extractProductsFromOrder(order, resolveImageUrl),
-  };
 }
 
 const tableStatusRetriever = createSelector(
@@ -235,19 +188,18 @@ export default function TableStatusTop() {
   const dispatch = useDispatch();
   const { tableStatus } = useSelector(tableStatusRetriever);
   const [groupedOrders, setGroupedOrders] = useState<Record<string, PanelOrderView[]>>({});
-  const [linkDineInOrders, setLinkDineInOrders] = useState<LinkDineInOrderView[]>([]);
+  const linkDineInOrders = useSelector(retrieveLinkDineInOrders);
   const [loading, setLoading] = useState<boolean>(false);
   /** Berildi bosilganda o'sha paytda mavjud bo'lgan order ID lar; sessionStorage da saqlanadi */
   const [deliveredOrderIds, setDeliveredOrderIds] = useState<Record<string, Set<string>>>(parseStored);
   /** Link orqali o'tirib yeyish: berildi belgilangan buyurtma IDlari */
   const [linkDineInDeliveredIds, setLinkDineInDeliveredIds] = useState<Set<string>>(parseLinkDineDelivered);
+  /** Saboydagi kabi: qabul qilinishi kutilayotgan link dine-in buyurtma IDlari (Redux — sidebar/topbar badge) */
+  const linkDinePendingAckIds = useSelector(retrieveLinkDinePendingAckIds);
+  const linkDinePendingAckSet = useMemo(() => new Set(linkDinePendingAckIds), [linkDinePendingAckIds]);
   /** Stol yashigi "To'landi" — joriy buyurtmalar imzosi bilan yashirinadi */
   const [linkDinePaidBundleSigs, setLinkDinePaidBundleSigs] =
     useState<Record<string, string>>(parsePaidBundleSigs);
-  const [linkDineAlertOpen, setLinkDineAlertOpen] = useState(false);
-  const [linkDineAlertOrders, setLinkDineAlertOrders] = useState<LinkDineInOrderView[]>([]);
-  const isFirstLinkDineFetchRef = useRef(true);
-  const knownLinkDineOrderIdsRef = useRef<Set<string>>(new Set());
 
   const resolveImageUrl = useCallback((path?: string | null): string => {
     if (!path) return "";
@@ -400,31 +352,15 @@ export default function TableStatusTop() {
     }
   }, [resolveImageUrl]);
 
-  /** Faqat «O'tirib yeydigan buyurtmalar»: GET /admin/order/link/dine-in (panel API emas) */
-  const fetchLinkDineInOrders = useCallback(async (): Promise<void> => {
-    try {
-      const orderSvc = new OrderService();
-      const linkRows = await orderSvc.getLinkDineInOrders();
-      const linkViews: LinkDineInOrderView[] = [];
-      for (const row of linkRows) {
-        const v = mapLinkDineInRow(row, resolveImageUrl);
-        if (v) linkViews.push(v);
-      }
-      setLinkDineInOrders(linkViews);
-    } catch (linkErr) {
-      console.warn("fetchLinkDineInOrders:", linkErr);
-      setLinkDineInOrders([]);
-    }
-  }, [resolveImageUrl]);
-
+  /** Link dine-in ro'yxati — `LinkDineInGlobalSync` (barcha layoutda) */
   const refreshOrdersData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      await Promise.allSettled([fetchPanelOrders(), fetchLinkDineInOrders()]);
+      await fetchPanelOrders();
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [fetchPanelOrders, fetchLinkDineInOrders]);
+  }, [fetchPanelOrders]);
 
   useEffect(() => {
     refreshOrdersData();
@@ -479,26 +415,7 @@ export default function TableStatusTop() {
     return () => window.clearInterval(id);
   }, [refreshOrdersData]);
 
-  useEffect(() => {
-    const idsNow = new Set(linkDineInOrders.map((o) => o.orderId));
-    if (isFirstLinkDineFetchRef.current) {
-      isFirstLinkDineFetchRef.current = false;
-      knownLinkDineOrderIdsRef.current = idsNow;
-      return;
-    }
-    const newOnes = linkDineInOrders.filter((o) => !knownLinkDineOrderIdsRef.current.has(o.orderId));
-    knownLinkDineOrderIdsRef.current = idsNow;
-    if (newOnes.length > 0) {
-      newOnes.sort((a, b) => {
-        const ta = new Date(a.createdAt).getTime();
-        const tb = new Date(b.createdAt).getTime();
-        return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
-      });
-      setLinkDineAlertOrders(newOnes);
-      setLinkDineAlertOpen(true);
-      playNotificationSound();
-    }
-  }, [linkDineInOrders]);
+  const linkDinePendingAckCount = useSelector(retrieveLinkDinePendingAckCount);
 
   const tableNumbers = useMemo(() => {
     const fromOrders = Object.keys(groupedOrders);
@@ -585,6 +502,9 @@ export default function TableStatusTop() {
 
       const sig = linkDineBundleSignature(orders);
       setLinkDinePaidBundleSigs((prev) => ({ ...prev, [tableKey]: sig }));
+      const remove = new Set(orders.map((o) => o.orderId));
+      const prevAck = store.getState().dashboardPage.linkDinePendingAckIds ?? [];
+      dispatch(setLinkDinePendingAckIds(prevAck.filter((id) => !remove.has(id))));
     },
     [dispatch, tableStatus]
   );
@@ -651,6 +571,12 @@ export default function TableStatusTop() {
     });
   }, []);
 
+  const handleLinkDineAcknowledge = useCallback((orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const prevAck = store.getState().dashboardPage.linkDinePendingAckIds ?? [];
+    dispatch(setLinkDinePendingAckIds(prevAck.filter((id) => id !== orderId)));
+  }, [dispatch]);
+
   return (
     <Card className="table-status-card table-status-top-card">
       <CardContent sx={{ width: "100%", padding: "12px 16px" }}>
@@ -666,126 +592,6 @@ export default function TableStatusTop() {
             {t("dashboard.detail")}
           </Button>
         </Stack>
-
-        <Dialog
-          open={linkDineAlertOpen}
-          onClose={() => setLinkDineAlertOpen(false)}
-          maxWidth="sm"
-          fullWidth
-          aria-labelledby="link-dine-new-alert-title"
-        >
-          <DialogTitle
-            id="link-dine-new-alert-title"
-            sx={{
-              fontWeight: 800,
-              color: "primary.main",
-              fontSize: { xs: "1.4rem", sm: "1.75rem" },
-              lineHeight: 1.35,
-              pr: 6,
-            }}
-          >
-            {t("dashboard.linkDineInNewOrderAlertTitle")}
-            {linkDineAlertOrders.length > 1 ? (
-              <Chip
-                component="span"
-                size="small"
-                label={linkDineAlertOrders.length}
-                color="primary"
-                sx={{ ml: 1, fontWeight: 800, verticalAlign: "middle" }}
-              />
-            ) : null}
-          </DialogTitle>
-          <DialogContent dividers>
-            <Stack spacing={2.5}>
-              {linkDineAlertOrders.map((o, idx) => {
-                const lineTotal = o.products.reduce((s, p) => s + p.quantity * p.price, 0);
-                const arrivalClock =
-                  o.arrivalInMinutes != null && o.createdAt
-                    ? formatArrivalClock(o.createdAt, o.arrivalInMinutes)
-                    : null;
-                const tableLabel = o.tableNumber?.trim()
-                  ? o.tableNumber.trim()
-                  : t("dashboard.linkDineInNoTable");
-                return (
-                  <Paper key={o.orderId} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                    <Stack spacing={1.25}>
-                      <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-                        <Typography variant="subtitle2" color="text.secondary" fontWeight={700}>
-                          {t("dashboard.linkDineInOrderShort")} · …{o.orderId.slice(-8)}
-                        </Typography>
-                        <Chip size="small" label={idx + 1} color="primary" variant="filled" sx={{ fontWeight: 800 }} />
-                      </Stack>
-                      <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap">
-                        <TableRestaurantIcon sx={{ fontSize: 20, color: "primary.main" }} />
-                        <Typography variant="body2" fontWeight={700}>
-                          {t("dashboard.linkDineInAlertTable")}: {tableLabel}
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row" spacing={0.75} alignItems="center">
-                        <PersonIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-                        <Typography fontWeight={700}>{o.customerName || "—"}</Typography>
-                      </Stack>
-                      {o.customerPhone ? (
-                        <Stack direction="row" spacing={0.75} alignItems="center">
-                          <PhoneIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-                          <Link href={telHref(o.customerPhone)} underline="hover" color="primary" fontWeight={600}>
-                            {o.customerPhone}
-                          </Link>
-                        </Stack>
-                      ) : null}
-                      {o.arrivalInMinutes != null ? (
-                        <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap">
-                          <AccessTimeIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-                          <Typography variant="body2" fontWeight={600}>
-                            {t("dashboard.arrivalInMinutes", { min: o.arrivalInMinutes })}
-                            {arrivalClock ? (
-                              <Box component="span" sx={{ fontWeight: 700, ml: 0.75 }}>
-                                · {arrivalClock}
-                              </Box>
-                            ) : null}
-                          </Typography>
-                        </Stack>
-                      ) : null}
-                      <Divider />
-                      {o.products.length === 0 ? (
-                        <Typography variant="body2" color="warning.main">
-                          {t("dashboard.noProductsInOrder")}
-                        </Typography>
-                      ) : (
-                        <Stack spacing={0.75}>
-                          {o.products.map((p, pidx) => (
-                            <Stack
-                              key={`${o.orderId}-alert-p-${pidx}`}
-                              direction="row"
-                              justifyContent="space-between"
-                              alignItems="flex-start"
-                              spacing={1}
-                            >
-                              <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
-                                {p.productName}
-                              </Typography>
-                              <Typography variant="body2" fontWeight={700} whiteSpace="nowrap">
-                                ×{p.quantity} · {p.quantity * p.price}
-                              </Typography>
-                            </Stack>
-                          ))}
-                        </Stack>
-                      )}
-                      <Typography variant="subtitle1" fontWeight={800} color="primary.main" textAlign="right">
-                        {lineTotal}
-                      </Typography>
-                    </Stack>
-                  </Paper>
-                );
-              })}
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button variant="contained" color="primary" onClick={() => setLinkDineAlertOpen(false)}>
-              {t("dashboard.linkDineInAlertOk")}
-            </Button>
-          </DialogActions>
-        </Dialog>
 
         <Paper
           elevation={0}
@@ -821,7 +627,25 @@ export default function TableStatusTop() {
             }}
           >
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-              <TableRestaurantIcon color="primary" sx={{ fontSize: 28 }} />
+              <Badge
+                badgeContent={linkDinePendingAckCount > 0 ? linkDinePendingAckCount : undefined}
+                color="error"
+                max={99}
+                overlap="circular"
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontWeight: 800,
+                    fontSize: "0.7rem",
+                    minWidth: 18,
+                    height: 18,
+                  },
+                }}
+              >
+                <Box component="span" sx={{ display: "inline-flex" }}>
+                  <TableRestaurantIcon color="primary" sx={{ fontSize: 28 }} />
+                </Box>
+              </Badge>
               <Typography variant="subtitle1" color="primary.main" fontWeight={800} sx={{ letterSpacing: 0.3 }}>
                 {t("dashboard.dineInOrdersTitle")}
               </Typography>
@@ -901,6 +725,7 @@ export default function TableStatusTop() {
                               ? formatArrivalClock(o.createdAt, o.arrivalInMinutes)
                               : null;
                           const isDelivered = linkDineInDeliveredIds.has(o.orderId);
+                          const pendingAck = linkDinePendingAckSet.has(o.orderId);
                           return (
                             <Grid item xs={12} key={`link-dine-${o.orderId}`}>
                             <Paper
@@ -1048,6 +873,20 @@ export default function TableStatusTop() {
                                   </Typography>
                                   <Typography fontWeight={700}>{lineTotal}</Typography>
                                 </Stack>
+
+                                <Button
+                                  fullWidth
+                                  size="small"
+                                  variant={pendingAck ? "contained" : "outlined"}
+                                  color={pendingAck ? "warning" : "success"}
+                                  sx={{ fontWeight: 800, mt: 0.5 }}
+                                  disabled={!pendingAck}
+                                  onClick={(e) => handleLinkDineAcknowledge(o.orderId, e)}
+                                >
+                                  {pendingAck
+                                    ? t("dashboard.takeawayAcknowledgeButton")
+                                    : t("dashboard.takeawayAcknowledgedDone")}
+                                </Button>
                               </Stack>
                             </Paper>
                             </Grid>

@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 import {
   Badge,
   Box,
@@ -22,6 +23,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import "../../../css/navbar.css";
 import "../../../css/sidebar.css";
 import { useTakeawayAckOptional } from "../../context/TakeawayAckContext";
+import { retrieveLinkDinePendingAckCount } from "../../../screens/dashboardPage/selector";
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -33,6 +35,7 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
   const isMobile = useMediaQuery("(max-width:900px)");
   const takeawayAck = useTakeawayAckOptional();
   const takeawayPending = takeawayAck?.pendingAckCount ?? 0;
+  const linkDinePending = useSelector(retrieveLinkDinePendingAckCount);
 
   const navItems = [
     {
@@ -90,6 +93,26 @@ const Sidebar = ({ mobileOpen, onClose }: SidebarProps) => {
                 {item.to === "/takeaway-orders" ? (
                   <Badge
                     badgeContent={takeawayPending > 0 ? takeawayPending : undefined}
+                    color="error"
+                    max={99}
+                    overlap="circular"
+                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                    sx={{
+                      "& .MuiBadge-badge": {
+                        fontWeight: 800,
+                        fontSize: "0.7rem",
+                        minWidth: 18,
+                        height: 18,
+                      },
+                    }}
+                  >
+                    <Box component="span" sx={{ display: "inline-flex" }}>
+                      {item.icon}
+                    </Box>
+                  </Badge>
+                ) : item.to === "/order-status" ? (
+                  <Badge
+                    badgeContent={linkDinePending > 0 ? linkDinePending : undefined}
                     color="error"
                     max={99}
                     overlap="circular"
