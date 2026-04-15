@@ -83,6 +83,7 @@
     "free": "Free",
     "topSellingItems": "Top Selling Items",
     "ordersByCategory": "Orders by Category",
+    "chartNoData": "No chart data yet (not enough orders or empty server statistics).",
     "newOrder": "New Order",
     "addTable": "Add table",
     "createNewOrderConfirm": "Do you want to create new order?",
@@ -172,6 +173,7 @@
     "detail": "Detail",
     "edit": "Edit",
     "noOrders": "No orders",
+    "markPaidSuccess": "Payment marked as PAID",
     "editOrder": "Edit Order"
   },
   "tables": {

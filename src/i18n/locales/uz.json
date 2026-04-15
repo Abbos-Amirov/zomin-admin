@@ -83,6 +83,7 @@
     "free": "Bo'sh",
     "topSellingItems": "Eng ko'p sotiladigan mahsulotlar",
     "ordersByCategory": "Kategoriya bo'yicha buyurtmalar",
+    "chartNoData": "Hozircha grafik uchun ma'lumot yo'q (yetarli buyurtma yo'q yoki server statistikasi bo'sh).",
     "newOrder": "Yangi buyurtma",
     "addTable": "Stol qo'shish",
     "createNewOrderConfirm": "Yangi buyurtma yaratmoqchimisiz?",
@@ -172,6 +173,7 @@
     "detail": "Batafsil",
     "edit": "Tahrirlash",
     "noOrders": "Buyurtmalar yo'q",
+    "markPaidSuccess": "To'lov to'langan (PAID) deb belgilandi",
     "editOrder": "Buyurtmani tahrirlash"
   },
   "tables": {

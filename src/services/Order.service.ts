@@ -1,5 +1,7 @@
 import axios from "axios";
 import { serverApi } from "../lib/config";
+import { PaymentStatus } from "../lib/enums/order.enum";
+import { normalizeOrderStatisFromApi } from "../lib/utils/orderStatisNormalize";
 import {
   Order,
   OrderInquiry,
@@ -18,8 +20,7 @@ class OrderService {
     try {
       const url = this.path + "/admin/order/statis";
       const result = await axios.get(url, { withCredentials: true });
-      console.log("getOrderStatis: ", result.data);
-      return result.data;
+      return normalizeOrderStatisFromApi(result.data);
     } catch (err) {
       console.log("Error, getOrderStatis:", err);
       throw err;
@@ -144,8 +145,15 @@ class OrderService {
       if (input.payStatus) url += `&payStatus=${input.payStatus}`;
       if (input.payMeth) url += `&payMeth=${input.payMeth}`;
       const result = await axios.get(url, { withCredentials: true });
-      console.log("getAllOrders: ", result);
-      return result.data;
+      const payload = result.data;
+      const list = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.orders)
+          ? payload.orders
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : [];
+      return list as Order[];
     } catch (err) {
       console.log("Error, getOrderStatis:", err);
       throw err;
@@ -162,6 +170,17 @@ class OrderService {
       console.log("Error, updateChosenOrder:", err);
       throw err;
     }
+  }
+
+  /** «To'landi» — faqat to'lov holati (bodyda orderId yo'q, URLda orderId) */
+  public async markOrderAsPaid(orderId: string): Promise<unknown> {
+    const url = `${this.path}/admin/order/${orderId}`;
+    const result = await axios.post(
+      url,
+      { paymentStatus: PaymentStatus.PAID },
+      { withCredentials: true }
+    );
+    return result.data;
   }
 
   public async completeTableOrders(tableId: string): Promise<unknown> {

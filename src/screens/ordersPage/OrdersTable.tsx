@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import PaginationItem from "@mui/material/PaginationItem";
@@ -7,6 +7,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
   Button,
   Chip,
+  CircularProgress,
   Divider,
   Pagination,
   Paper,
@@ -28,6 +29,8 @@ import {
 } from "../../lib/enums/order.enum";
 import { dateFmt } from "../../lib/config";
 import { OrderInquiry, OrderUpdateInput } from "../../lib/types/order";
+import OrderService from "../../services/Order.service";
+import { sweetErrorHandling, sweetTopSmallSuccessAlert } from "../../lib/sweetAlert";
 
 const ordersRetriever = createSelector(retrieveOrders, (orders) => ({
   orders,
@@ -68,6 +71,22 @@ export default function OrdersTable(props: OrderTableProps) {
   const { orderSearch, setOrderSearch, setOpen, edit, setEdit } = props;
 
   const { orders } = useSelector(ordersRetriever);
+  const [payingId, setPayingId] = useState<string | null>(null);
+
+  const handleMarkPaid = async (e: React.MouseEvent, orderId: string) => {
+    e.stopPropagation();
+    setPayingId(orderId);
+    try {
+      const svc = new OrderService();
+      await svc.markOrderAsPaid(orderId);
+      setOrderSearch({ ...orderSearch });
+      await sweetTopSmallSuccessAlert(t("orders.markPaidSuccess"), 1800);
+    } catch (err) {
+      await sweetErrorHandling(err);
+    } finally {
+      setPayingId(null);
+    }
+  };
 
   /** HANDLERS **/
   const paginationHandler = (e: ChangeEvent<any>, value: number) => {
@@ -97,6 +116,9 @@ export default function OrdersTable(props: OrderTableProps) {
         <TableBody>
           {orders.map((v) => {
             const grand = v.orderTotal - (v.deliveryFee || 0);
+            const isUnpaid =
+              v.paymentStatus === PaymentStatus.UNPAID ||
+              String(v.paymentStatus ?? "").toUpperCase() === "UNPAID";
             return (
               <TableRow
                 key={v._id}
@@ -137,24 +159,42 @@ export default function OrdersTable(props: OrderTableProps) {
                   />
                 </TableCell>
                 <TableCell>{dateFmt(v.createdAt)}</TableCell>
-                <TableCell align="right">
-                  <Button
-                    size="small"
-                    variant="contained"
-                    color="primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpen(true);
-                      setEdit({
-                        orderId: v._id,
-                        orderStatus: v.orderStatus,
-                        paymentStatus: v.paymentStatus,
-                        paymentMethod: v.paymentMethod,
-                      });
-                    }}
-                  >
-                    {t("orders.edit")}
-                  </Button>
+                <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                  <Stack direction="row" spacing={0.75} justifyContent="flex-end" flexWrap="wrap">
+                    {isUnpaid && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        disabled={payingId !== null}
+                        onClick={(e) => handleMarkPaid(e, v._id)}
+                        sx={{ minWidth: 88 }}
+                      >
+                        {payingId === v._id ? (
+                          <CircularProgress size={18} color="inherit" />
+                        ) : (
+                          t("dashboard.paid")
+                        )}
+                      </Button>
+                    )}
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpen(true);
+                        setEdit({
+                          orderId: v._id,
+                          orderStatus: v.orderStatus,
+                          paymentStatus: v.paymentStatus,
+                          paymentMethod: v.paymentMethod,
+                        });
+                      }}
+                    >
+                      {t("orders.edit")}
+                    </Button>
+                  </Stack>
                 </TableCell>
               </TableRow>
             );

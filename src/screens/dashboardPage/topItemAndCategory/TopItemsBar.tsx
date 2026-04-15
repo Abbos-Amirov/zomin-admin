@@ -26,13 +26,13 @@ export default function TopItemsBar() {
   const { t } = useTranslation();
   const { orderStatis } = useSelector(orderStatisRetriever);
 
-  const allLabels = orderStatis?.topSellingItems.map((val) => val.productName);
-  const allValues = orderStatis?.topSellingItems.map(
-    (val) => val.totalQuantity
-  );
+  const items = orderStatis?.topSellingItems ?? [];
+  const allLabels = items.map((val) => val.productName || val.productId || "—");
+  const allValues = items.map((val) => val.totalQuantity);
 
-  const labels = allLabels?.slice(0, 6);
-  const values = allValues?.slice(0, 6);
+  const labels = allLabels.slice(0, 6);
+  const values = allValues.slice(0, 6);
+  const hasData = labels.length > 0 && values.some((v) => Number(v) > 0);
 
   const bgColors = [
     "#42A5F5",
@@ -56,10 +56,10 @@ export default function TopItemsBar() {
     labels,
     datasets: [
       {
-        label: "Orders (this week)",
+        label: t("dashboard.topSellingItems"),
         data: values,
-        backgroundColor: bgColors,
-        borderColor: borderColors,
+        backgroundColor: bgColors.slice(0, labels.length),
+        borderColor: borderColors.slice(0, labels.length),
         borderWidth: 0,
         borderRadius: 8,
         maxBarThickness: 48,
@@ -74,13 +74,13 @@ export default function TopItemsBar() {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: any) => `${ctx.parsed.y} orders`,
+          label: (ctx: any) => `${ctx.parsed.y} ${t("dashboard.ordersUnit")}`,
         },
       },
     },
     scales: {
       x: { grid: { display: false } },
-      y: { beginAtZero: true, ticks: { stepSize: 20 } },
+      y: { beginAtZero: true, ticks: { precision: 0 } },
     },
   };
 
@@ -91,9 +91,15 @@ export default function TopItemsBar() {
           {t("dashboard.topSellingItems")}
         </Typography>
         <Divider sx={{ mb: 2 }} />
-        <div style={{ height: 260 }}>
-          <Bar data={data} options={options} />
-        </div>
+        {!hasData ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 6, textAlign: "center", px: 2 }}>
+            {t("dashboard.chartNoData")}
+          </Typography>
+        ) : (
+          <div style={{ height: 260 }}>
+            <Bar data={data} options={options} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

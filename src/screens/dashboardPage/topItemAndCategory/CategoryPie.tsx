@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -14,7 +14,6 @@ import { createSelector } from "@reduxjs/toolkit";
 import { retrieveOrderStatis } from "../selector";
 import { useSelector } from "react-redux";
 
-/** REDUX SLICE & SELECTOR */
 const orderStatisRetriever = createSelector(
   retrieveOrderStatis,
   (orderStatis) => ({ orderStatis })
@@ -22,45 +21,42 @@ const orderStatisRetriever = createSelector(
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const categoryColors: any = {
-  DISH: {
-    bg: "#ff7043",
-    border: "#d84315",
-  },
-  SALAD: {
-    bg: "#66bb6a",
-    border: "#2e7d32",
-  },
-  DRINK: {
-    bg: "#42a5f5",
-    border: "#1565c0",
-  },
-  DESSERT: {
-    bg: "#ba68c8",
-    border: "#6a1b9a",
-  },
-  OTHER: {
-    bg: "#e0e0e0", 
-    border: "#9e9e9e",
-  },
+const categoryColors: Record<string, { bg: string; border: string }> = {
+  DISH: { bg: "#ff7043", border: "#d84315" },
+  SALAD: { bg: "#66bb6a", border: "#2e7d32" },
+  DRINK: { bg: "#42a5f5", border: "#1565c0" },
+  DESSERT: { bg: "#ba68c8", border: "#6a1b9a" },
+  OTHER: { bg: "#e0e0e0", border: "#9e9e9e" },
 };
+
+function getCatColors(cat: string) {
+  const key = String(cat || "OTHER").toUpperCase();
+  return categoryColors[key] ?? categoryColors.OTHER;
+}
 
 export default function CategoryPie() {
   const { t } = useTranslation();
   const { orderStatis } = useSelector(orderStatisRetriever);
-  const categories = orderStatis?.ordersByCategory.map((val) => val.collection);
-  const values = orderStatis?.ordersByCategory.map((val) => val.orders);
-  const data = {
-    labels: categories,
-    datasets: [
-      {
-        data: values,
-        backgroundColor: categories?.map((cat) => categoryColors[cat].bg),
-        borderColor: categories?.map((cat) => categoryColors[cat].border),
-        borderWidth: 0,
-      },
-    ],
-  };
+
+  const rows = orderStatis?.ordersByCategory ?? [];
+  const categories = rows.map((val) => val.collection);
+  const values = rows.map((val) => val.orders ?? 0);
+  const hasData = categories.length > 0 && values.some((v) => Number(v) > 0);
+
+  const data = useMemo(
+    () => ({
+      labels: categories,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: categories.map((cat) => getCatColors(cat).bg),
+          borderColor: categories.map((cat) => getCatColors(cat).border),
+          borderWidth: 0,
+        },
+      ],
+    }),
+    [categories, values]
+  );
 
   const options = {
     responsive: true,
@@ -79,24 +75,32 @@ export default function CategoryPie() {
           {t("dashboard.ordersByCategory")}
         </Typography>
         <Divider sx={{ mb: 2 }} />
-        <div style={{ height: 220 }}>
-          <Doughnut data={data} options={options} />
-        </div>
-        <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
-          {categories?.map((val) => (
-            <Chip
-              key={val}
-              size="small"
-              label={val}
-              variant="outlined"
-              sx={{
-                borderColor: categoryColors[val].bg,
-                color: categoryColors[val].border,
-                fontWeight: 500,
-              }}
-            />
-          ))}
-        </Stack>
+        {!hasData ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 6, textAlign: "center", px: 2 }}>
+            {t("dashboard.chartNoData")}
+          </Typography>
+        ) : (
+          <>
+            <div style={{ height: 220 }}>
+              <Doughnut data={data} options={options} />
+            </div>
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
+              {categories.map((val) => (
+                <Chip
+                  key={val}
+                  size="small"
+                  label={val}
+                  variant="outlined"
+                  sx={{
+                    borderColor: getCatColors(val).bg,
+                    color: getCatColors(val).border,
+                    fontWeight: 500,
+                  }}
+                />
+              ))}
+            </Stack>
+          </>
+        )}
       </CardContent>
     </Card>
   );
