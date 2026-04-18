@@ -70,6 +70,7 @@
     "todayIncome": "Today's Income",
     "monthlySales": "Total Sales",
     "avgOrderValue": "Avg Order Value",
+    "todaysSales": "Today's sales",
     "tableStatus": "Table Status",
     "ordersPanel": "Orders Panel",
     "detail": "Detail",
@@ -129,7 +130,31 @@
     "takeawayNewOrderAlertOk": "OK",
     "takeawayPendingBadgeHint": "Pending acknowledgment: {{count}}",
     "takeawayAcknowledgeButton": "Mark as received",
-    "takeawayAcknowledgedDone": "Received"
+    "takeawayAcknowledgedDone": "Received",
+    "kpiDetailBack": "Back to dashboard",
+    "kpiDetailBadge": "Detailed statistics",
+    "kpiDetailMore": "Additional metrics",
+    "kpiDetailOpenOrders": "Go to orders",
+    "kpiDetailOpenMenu": "Menu (products) page",
+    "kpiDetailOpenTables": "Tables page",
+    "kpiDetailOpenSales": "Sales statistics",
+    "kpiDetailShareOfMenu": "Share of menu",
+    "kpiDetailOfTotalItems": "Of {{total}} items total",
+    "kpiDetailDeliveryShare": "Delivery / extra (per API)",
+    "kpiDetailNoTablesInState": "No tables in this state right now.",
+    "kpiDetailNoWaiterCalls": "No active waiter calls.",
+    "kpiDetailDesc": {
+      "total_orders": "All orders recorded in the system. Pending vs completed below.",
+      "pending_orders": "Orders still in progress. Open the orders list to act on them.",
+      "total_items": "All menu items. Available vs out-of-stock below.",
+      "available_items": "Items currently available for sale. Share of menu in percent.",
+      "unavailable_items": "Temporarily unavailable or out-of-stock items.",
+      "free_tables": "Tables that are free and ready for guests.",
+      "tables_occupied": "Tables currently occupied by guests.",
+      "cleaning_tables": "Tables being cleaned or prepared.",
+      "call_waiter": "Tables with an active waiter call from guests.",
+      "avg_order_value": "Today's sales total from statistics. Below: average order value and delivery share."
+    }
   },
   "menu": {
     "title": "Menu",
@@ -226,11 +251,12 @@
   },
   "sales": {
     "title": "Sales Statistics",
-    "totalSales": "Total sales (since launch)",
+    "subtitleFromApi": "Primary: GET /admin/order/paid/summary. Missing periods are filled from the paid-orders list (client-side by date).",
+    "totalSales": "Total sales",
     "lastYear": "Last 1 year sales",
     "lastMonth": "Last 1 month sales",
     "lastWeek": "Last 1 week sales",
-    "todayAfter7": "Today's sales (after 7 AM)"
+    "todayAfter7": "Today's sales"
   },
   "completedOrders": {
     "title": "Completed Orders Statistics",

@@ -589,6 +589,8 @@ export default function TableStatusTop() {
   const handleCompleteTableOrders = useCallback(
     async (tableKey: string) => {
       const orders = groupedOrders[tableKey] ?? [];
+      if (orders.length === 0) return;
+
       const orderSvc = new OrderService();
 
       const finish = () => {
@@ -600,58 +602,36 @@ export default function TableStatusTop() {
         refreshOrdersData(true);
       };
 
+      const tables = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
+      const groupTableIdFallback = (() => {
+        const fromOrder = orders.map((o) => String(o.tableId ?? "").trim()).find((id) => id);
+        if (fromOrder) return fromOrder;
+        const tk = String(tableKey).trim();
+        if (/^\d+$/.test(tk)) {
+          const t = tables.find((tab) => String(tab.tableNumber) === tk);
+          return t?._id ? String(t._id) : "";
+        }
+        if (tk.startsWith("T:")) return tk.slice(2).trim();
+        return "";
+      })();
+
       try {
-        if (tableKey.startsWith("D:")) {
-          const memberId = tableKey.slice(2).trim();
-          if (memberId) {
-            const orderId = orders
-              .map((o) => o.orderId)
-              .filter((id) => id && String(id).trim() !== "")
-              .join(",");
-            await orderSvc.purgeByMember({ memberId, customerPhone: "", orderId });
-          }
-          const tid = orders.find((o) => o.tableId)?.tableId;
-          await applyTableCleaningAfterPurge(tid);
-          finish();
-          return;
+        for (const o of orders) {
+          const oid = String(o.orderId ?? "").trim();
+          if (!oid) continue;
+          const tid = String(o.tableId ?? "").trim() || groupTableIdFallback;
+          await orderSvc.markDeliveryMarkPaid({
+            tableId: tid,
+            orderId: oid,
+            orderType: String(o.orderType ?? "TABLE"),
+          });
         }
 
-        if (tableKey.startsWith("T:")) {
-          const tableId = tableKey.slice(2).trim();
-          if (!tableId) return;
-          await orderSvc.purgeByTable(tableId);
-          await applyTableCleaningAfterPurge(tableId);
-          finish();
-          return;
-        }
-
-        if (tableKey.startsWith("O:")) {
-          const orderId = tableKey.slice(2).trim();
-          if (!orderId) return;
-          await orderSvc.markOrderAsPaid(orderId);
-          const tid = orders.find((o) => o.tableId)?.tableId;
-          await applyTableCleaningAfterPurge(tid);
-          finish();
-          return;
-        }
-
-        if (tableKey === "yetkazib") {
-          for (const o of orders) {
-            await orderSvc.markOrderAsPaid(o.orderId);
-          }
-          finish();
-          return;
-        }
-
-        const fromOrder = orders.find((o) => o.tableId)?.tableId;
-        const fromStore = (Array.isArray(tableStatus) ? tableStatus : []).find(
-          (t: Table) => String(t.tableNumber) === String(tableKey)
-        )?._id;
-        const tableId = fromOrder || fromStore;
-        if (!tableId) return;
-
-        await orderSvc.purgeByTable(tableId);
-        await applyTableCleaningAfterPurge(tableId);
+        const tidForCleaning =
+          groupTableIdFallback ||
+          String(orders.find((x) => x.tableId)?.tableId ?? "").trim() ||
+          undefined;
+        await applyTableCleaningAfterPurge(tidForCleaning);
         finish();
       } catch (err) {
         console.error("handleCompleteTableOrders error:", err);

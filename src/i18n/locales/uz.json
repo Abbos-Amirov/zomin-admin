@@ -70,6 +70,7 @@
     "todayIncome": "Bugungi daromad",
     "monthlySales": "Umumiy savdo",
     "avgOrderValue": "O'rtacha buyurtma qiymati",
+    "todaysSales": "Bugungi savdo",
     "tableStatus": "Stol holati",
     "ordersPanel": "Buyurtmalar paneli",
     "detail": "Batafsil",
@@ -129,7 +130,31 @@
     "takeawayNewOrderAlertOk": "Tushundim",
     "takeawayPendingBadgeHint": "Qabul kutilmoqda: {{count}} ta",
     "takeawayAcknowledgeButton": "Qabul qilindi",
-    "takeawayAcknowledgedDone": "Qabul qilindi"
+    "takeawayAcknowledgedDone": "Qabul qilindi",
+    "kpiDetailBack": "Boshqaruv paneliga",
+    "kpiDetailBadge": "Batafsil statistika",
+    "kpiDetailMore": "Qo‘shimcha ko‘rsatkichlar",
+    "kpiDetailOpenOrders": "Buyurtmalar ro‘yxatiga o‘tish",
+    "kpiDetailOpenMenu": "Menyu (mahsulotlar) sahifasi",
+    "kpiDetailOpenTables": "Stollar sahifasi",
+    "kpiDetailOpenSales": "Savdo statistikasi",
+    "kpiDetailShareOfMenu": "Menyudagi ulush",
+    "kpiDetailOfTotalItems": "Jami {{total}} ta taomdan",
+    "kpiDetailDeliveryShare": "Yetkazib / qo‘shimcha (API bo‘yicha)",
+    "kpiDetailNoTablesInState": "Hozircha bunday holatdagi stol yo‘q.",
+    "kpiDetailNoWaiterCalls": "Faol ofitsiant chaqiruvi yo‘q.",
+    "kpiDetailDesc": {
+      "total_orders": "Jami buyurtmalar — tizimda ro‘yxatdan o‘tgan barcha buyurtmalar soni. Pastda kutilayotgan va bajarilganlar taqqoslanadi.",
+      "pending_orders": "Hali yakunlanmagan yoki jarayondagi buyurtmalar. Tezda ko‘rib chiqish uchun buyurtmalar sahifasiga o‘ting.",
+      "total_items": "Menyudagi barcha taomlar. Aktiv va tugagan pozitsiyalar alohida ko‘rsatiladi.",
+      "available_items": "Hozir sotish uchun mavjud taomlar. Menyu ulushi foizda.",
+      "unavailable_items": "Vaqtincha tugagan yoki o‘chirilgan pozitsiyalar.",
+      "free_tables": "Mijoz kutmaydigan, bo‘sh stollar.",
+      "tables_occupied": "Hozir mijoz band qilgan stollar.",
+      "cleaning_tables": "Tozalash yoki tayyorlash jarayonidagi stollar.",
+      "call_waiter": "Mijoz ofitsiant chaqirgan stollar (faol chaqiruv).",
+      "avg_order_value": "Bugungi savdo summasi (statistika API). Pastda o‘rtacha chek va yetkazib ulushi."
+    }
   },
   "menu": {
     "title": "Menyu",
@@ -226,11 +251,12 @@
   },
   "sales": {
     "title": "Savdo statistikasi",
-    "totalSales": "Umumiy savdo (sayt ishga tushganidan beri)",
+    "subtitleFromApi": "Asos: GET /admin/order/paid/summary. Agar maydonlar (masalan bugungi) bo‘sh bo‘lsa — to‘langan buyurtmalar ro‘yxatidan mahalliy hisob.",
+    "totalSales": "Umumiy savdo",
     "lastYear": "Oxirgi 1 yillik savdo",
     "lastMonth": "Oxirgi 1 oylik savdo",
     "lastWeek": "Oxirgi 1 haftalik savdo",
-    "todayAfter7": "Bugun soat 7 dan keyin qilingan savdo"
+    "todayAfter7": "Bugungi savdo"
   },
   "completedOrders": {
     "title": "Bajarilgan buyurtmalar statistikasi",

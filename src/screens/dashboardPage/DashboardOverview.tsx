@@ -30,7 +30,11 @@ import { useSelector } from "react-redux";
 import { TableStatus } from "../../lib/enums/table.enum";
 import { TableCall } from "../../lib/enums/tableCall.enum";
 import "../../css/dashboardPage.css";
-import { useTakeawayAckOptional } from "../../app/context/TakeawayAckContext";
+import type { PaidOrderSummary } from "../../lib/types/order";
+import {
+  computePaidTotalsFromOrders,
+  mergePaidSummaryWithComputed,
+} from "../../lib/utils/paidOrdersClientTotals";
 
 /** REDUX SLICE & SELECTOR */
 const orderStatisRetriever = createSelector(
@@ -50,7 +54,11 @@ const tableStatusRetriever = createSelector(
 function KpiItem({ labelKey, value, icon, iconBg, iconColor, valueColor, onClick }: any) {
   const { t } = useTranslation();
   const label = t(labelKey);
-  const isMoney = labelKey === "dashboard.monthlySales" || labelKey === "dashboard.todayIncome" || labelKey === "dashboard.avgOrderValue";
+  const isMoney =
+    labelKey === "dashboard.monthlySales" ||
+    labelKey === "dashboard.todayIncome" ||
+    labelKey === "dashboard.avgOrderValue" ||
+    labelKey === "dashboard.todaysSales";
   
   // Handle undefined/null values and format properly
   const displayValue = (() => {
@@ -72,7 +80,28 @@ function KpiItem({ labelKey, value, icon, iconBg, iconColor, valueColor, onClick
       elevation={1}
       className="kpi-item"
       onClick={onClick}
-      sx={{ cursor: onClick ? "pointer" : "default", "&:hover": onClick ? { boxShadow: 3 } : {} }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+      sx={{
+        cursor: onClick ? "pointer" : "default",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        "&:hover": onClick
+          ? { boxShadow: 6, transform: "translateY(-3px)" }
+          : {},
+        "&:focus-visible": onClick
+          ? { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
+          : {},
+      }}
     >
       <Stack
         direction="row"
@@ -106,9 +135,7 @@ export default function DashboardOverview() {
   const { orderStatis } = useSelector(orderStatisRetriever);
   const { productStatus } = useSelector(productStatusRetriever);
   const { tableStatus } = useSelector(tableStatusRetriever);
-  const [monthlySales, setMonthlySales] = useState<number | null>(null);
-  const takeawayOpt = useTakeawayAckOptional();
-  const takeawaySalesOffset = takeawayOpt?.takeawaySalesOffset ?? 0;
+  const [paidSummary, setPaidSummary] = useState<PaidOrderSummary | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,30 +143,28 @@ export default function DashboardOverview() {
       try {
         const OrderService = (await import("../../services/Order.service")).default;
         const svc = new OrderService();
-        const data = await svc.getOrdersForStats();
-        const orders = Array.isArray(data) ? data : [];
-        const now = new Date();
-        const monthAgo = new Date(now);
-        monthAgo.setMonth(monthAgo.getMonth() - 1);
-        const monthAgoMs = monthAgo.getTime();
-        const sum = orders.reduce((s, o) => {
-          const total = Number((o as any).orderTotal ?? o.orderTotal ?? 0) || 0;
-          const created = new Date((o as any).createdAt ?? o.createdAt).getTime();
-          return created >= monthAgoMs ? s + total : s;
-        }, 0);
-        if (!cancelled) setMonthlySales(sum);
+        const [apiSummary, orders] = await Promise.all([
+          svc.getPaidOrderSummary(),
+          svc.getOrdersForStats(),
+        ]);
+        const computed = computePaidTotalsFromOrders(orders);
+        const merged = mergePaidSummaryWithComputed(apiSummary, computed);
+        if (!cancelled) setPaidSummary(merged);
       } catch {
-        if (!cancelled) setMonthlySales(0);
+        if (!cancelled) setPaidSummary(null);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const baseMonthlySales =
-    monthlySales !== null && monthlySales !== undefined
-      ? monthlySales
-      : Number(orderStatis?.todayIncomeAndAOV?.[0]?.totalSum ?? 0) || 0;
-  const displayMonthlySales = baseMonthlySales + takeawaySalesOffset;
+  /**
+   * Umumiy savdo: paid/summary + to‘langan buyurtmalar yig‘indisi (birlashtirilgan).
+   * Bugungi savdo: API `todaySum` bo‘lmasa, ro‘yxatdan bugungi kun (mahalliy vaqt) bo‘yicha hisoblanadi.
+   */
+  const displayMonthlySales = paidSummary?.totalSum ?? 0;
+  const displayTodaysSales = paidSummary?.todaySum ?? 0;
 
   const kpis = [
     // ===== Orders =====
@@ -150,6 +175,7 @@ export default function DashboardOverview() {
       iconBg: "#e3f2fd",
       iconColor: "#1976d2",
       valueColor: "#1976d2",
+      onClick: () => navigate("/dashboard/kpi/total-orders"),
     },
     {
       labelKey: "dashboard.pendingOrders",
@@ -158,6 +184,7 @@ export default function DashboardOverview() {
       iconBg: "#fff8e1",
       iconColor: "#f9a825",
       valueColor: "#f9a825",
+      onClick: () => navigate("/dashboard/kpi/pending-orders"),
     },
     {
       labelKey: "dashboard.completedOrders",
@@ -177,6 +204,7 @@ export default function DashboardOverview() {
       iconBg: "#eef2ff",
       iconColor: "#1e40af",
       valueColor: "#1e40af",
+      onClick: () => navigate("/dashboard/kpi/total-items"),
     },
     {
       labelKey: "dashboard.availableItems",
@@ -185,6 +213,7 @@ export default function DashboardOverview() {
       iconBg: "#e8f5e9",
       iconColor: "#2e7d32",
       valueColor: "#2e7d32",
+      onClick: () => navigate("/dashboard/kpi/available-items"),
     },
     {
       labelKey: "dashboard.unavailableItems",
@@ -193,6 +222,7 @@ export default function DashboardOverview() {
       iconBg: "#ffebee",
       iconColor: "#c62828",
       valueColor: "#c62828",
+      onClick: () => navigate("/dashboard/kpi/unavailable-items"),
     },
     // ===== Tables =====
     {
@@ -204,6 +234,7 @@ export default function DashboardOverview() {
       iconBg: "#e8f5e9",
       iconColor: "#2e7d32",
       valueColor: "#2e7d32",
+      onClick: () => navigate("/dashboard/kpi/free-tables"),
     },
     {
       labelKey: "dashboard.tablesOccupied",
@@ -214,6 +245,7 @@ export default function DashboardOverview() {
       iconBg: "#ede7f6",
       iconColor: "#5e35b1",
       valueColor: "#5e35b1",
+      onClick: () => navigate("/dashboard/kpi/tables-occupied"),
     },
     {
       labelKey: "dashboard.cleaningTables",
@@ -224,6 +256,7 @@ export default function DashboardOverview() {
       iconBg: "#fff8e1",
       iconColor: "#c62828",
       valueColor: "#c62828",
+      onClick: () => navigate("/dashboard/kpi/cleaning-tables"),
     },
 
     // ===== Other Metrics =====
@@ -235,6 +268,7 @@ export default function DashboardOverview() {
       iconBg: "#fff3e0",
       iconColor: "#ef6c00",
       valueColor: "#ef6c00",
+      onClick: () => navigate("/dashboard/kpi/call-waiter"),
     },
     {
       labelKey: "dashboard.monthlySales",
@@ -246,12 +280,13 @@ export default function DashboardOverview() {
       onClick: () => navigate("/sales-stats"),
     },
     {
-      labelKey: "dashboard.avgOrderValue",
-      value: orderStatis?.todayIncomeAndAOV?.[0]?.aovGross ?? 0,
+      labelKey: "dashboard.todaysSales",
+      value: displayTodaysSales,
       icon: <MonetizationOnIcon />,
       iconBg: "#e8f5e9",
       iconColor: "#1e40af",
       valueColor: "#1e40af",
+      onClick: () => navigate("/sales-stats"),
     },
   ];
   return (

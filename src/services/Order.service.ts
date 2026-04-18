@@ -2,11 +2,13 @@ import axios from "axios";
 import { serverApi } from "../lib/config";
 import { PaymentStatus } from "../lib/enums/order.enum";
 import { normalizeOrderStatisFromApi } from "../lib/utils/orderStatisNormalize";
+import { normalizePaidOrderSummaryFromApi } from "../lib/utils/paidOrderSummaryNormalize";
 import {
   Order,
   OrderInquiry,
   OrderStatis,
   OrderUpdateInput,
+  PaidOrderSummary,
 } from "../lib/types/order";
 
 class OrderService {
@@ -24,6 +26,24 @@ class OrderService {
     } catch (err) {
       console.log("Error, getOrderStatis:", err);
       throw err;
+    }
+  }
+
+  /** To‘langan buyurtmalar bo‘yicha yig‘indi: umumiy, yil, oy, hafta, bugun */
+  public async getPaidOrderSummary(): Promise<PaidOrderSummary> {
+    try {
+      const url = `${this.path}/admin/order/paid/summary`;
+      const result = await axios.get(url, { withCredentials: true });
+      return normalizePaidOrderSummaryFromApi(result.data);
+    } catch (err) {
+      console.warn("getPaidOrderSummary:", err);
+      return {
+        totalSum: 0,
+        yearSum: 0,
+        monthSum: 0,
+        weekSum: 0,
+        todaySum: 0,
+      };
     }
   }
 
@@ -219,6 +239,22 @@ class OrderService {
       return result.data;
     } catch (err) {
       console.warn("purgeByMember:", err);
+      throw err;
+    }
+  }
+
+  /** «Oshxonaga tashrif — stol buyurtmalari» kartochkasi «To'landi» — body: { tableId, orderId, orderType } */
+  public async markDeliveryMarkPaid(input: {
+    tableId: string;
+    orderId: string;
+    orderType: string;
+  }): Promise<unknown> {
+    try {
+      const url = `${this.path}/admin/order/delivery/mark-paid`;
+      const result = await axios.post(url, input, { withCredentials: true });
+      return result.data;
+    } catch (err) {
+      console.warn("markDeliveryMarkPaid:", err);
       throw err;
     }
   }

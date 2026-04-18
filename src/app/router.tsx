@@ -9,6 +9,7 @@ import DashboardPage from '../screens/dashboardPage';
 import OrderStatusPage from '../screens/orderStatusPage';
 import SalesStatsPage from '../screens/salesStatsPage';
 import CompletedOrdersStatsPage from '../screens/completedOrdersStatsPage';
+import DashboardKpiDetailPage from '../screens/dashboardPage/DashboardKpiDetailPage';
 import TableOrdersDetailPage from '../screens/dashboardPage/TableOrdersDetailPage';
 import AllTablesOrdersDetailPage from '../screens/dashboardPage/AllTablesOrdersDetailPage';
 import MenuPage from '../screens/menuPage';
@@ -35,6 +36,14 @@ const AppRouter = () => (
       element={
         <ProtectedRoute>
           <MainLayout><SalesStatsPage /></MainLayout>
+        </ProtectedRoute>
+      } 
+    />
+    <Route 
+      path="/dashboard/kpi/:metric"
+      element={
+        <ProtectedRoute>
+          <MainLayout><DashboardKpiDetailPage /></MainLayout>
         </ProtectedRoute>
       } 
     />

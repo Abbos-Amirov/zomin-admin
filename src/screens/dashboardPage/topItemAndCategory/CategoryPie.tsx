@@ -40,7 +40,13 @@ export default function CategoryPie() {
 
   const rows = orderStatis?.ordersByCategory ?? [];
   const categories = rows.map((val) => val.collection);
-  const values = rows.map((val) => val.orders ?? 0);
+  /** Backend ba'zan `orders` 0 qaytaradi, `totalQuantity` yoki `revenue` bo‘lishi mumkin */
+  const values = rows.map((val) => {
+    const o = Number(val.orders ?? 0) || 0;
+    const q = Number(val.totalQuantity ?? 0) || 0;
+    const r = Number(val.revenue ?? 0) || 0;
+    return o > 0 ? o : q > 0 ? q : r > 0 ? r : 0;
+  });
   const hasData = categories.length > 0 && values.some((v) => Number(v) > 0);
 
   const data = useMemo(

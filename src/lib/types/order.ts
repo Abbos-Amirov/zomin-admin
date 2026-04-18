@@ -100,3 +100,12 @@ export interface TopSellingItems {
   productName: string;
   totalQuantity: number;
 }
+
+/** GET /admin/order/paid/summary — to‘langan buyurtmalar yig‘indisi */
+export interface PaidOrderSummary {
+  totalSum: number;
+  yearSum: number;
+  monthSum: number;
+  weekSum: number;
+  todaySum: number;
+}

@@ -70,6 +70,7 @@
     "todayIncome": "Доход за сегодня",
     "monthlySales": "Общая продажа",
     "avgOrderValue": "Средний чек",
+    "todaysSales": "Продажи за сегодня",
     "tableStatus": "Статус столов",
     "ordersPanel": "Панель заказов",
     "detail": "Подробнее",
@@ -129,7 +130,31 @@
     "takeawayNewOrderAlertOk": "Понятно",
     "takeawayPendingBadgeHint": "Ожидает подтверждения: {{count}}",
     "takeawayAcknowledgeButton": "Принято",
-    "takeawayAcknowledgedDone": "Принято"
+    "takeawayAcknowledgedDone": "Принято",
+    "kpiDetailBack": "К панели",
+    "kpiDetailBadge": "Подробная статистика",
+    "kpiDetailMore": "Дополнительные показатели",
+    "kpiDetailOpenOrders": "К списку заказов",
+    "kpiDetailOpenMenu": "Страница меню (товары)",
+    "kpiDetailOpenTables": "Страница столов",
+    "kpiDetailOpenSales": "Статистика продаж",
+    "kpiDetailShareOfMenu": "Доля меню",
+    "kpiDetailOfTotalItems": "Из {{total}} позиций всего",
+    "kpiDetailDeliveryShare": "Доставка / доп. (по API)",
+    "kpiDetailNoTablesInState": "Сейчас нет столов в этом состоянии.",
+    "kpiDetailNoWaiterCalls": "Нет активных вызовов официанта.",
+    "kpiDetailDesc": {
+      "total_orders": "Всего заказов в системе. Ниже — ожидающие и завершённые.",
+      "pending_orders": "Заказы в работе. Перейдите к списку заказов для обработки.",
+      "total_items": "Все позиции меню. Доступные и закончившиеся отдельно.",
+      "available_items": "Доступные к продаже позиции. Доля меню в процентах.",
+      "unavailable_items": "Временно недоступные или закончившиеся позиции.",
+      "free_tables": "Свободные столы.",
+      "tables_occupied": "Столы, занятые гостями.",
+      "cleaning_tables": "Столы на уборке или подготовке.",
+      "call_waiter": "Столы с активным вызовом официанта.",
+      "avg_order_value": "Сумма продаж за сегодня (статистика). Ниже — средний чек и доля доставки."
+    }
   },
   "menu": {
     "title": "Меню",
@@ -226,11 +251,12 @@
   },
   "sales": {
     "title": "Статистика продаж",
-    "totalSales": "Общая продажа (с момента запуска)",
+    "subtitleFromApi": "Основа: GET /admin/order/paid/summary. Пустые периоды — сумма по списку оплаченных заказов (на клиенте по датам).",
+    "totalSales": "Общая продажа",
     "lastYear": "Продажа за последний год",
     "lastMonth": "Продажа за последний месяц",
     "lastWeek": "Продажа за последнюю неделю",
-    "todayAfter7": "Продажа сегодня (после 7:00)"
+    "todayAfter7": "Продажа за сегодня"
   },
   "completedOrders": {
     "title": "Статистика выполненных заказов",

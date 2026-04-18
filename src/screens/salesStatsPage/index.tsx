@@ -2,8 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Stack,
   Paper,
@@ -17,112 +15,83 @@ import DateRangeIcon from "@mui/icons-material/DateRange";
 import TodayIcon from "@mui/icons-material/Today";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import OrderService from "../../services/Order.service";
-import { Order } from "../../lib/types/order";
+import type { PaidOrderSummary } from "../../lib/types/order";
+import {
+  computePaidTotalsFromOrders,
+  mergePaidSummaryWithComputed,
+} from "../../lib/utils/paidOrdersClientTotals";
 
-type SalesPeriod = "all" | "year" | "month" | "week" | "today7";
-
-const getToday7AM = (): Date => {
-  const d = new Date();
-  d.setHours(7, 0, 0, 0);
-  return d;
-};
-
-const sumByPeriod = (orders: Order[], period: SalesPeriod): number => {
-  const now = new Date();
-  const today7 = getToday7AM();
-
-  const toMs = (d: Date) => d.getTime();
-  const orderDate = (o: Order) => new Date((o as any).createdAt ?? o.createdAt).getTime();
-
-  return orders.reduce((sum, o) => {
-    const total = Number((o as any).orderTotal ?? o.orderTotal ?? 0) || 0;
-    const od = orderDate(o);
-
-    if (period === "all") return sum + total;
-
-    if (period === "year") {
-      const yearAgo = new Date(now);
-      yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-      if (od >= toMs(yearAgo)) return sum + total;
-      return sum;
-    }
-
-    if (period === "month") {
-      const monthAgo = new Date(now);
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      if (od >= toMs(monthAgo)) return sum + total;
-      return sum;
-    }
-
-    if (period === "week") {
-      const weekAgo = new Date(now);
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      if (od >= toMs(weekAgo)) return sum + total;
-      return sum;
-    }
-
-    if (period === "today7") {
-      if (od >= toMs(today7)) return sum + total;
-      return sum;
-    }
-
-    return sum;
-  }, 0);
-};
+type SummaryKey = keyof PaidOrderSummary;
 
 export default function SalesStatsPage() {
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [summary, setSummary] = useState<PaidOrderSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchSummary = useCallback(async () => {
     setLoading(true);
     try {
       const svc = new OrderService();
-      const data = await svc.getOrdersForStats();
-      setOrders(Array.isArray(data) ? data : []);
+      const [apiSummary, orders] = await Promise.all([
+        svc.getPaidOrderSummary(),
+        svc.getOrdersForStats(),
+      ]);
+      const computed = computePaidTotalsFromOrders(orders);
+      setSummary(mergePaidSummaryWithComputed(apiSummary, computed));
     } catch {
-      setOrders([]);
+      setSummary({
+        totalSum: 0,
+        yearSum: 0,
+        monthSum: 0,
+        weekSum: 0,
+        todaySum: 0,
+      });
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    fetchSummary();
+  }, [fetchSummary]);
 
-  const cards: { period: SalesPeriod; labelKey: string; icon: React.ReactNode; iconBg: string; iconColor: string }[] = [
+  const cards: {
+    key: SummaryKey;
+    labelKey: string;
+    icon: React.ReactNode;
+    iconBg: string;
+    iconColor: string;
+  }[] = [
     {
-      period: "all",
+      key: "totalSum",
       labelKey: "sales.totalSales",
       icon: <TrendingUpIcon />,
       iconBg: "#e3f2fd",
       iconColor: "#1565c0",
     },
     {
-      period: "year",
+      key: "yearSum",
       labelKey: "sales.lastYear",
       icon: <CalendarMonthIcon />,
       iconBg: "#e8f5e9",
       iconColor: "#2e7d32",
     },
     {
-      period: "month",
+      key: "monthSum",
       labelKey: "sales.lastMonth",
       icon: <DateRangeIcon />,
       iconBg: "#fff3e0",
       iconColor: "#e65100",
     },
     {
-      period: "week",
+      key: "weekSum",
       labelKey: "sales.lastWeek",
       icon: <TodayIcon />,
       iconBg: "#f3e5f5",
       iconColor: "#7b1fa2",
     },
     {
-      period: "today7",
+      key: "todaySum",
       labelKey: "sales.todayAfter7",
       icon: <AccessTimeIcon />,
       iconBg: "#e0f7fa",
@@ -130,10 +99,16 @@ export default function SalesStatsPage() {
     },
   ];
 
+  const fmt = (n: number) =>
+    `₩${Number(n).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+
   return (
     <Box sx={{ p: 2, maxWidth: 1200, mx: "auto" }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
+      <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
         {t("sales.title")}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        {t("sales.subtitleFromApi")}
       </Typography>
 
       {loading ? (
@@ -143,9 +118,9 @@ export default function SalesStatsPage() {
       ) : (
         <Grid container spacing={2}>
           {cards.map((c) => {
-            const value = sumByPeriod(orders, c.period);
+            const value = summary?.[c.key] ?? 0;
             return (
-              <Grid item xs={12} sm={6} md={4} key={c.period}>
+              <Grid item xs={12} sm={6} md={4} key={c.key}>
                 <Paper elevation={2} sx={{ p: 2, borderRadius: 2, height: "100%" }}>
                   <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
                     <Stack direction="row" spacing={1.5} alignItems="center">
@@ -155,7 +130,7 @@ export default function SalesStatsPage() {
                       </Typography>
                     </Stack>
                     <Typography variant="h5" sx={{ fontWeight: 700, color: "#2e7d32" }}>
-                      ₩{Number(value).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      {fmt(value)}
                     </Typography>
                   </Stack>
                 </Paper>
