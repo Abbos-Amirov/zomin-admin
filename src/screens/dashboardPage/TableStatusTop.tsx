@@ -274,13 +274,24 @@ export default function TableStatusTop() {
         };
       };
 
-      /** Stol raqami bo‘lmasa DELIVERY ni memberId bo‘yicha yig‘ish */
+      /**
+       * Stol raqami bo‘lmasa:
+       * - TABLE + tableId → `T:${tableId}` (QR stol, raqam maydoni bo‘sh bo‘lsa ham)
+       * - DELIVERY + memberId → `D:${memberId}`
+       * - DELIVERY + memberId yo‘q → `O:${orderId}` (QR / anonim — har bir buyurtma alohida yashik)
+       */
       const groupKeyForPanel = (order: any, row: any, orderView: PanelOrderView): string => {
         const tn = tableNumFrom(order, row);
         if (tn) return tn;
+        const tid = String(orderView.tableId ?? "").trim();
+        if (orderView.orderType === "TABLE" && tid) {
+          return `T:${tid}`;
+        }
         if (orderView.orderType === "DELIVERY") {
           const mid = String(order?.memberId ?? order?.member_id ?? "").trim();
-          return mid ? `D:${mid}` : "yetkazib";
+          if (mid) return `D:${mid}`;
+          const oid = String(orderView.orderId ?? "").trim();
+          return oid ? `O:${oid}` : "yetkazib";
         }
         return "";
       };
@@ -420,8 +431,33 @@ export default function TableStatusTop() {
   const tableNumbers = useMemo(() => {
     const fromOrders = Object.keys(groupedOrders);
     const unique = Array.from(new Set(fromOrders)).filter(Boolean);
-    return unique.sort((a, b) => Number(a) - Number(b));
+    return unique.sort((a, b) => {
+      const na = Number(a);
+      const nb = Number(b);
+      if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+      return a.localeCompare(b, undefined, { numeric: true });
+    });
   }, [groupedOrders]);
+
+  /** Panel kartochka sarlavhasi: raqamli stol yoki T:/O:/D:/yetkazib */
+  const panelGroupHeading = useCallback(
+    (tableKey: string) => {
+      if (tableKey.startsWith("T:")) {
+        const tid = tableKey.slice(2);
+        const tab = (Array.isArray(tableStatus) ? tableStatus : []).find(
+          (x) => String(x._id) === tid
+        );
+        if (tab != null && String(tab.tableNumber).trim() !== "")
+          return `${t("dashboard.linkDineInStolWord")} ${tab.tableNumber}`;
+        return t("dashboard.panelGroupTableById");
+      }
+      if (tableKey.startsWith("O:")) return t("dashboard.panelGroupQrOrder");
+      if (tableKey.startsWith("D:")) return tableKey;
+      if (tableKey === "yetkazib") return t("dashboard.panelGroupDeliveryAnon");
+      return `${t("dashboard.linkDineInStolWord")} ${tableKey}`;
+    },
+    [tableStatus, t]
+  );
 
   /** Har bir stol uchun bitta "yashik": shu stolga tegishli barcha link buyurtmalar */
   const linkDineInByTable = useMemo(() => {
@@ -461,15 +497,29 @@ export default function TableStatusTop() {
         orders.find((o) => o.customerPhone?.trim())?.customerPhone ?? orders[0]?.customerPhone ?? ""
       ).trim();
 
+      const orderSvc = new OrderService();
       if (memberId || customerPhone) {
+        const orderId = orders
+          .map((o) => o.orderId)
+          .filter((id) => id && String(id).trim() !== "")
+          .join(",");
         try {
-          const orderSvc = new OrderService();
           await orderSvc.purgeByMember({
             memberId: memberId || "",
             customerPhone: customerPhone || "",
+            orderId,
           });
         } catch (err) {
           console.error("handleLinkDineBoxPaid purgeByMember:", err);
+          return;
+        }
+      } else {
+        try {
+          for (const o of orders) {
+            await orderSvc.markOrderAsPaid(o.orderId);
+          }
+        } catch (err) {
+          console.error("handleLinkDineBoxPaid markOrderAsPaid:", err);
           return;
         }
       }
@@ -509,51 +559,105 @@ export default function TableStatusTop() {
     [dispatch, tableStatus]
   );
 
-  const handleCompleteTableOrders = useCallback(
-    async (tableNumber: string) => {
-      const orders = groupedOrders[tableNumber] ?? [];
-      const fromOrder = orders.find((o) => o.tableId)?.tableId;
-      const fromStore = (Array.isArray(tableStatus) ? tableStatus : []).find(
-        (t: Table) => String(t.tableNumber) === String(tableNumber)
-      )?._id;
-      const tableId = fromOrder || fromStore;
+  /** purge / to‘lovdan keyin stolni CLEANING (mavjud bo‘lsa) */
+  const applyTableCleaningAfterPurge = useCallback(
+    async (tableId: string | undefined) => {
       if (!tableId) return;
-
+      const currentTables = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
+      if (currentTables.length > 0) {
+        const nowIso = new Date().toISOString();
+        const nextTables = currentTables.map((tab) =>
+          tab._id === tableId
+            ? { ...tab, tableStatus: TableStatus.CLEANING, updatedAt: nowIso }
+            : tab
+        );
+        dispatch(setTableStatus(nextTables));
+      }
       try {
-        const orderSvc = new OrderService();
-        await orderSvc.purgeByTable(tableId);
-
-        // Stol holatini "tozalanmoqda"ga o‘tkazamiz (UIda darhol ko‘rinsin)
-        const currentTables = Array.isArray(tableStatus) ? (tableStatus as Table[]) : [];
-        if (currentTables.length > 0) {
-          const nowIso = new Date().toISOString();
-          const nextTables = currentTables.map((t) =>
-            t._id === tableId
-              ? { ...t, tableStatus: TableStatus.CLEANING, updatedAt: nowIso }
-              : t
-          );
-          dispatch(setTableStatus(nextTables));
-        }
-
-        // Backend table status ham sync bo‘lsin
         const tableSvc = new TableService();
         await tableSvc.updateChosenTable({
           _id: tableId,
           tableStatus: TableStatus.CLEANING,
         });
+      } catch (err) {
+        console.error("applyTableCleaningAfterPurge:", err);
+      }
+    },
+    [dispatch, tableStatus]
+  );
 
-        // Bu paneldan yo‘qolsin va delivered ro‘yxatdan o‘chirish
+  const handleCompleteTableOrders = useCallback(
+    async (tableKey: string) => {
+      const orders = groupedOrders[tableKey] ?? [];
+      const orderSvc = new OrderService();
+
+      const finish = () => {
         setDeliveredOrderIds((prev) => {
           const next = { ...prev };
-          delete next[String(tableNumber)];
+          delete next[String(tableKey)];
           return next;
         });
         refreshOrdersData(true);
+      };
+
+      try {
+        if (tableKey.startsWith("D:")) {
+          const memberId = tableKey.slice(2).trim();
+          if (memberId) {
+            const orderId = orders
+              .map((o) => o.orderId)
+              .filter((id) => id && String(id).trim() !== "")
+              .join(",");
+            await orderSvc.purgeByMember({ memberId, customerPhone: "", orderId });
+          }
+          const tid = orders.find((o) => o.tableId)?.tableId;
+          await applyTableCleaningAfterPurge(tid);
+          finish();
+          return;
+        }
+
+        if (tableKey.startsWith("T:")) {
+          const tableId = tableKey.slice(2).trim();
+          if (!tableId) return;
+          await orderSvc.purgeByTable(tableId);
+          await applyTableCleaningAfterPurge(tableId);
+          finish();
+          return;
+        }
+
+        if (tableKey.startsWith("O:")) {
+          const orderId = tableKey.slice(2).trim();
+          if (!orderId) return;
+          await orderSvc.markOrderAsPaid(orderId);
+          const tid = orders.find((o) => o.tableId)?.tableId;
+          await applyTableCleaningAfterPurge(tid);
+          finish();
+          return;
+        }
+
+        if (tableKey === "yetkazib") {
+          for (const o of orders) {
+            await orderSvc.markOrderAsPaid(o.orderId);
+          }
+          finish();
+          return;
+        }
+
+        const fromOrder = orders.find((o) => o.tableId)?.tableId;
+        const fromStore = (Array.isArray(tableStatus) ? tableStatus : []).find(
+          (t: Table) => String(t.tableNumber) === String(tableKey)
+        )?._id;
+        const tableId = fromOrder || fromStore;
+        if (!tableId) return;
+
+        await orderSvc.purgeByTable(tableId);
+        await applyTableCleaningAfterPurge(tableId);
+        finish();
       } catch (err) {
         console.error("handleCompleteTableOrders error:", err);
       }
     },
-    [dispatch, refreshOrdersData, groupedOrders, tableStatus]
+    [applyTableCleaningAfterPurge, refreshOrdersData, groupedOrders, tableStatus]
   );
 
   const handleDelivered = useCallback((tableNumber: string, orders: { orderId: string }[], e: React.MouseEvent) => {
@@ -987,14 +1091,21 @@ export default function TableStatusTop() {
                         boxShadow: 4,
                       },
                     }}
-                    onClick={() => navigate(`/orders-panel/table/${tableNumber}`)}
+                    onClick={() => {
+                      const tn = String(tableNumber).trim();
+                      if (/^\d+$/.test(tn)) {
+                        navigate(`/orders-panel/table/${encodeURIComponent(tn)}`);
+                      } else {
+                        navigate("/orders-panel/all");
+                      }
+                    }}
                   >
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
                       <Typography
                         variant="h4"
                         sx={{ fontWeight: 800, fontSize: { xs: "1.5rem", sm: "1.75rem" }, color: "primary.main" }}
                       >
-                        Stol {tableNumber}
+                        {panelGroupHeading(String(tableNumber))}
                       </Typography>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <Button

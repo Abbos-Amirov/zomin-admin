@@ -247,6 +247,10 @@ export function TakeawayAckProvider({ children }: PropsWithChildren) {
           await svc.purgeByMember({
             memberId: memberId || "",
             customerPhone: customerPhone || "",
+            orderId: memberOrders
+              .map((o) => o.orderId)
+              .filter((id) => id && String(id).trim() !== "")
+              .join(","),
           });
         } catch (err) {
           console.error("markMemberBoxPaid purgeByMember:", err);

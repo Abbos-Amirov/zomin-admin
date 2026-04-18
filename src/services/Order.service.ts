@@ -207,8 +207,12 @@ class OrderService {
     }
   }
 
-  /** Saboy «To'landi» — body: { memberId, customerPhone } */
-  public async purgeByMember(input: { memberId: string; customerPhone: string }): Promise<unknown> {
+  /** «To'landi» / purge — body: { memberId, customerPhone, orderId } (orderId: bitta id yoki vergul bilan bir nechta) */
+  public async purgeByMember(input: {
+    memberId: string;
+    customerPhone: string;
+    orderId: string;
+  }): Promise<unknown> {
     try {
       const url = `${this.path}/admin/order/purge-by-member`;
       const result = await axios.post(url, input, { withCredentials: true });
