@@ -191,71 +191,52 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                         ? (product.productVolume ?? 0) + " litre"
                         : (product.productSize ?? "NORMAL") + " size";
                     const productStat = product.productStatus;
+                    const isAvailable = productStat === ProductStatus.PROCESS;
                     return (
-                      <Stack key={product._id} className="product-card">
-                        <Stack
-                          className="product-img"
-                          sx={{ backgroundImage: `url(${imagePath})` }}
-                        >
-                          <div className="product-sale">{sizeVolume}</div>
-                        </Stack>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "space-between",
-                          }}
-                        >
-                          <Box className="product-desc">
-                            <span className="product-title">
-                              {product.productName}
-                            </span>
-                            <div className="product-desc">
-                              <MonetizationOnIcon sx={{ width: "20px" }} />
-                              {product.productPrice}
-                            </div>
-                          </Box>
+                      <Box key={product._id} className="product-card">
+                        <Box className="product-img-wrap">
                           <Box
-                            className="status"
-                            sx={{
-                              bgcolor:
-                                productStat === ProductStatus.PROCESS
-                                  ? "rgb(191, 213, 191)"
-                                  : "rgba(235, 192, 199, 0.894)",
-                              color:
-                                productStat === ProductStatus.PROCESS
-                                  ? "rgb(3, 153, 3)"
-                                  : "rgb(245, 84, 84)",
-                            }}
+                            className="product-img"
+                            sx={{ backgroundImage: `url(${imagePath})` }}
+                          />
+                          <span className="product-size-badge">{sizeVolume}</span>
+                          <span
+                            className={`product-status-badge ${
+                              isAvailable ? "is-available" : "is-paused"
+                            }`}
                           >
                             {productStat}
+                          </span>
+                        </Box>
+
+                        <Box className="product-info">
+                          <Box className="product-title" title={product.productName}>
+                            {product.productName}
+                          </Box>
+                          <Box className="product-price-row">
+                            <MonetizationOnIcon className="product-price-icon" />
+                            <span className="product-price-value">
+                              {product.productPrice}
+                            </span>
                           </Box>
                         </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            width: "100%",
-                            mt: 1,
-                          }}
-                        >
-                          {/* Left side: Edit + Delete */}
-                          <Box sx={{ display: "flex", gap: 1 }}>
+
+                        <Box className="product-actions">
+                          <Box className="product-actions-left">
                             <IconButton
                               size="small"
-                              color="primary"
+                              className="product-action-btn edit"
                               onClick={() => {
                                 setMode(ProductDialogMode.EDIT);
                                 setEdit(product);
                                 setOpen(true);
                               }}
-                              sx={{ ml: 2 }}
                             >
-                              <EditIcon fontSize="medium" />
+                              <EditIcon fontSize="small" />
                             </IconButton>
                             <IconButton
                               size="small"
-                              sx={{ color: "error.main" }}
+                              className="product-action-btn delete"
                               onClick={() =>
                                 productDeleteHandler({
                                   _id: product._id,
@@ -264,45 +245,31 @@ export default function ProductsPage(props: ProdcutsPageProps) {
                                 })
                               }
                             >
-                              <DeleteIcon fontSize="medium" />
+                              <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Box>
 
-                          {/* Right side: Mark Available / Unavailable */}
                           <Button
-                            variant="contained"
                             size="small"
-                            sx={{
-                              bgcolor:
-                              productStat === ProductStatus.PAUSE
-                                  ? "success.main"
-                                  : "error.main",
-                              "&:hover": {
-                                bgcolor:
-                                productStat === ProductStatus.PAUSE
-                                    ? "success.dark"
-                                    : "error.dark",
-                              },
-                              textTransform: "none",
-                              color: "#f8f8ff",
-                            }}
+                            className={`product-toggle-btn ${
+                              isAvailable ? "is-available" : "is-paused"
+                            }`}
                             onClick={() =>
                               productUpdateHandler({
                                 _id: product._id,
-                                productStatus:
-                                  productStat === ProductStatus.PROCESS
-                                    ? ProductStatus.PAUSE
-                                    : ProductStatus.PROCESS,
+                                productStatus: isAvailable
+                                  ? ProductStatus.PAUSE
+                                  : ProductStatus.PROCESS,
                                 existingImages: product.productImages,
                               })
                             }
                           >
-                             {productStat === ProductStatus.PAUSE
-                              ? t("menu.setProcess")
-                              : t("menu.setPause")}
+                            {isAvailable
+                              ? t("menu.setPause")
+                              : t("menu.setProcess")}
                           </Button>
                         </Box>
-                      </Stack>
+                      </Box>
                     );
                   })
                 ) : (

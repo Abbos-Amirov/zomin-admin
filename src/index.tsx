@@ -7,7 +7,10 @@ import { store } from "./app/store";
 import reportWebVitals from "./reportWebVitals";
 import ContextProvider from "./app/context/ContextProvider";
 import ThemeWrapper from "./app/ThemeWrapper";
+import { setupAxiosAuth } from "./lib/setupAxiosAuth";
 import "./css/global.css";
+
+setupAxiosAuth();
 
 const container = document.getElementById("root")!;
 const root = createRoot(container);

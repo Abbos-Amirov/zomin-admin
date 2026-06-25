@@ -1,9 +1,44 @@
 /* Global Styles */
+:root {
+  /* Premium dark restaurant palette (shared w/ client app) */
+  --z-bg: #0d0b09;
+  --z-bg-elevated: #161310;
+  --z-bg-surface: #1d1814;
+  --z-bg-surface-2: #251f19;
+  --z-border: rgba(212, 175, 92, 0.18);
+  --z-border-strong: rgba(212, 175, 92, 0.35);
+
+  --z-gold: #d4af37;
+  --z-gold-light: #e8cc7a;
+  --z-gold-dark: #a9842a;
+  --z-red: #8c1f2b;
+  --z-red-light: #b53041;
+
+  --z-text: #f3ead9;
+  --z-text-dim: #c7b89c;
+  --z-text-muted: #8d8170;
+
+  --z-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  --z-shadow-gold: 0 8px 24px rgba(212, 175, 92, 0.18);
+}
+
 * {
   font-family: 'Poppins', sans-serif;
 }
 
 body {
   font-family: 'Poppins', sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--z-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--z-gold-dark);
+  border-radius: 8px;
 }
 

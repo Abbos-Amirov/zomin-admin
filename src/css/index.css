@@ -3,11 +3,11 @@
   width: 260px;
   height: 35.68px;
   box-sizing: border-box;
-  border: 1px solid rgb(255, 255, 255);
+  border: 1px solid var(--z-border);
   border-radius: 18.5px 0px 0px 18.5px;
   padding-left: 17px;
-  box-shadow: 0px 4px 4px 0px rgba(213, 213, 213, 0.25);
-  background: hwb(0 90% 8% / 0.714);
+  color: var(--z-text);
+  background: var(--z-bg-surface);
 
 }
 
@@ -18,7 +18,7 @@
   line-height: 19px;
   letter-spacing: 0%;
   text-align: left;
-  color: rgb(74, 74, 74);
+  color: var(--z-text-muted);
 }
 
 .search-input-btn{

@@ -95,8 +95,8 @@
 }
 
 .table-status-avatar {
-  background-color: #ede7f6;
-  color: #5e35b1;
+  background-color: rgba(212, 175, 92, 0.16);
+  color: var(--z-gold);
   width: 36px;
   height: 36px;
 }
@@ -372,6 +372,11 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
+[data-theme="dark"] .table-card.available .table-status-label {
+  background: rgba(212, 175, 92, 0.1);
+  color: var(--z-text-dim);
+}
+
 .table-card-right {
   display: flex;
   flex-direction: row;
@@ -418,6 +423,11 @@
 .table-card.available .table-icon-avatar {
   background: rgba(0, 0, 0, 0.05);
   color: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .table-card.available .table-icon-avatar {
+  background: rgba(212, 175, 92, 0.12);
+  color: var(--z-text-dim);
 }
 
 /* Responsive Design */

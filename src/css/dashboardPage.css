@@ -34,8 +34,8 @@
 }
 
 .dashboard-header-avatar {
-  background-color: #ede7f6;
-  color: #5e35b1;
+  background-color: rgba(212, 175, 92, 0.16);
+  color: var(--z-gold);
   width: 40px;
   height: 40px;
 }
@@ -55,8 +55,8 @@
 }
 
 [data-theme="dark"] .kpi-item {
-  background-color: #1e1e1e;
-  border-color: rgba(255, 255, 255, 0.12);
+  background-color: var(--z-bg-surface);
+  border-color: var(--z-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -85,7 +85,7 @@
 }
 
 [data-theme="dark"] .kpi-item-label {
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--z-text);
 }
 
 .kpi-item-value {
@@ -93,15 +93,15 @@
 }
 
 [data-theme="dark"] .kpi-item-value {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--z-text);
 }
 
 [data-theme="dark"] .dashboard-card {
-  background-color: #1e1e1e;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: var(--z-bg-surface);
+  border: 1px solid var(--z-border);
 }
 
 [data-theme="dark"] .dashboard-header-title {
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--z-text);
 }
 

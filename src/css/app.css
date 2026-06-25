@@ -1,6 +1,6 @@
-/* Full page gray background */
+/* Full page background */
 .app-wrapper {
-  background-color: #eaeaea;
+  background-color: var(--z-bg);
   min-height: 100vh;
   padding: 0;
 }
@@ -16,7 +16,7 @@
 /* Main content area */
 .main-area {
   flex-grow: 1;
-  background-color: #fff;
+  background-color: var(--z-bg);
   padding: 30px;
   min-height: 100vh;
 }

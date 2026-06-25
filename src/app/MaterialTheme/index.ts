@@ -26,26 +26,31 @@ const lightPalette = {
 };
 
 /**
- * DARK THEME
+ * DARK THEME — premium restaurant (qora/oltin)
  */
 const darkPalette = {
 	mode: 'dark' as const,
 	background: {
-		default: '#121212',
-		paper: '#1e1e1e',
+		default: '#0d0b09',
+		paper: '#1d1814',
 	},
 	primary: {
-		contrastText: '#d7b586',
-		main: '#d7b586',
+		contrastText: '#0d0b09',
+		main: '#d4af37',
+		light: '#e8cc7a',
+		dark: '#a9842a',
 	},
 	secondary: {
-		contrastText: '#121212',
-		main: '#d7b586',
+		contrastText: '#f3ead9',
+		main: '#8c1f2b',
+		light: '#b53041',
+		dark: '#5e141d',
 	},
 	text: {
-		primary: '#ffffff',
-		secondary: '#b0b0b0',
+		primary: '#f3ead9',
+		secondary: '#c7b89c',
 	},
+	divider: 'rgba(212, 175, 92, 0.18)',
 };
 
 const getTheme = (darkMode: boolean) => {
@@ -67,8 +72,27 @@ const getTheme = (darkMode: boolean) => {
 					body: {
 						height: '100%',
 						minHeight: '100%',
-						backgroundColor: darkMode ? '#121212' : '#f4f6f8',
-						color: darkMode ? '#ffffff' : '#343434',
+						backgroundColor: darkMode ? '#0d0b09' : '#f4f6f8',
+						color: darkMode ? '#f3ead9' : '#343434',
+					},
+				},
+			},
+			MuiPaper: {
+				styleOverrides: {
+					root: darkMode
+						? {
+								backgroundImage: 'none',
+								border: '1px solid rgba(212, 175, 92, 0.14)',
+						  }
+						: {},
+				},
+			},
+			MuiButton: {
+				styleOverrides: {
+					root: {
+						borderRadius: 10,
+						textTransform: 'none' as const,
+						fontWeight: 600,
 					},
 				},
 			},
